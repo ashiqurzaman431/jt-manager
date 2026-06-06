@@ -1,0 +1,21 @@
+{
+  "name": "JT Manager",
+  "short_name": "JTM",
+  "description": "JumpTask Enterprise Multi-Account Manager",
+  "start_url": "/jt-manager/",
+  "scope": "/jt-manager/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#1565C0",
+  "theme_color": "#1565C0",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='100' fill='url(%23g)'/%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%231E88E5'/%3E%3Cstop offset='100%25' stop-color='%230D47A1'/%3E%3C/linearGradient%3E%3Ctext x='80' y='360' font-family='Arial Black' font-size='280' font-weight='900' fill='white'%3EJT%3C/text%3E%3Ccircle cx='420' cy='130' r='55' fill='%2300E676'/%3E%3Ctext x='420' y='148' font-family='Arial' font-size='52' font-weight='900' fill='%23004D40' text-anchor='middle'%3E%E2%9C%93%3C/text%3E%3C/svg%3E",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["productivity", "finance"],
+  "lang": "en"
+}
