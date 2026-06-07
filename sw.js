@@ -1,60 +1,45 @@
-const CACHE_NAME = 'jtm-v1';
-const FILES_TO_CACHE = [
-  '/jt-manager/',
-  '/jt-manager/index.html',
-  '/jt-manager/manifest.json',
-  '/jt-manager/sw.js'
-];
+const CACHE_NAME = 'jtm-v2';
 
-// Install — cache all app files
+// Install — skip waiting immediately, no pre-caching
 self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => {
-      return cache.addAll(FILES_TO_CACHE);
-    })
-  );
   self.skipWaiting();
 });
 
-// Activate — clean up old caches
+// Activate — delete ALL old caches, claim all clients instantly
 self.addEventListener('activate', event => {
   event.waitUntil(
-    caches.keys().then(keyList => {
-      return Promise.all(keyList.map(key => {
-        if (key !== CACHE_NAME) {
-          return caches.delete(key);
-        }
-      }));
-    })
+    caches.keys().then(keys =>
+      Promise.all(keys.map(key => caches.delete(key)))
+    ).then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
-// Fetch — serve from cache, fall back to network
+// Fetch — NETWORK FIRST, cache only as offline fallback
 self.addEventListener('fetch', event => {
-  // Skip non-GET requests and Google API calls (Drive, OAuth)
   if (event.request.method !== 'GET') return;
-  if (event.request.url.includes('googleapis.com')) return;
-  if (event.request.url.includes('accounts.google.com')) return;
-  if (event.request.url.includes('fonts.googleapis.com')) return;
+
+  // Never intercept Google API / OAuth / font calls
+  const url = event.request.url;
+  if (url.includes('googleapis.com')) return;
+  if (url.includes('accounts.google.com')) return;
+  if (url.includes('gsi/client')) return;
+  if (url.includes('fonts.googleapis.com')) return;
+  if (url.includes('fonts.gstatic.com')) return;
 
   event.respondWith(
-    caches.match(event.request).then(response => {
-      // Return cached version if available
-      if (response) return response;
-      // Otherwise fetch from network and cache it
-      return fetch(event.request).then(networkResponse => {
+    fetch(event.request)
+      .then(networkResponse => {
+        // Got a fresh response — update cache and return it
         if (networkResponse && networkResponse.status === 200) {
-          const responseClone = networkResponse.clone();
-          caches.open(CACHE_NAME).then(cache => {
-            cache.put(event.request, responseClone);
-          });
+          const clone = networkResponse.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
         }
         return networkResponse;
-      }).catch(() => {
-        // If both cache and network fail, return offline page
-        return caches.match('/jt-manager/index.html');
-      });
-    })
+      })
+      .catch(() => {
+        // Network failed — serve from cache (offline fallback)
+        return caches.match(event.request)
+          .then(cached => cached || caches.match('/jt-manager/index.html'));
+      })
   );
 });
