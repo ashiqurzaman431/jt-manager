@@ -404,7 +404,7 @@ body {
   position: fixed;
   top: 0; left: 0;
   height: 100vh;
-  width: 340px;
+  width: 400px;
   background: #fff;
   border-right: 1.5px solid var(--jt-border);
   box-shadow: 4px 0 24px rgba(21,101,192,0.10);
@@ -1169,7 +1169,7 @@ body {
       </div>
     </div>
     <div class="drive-indicator-row">
-      <div class="version-badge" id="avBadge" title="App Version">AV: V3.1</div>
+      <div class="version-badge" id="avBadge" title="App Version">AV: V3.2</div>
       <div class="version-badge" id="dvBadge" title="Data Version">DV: 2026.06.03.23.01.56</div>
       <div class="drive-dot green" id="driveDot" title="Drive: just saved"></div>
       <div class="unsaved-dot" id="unsavedDot" title="Unsaved changes"></div>
@@ -2004,7 +2004,7 @@ TaskRec01: task assigned, timer started.</div>
         <button id="btnSaveAppVer" onclick="saveAppVersion()" style="font-family:var(--mono);font-size:11.5px;padding:6px 14px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:#fff;color:var(--ink2);cursor:pointer;white-space:nowrap;">⬆ Save App Version</button>
         <button id="btnLoadAppVer" onclick="checkLatestAppVersion()" style="font-family:var(--mono);font-size:11.5px;padding:6px 14px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:#fff;color:var(--ink2);cursor:pointer;white-space:nowrap;">⬇ Load Latest App Version</button>
         <span style="font-family:var(--mono);font-size:10px;color:var(--ink3);background:var(--surface2);border:1px solid var(--border);border-radius:99px;padding:4px 12px;">🔒 Read-only · Managed by AI</span>
-        <span id="uhlvBadge" style="font-family:var(--mono);font-size:10px;color:var(--jt);background:var(--jt-light);border:1px solid var(--jt-border);border-radius:99px;padding:4px 12px;" title="Update History and Log Version — higher number wins on data load">UHLV: 17</span>
+        <span id="uhlvBadge" style="font-family:var(--mono);font-size:10px;color:var(--jt);background:var(--jt-light);border:1px solid var(--jt-border);border-radius:99px;padding:4px 12px;" title="Update History and Log Version — higher number wins on data load">UHLV: 18</span>
       </div>
     </div>
     <div style="font-family:var(--mono);font-size:11.5px;color:var(--ink3);margin-bottom:18px;line-height:1.7;background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;box-shadow:var(--shadow);">
@@ -2400,7 +2400,7 @@ let wordLibrary = [];
 // Increment UHLV any time bugLog or bugHistory is modified by AI
 // loadDataJson compares this vs JSON uhlv and keeps whichever is higher
 // ─────────────────────────────────────────
-let UHLV = 17;
+let UHLV = 18;
 /*BUG_LOG_START*/
 let bugLog = [
   {
@@ -4942,7 +4942,7 @@ window.deleteLink = function(taskId, index) {
   renderTasks();
   toast('Link removed');
 };
-const APP_V_VERSION = '3.1';
+const APP_V_VERSION = '3.2';
 
 function parseAppVersion(version) {
   if (!version || typeof version !== 'string') return null;
@@ -6576,24 +6576,35 @@ function renderWordLibrary() {
     body.innerHTML = `<div style="text-align:center;padding:32px 10px;font-family:var(--mono);font-size:12px;color:var(--ink3);">No word libraries yet.<br>Click + Add Website below.</div>`;
     return;
   }
-  body.innerHTML = wordLibrary.map(site => `
-    <div class="wd-banner" id="wdBanner_${site.id}">
-      <div class="wd-banner-header" onclick="toggleWdBanner('${site.id}')">
-        <span class="wd-banner-name">${site.siteName}</span>
-        <span class="wd-banner-chevron open" id="wdBannerChev_${site.id}">▼</span>
+  const WD_SITE_COLORS = [
+    { bg: 'var(--jt-light)',    border: 'var(--jt-border)',    text: 'var(--jt)'    },
+    { bg: 'var(--green-light)', border: 'var(--green-border)', text: 'var(--green)' },
+    { bg: 'var(--amber-light)', border: 'var(--amber-border)', text: 'var(--amber)' },
+    { bg: 'var(--purple-light)',border: 'var(--purple-border)',text: 'var(--purple)' },
+    { bg: 'var(--red-light)',   border: 'var(--red-border)',   text: 'var(--red)'   },
+  ];
+  body.innerHTML = wordLibrary.map((site, siteIdx) => {
+    const col = WD_SITE_COLORS[siteIdx % WD_SITE_COLORS.length];
+    return `
+    <div class="wd-banner" id="wdBanner_${site.id}" style="border-color: ${col.border};">
+      <div class="wd-banner-header" onclick="toggleWdBanner('${site.id}')" style="background: ${col.bg};">
+        <span class="wd-banner-name" style="color: ${col.text};">${site.siteName}</span>
+        <span class="wd-banner-chevron open" id="wdBannerChev_${site.id}" style="color: ${col.text};">▼</span>
       </div>
       <div class="wd-banner-body open" id="wdBannerBody_${site.id}">
         ${(site.pageVersions||[]).map(ver => `
           <div>
             <div class="wd-version-row">
-              <span class="wd-version-name" onclick="toggleWdVersion('${ver.id}')">${ver.name}</span>
+              <span class="wd-version-name" onclick="toggleWdVersion('${ver.id}')" style="color: ${col.text}; opacity: 0.8;">${ver.name}</span>
               <span class="wd-version-chevron open" id="wdVerChev_${ver.id}" onclick="toggleWdVersion('${ver.id}')">▼</span>
-              <button class="wd-add-word-btn" onclick="openAddWordModal('${site.id}','${ver.id}')" title="Add word card">＋</button>
+              <button class="wd-add-word-btn" onclick="openAddWordModal('${site.id}','${ver.id}')" title="Add word card" style="color: ${col.text};">＋</button>
             </div>
             <div class="wd-version-cards open" id="wdVerCards_${ver.id}">
               ${(ver.words||[]).map(w => `
-                <div class="wd-word-card" onclick="copyWdWord('${w.id}','${site.id}','${ver.id}')">
-                  <div class="wd-card-title">${w.title}</div>
+                <div class="wd-word-card" onclick="copyWdWord('${w.id}','${site.id}','${ver.id}')"
+                  onmouseenter="this.style.borderColor='${col.border}'"
+                  onmouseleave="this.style.borderColor=''">
+                  <div class="wd-card-title" style="background: ${col.bg}; border-bottom-color: ${col.border}; color: ${col.text};">${w.title}</div>
                   <div class="wd-card-word">${w.word}</div>
                 </div>
               `).join('')}
@@ -6601,10 +6612,11 @@ function renderWordLibrary() {
             </div>
           </div>
         `).join('')}
-        <button onclick="openAddVersionModal('${site.id}')" style="font-family:var(--mono);font-size:10px;color:var(--jt);background:var(--jt-light);border:1px solid var(--jt-border);border-radius:6px;padding:3px 8px;cursor:pointer;margin:2px 0 4px;">+ Add Page Version</button>
+        <button onclick="openAddVersionModal('${site.id}')" style="font-family:var(--mono);font-size:10px;color:${col.text};background:${col.bg};border:1px solid ${col.border};border-radius:6px;padding:3px 8px;cursor:pointer;margin:2px 0 4px;">+ Add Page Version</button>
       </div>
     </div>
-  `).join('');
+  `;
+  }).join('');
 }
 
 window.toggleWdBanner = function(siteId) {
@@ -6902,20 +6914,23 @@ function setWdPanelVisibility(visible) {
 
 // ── Click-outside: dock both panels ───────────────────────────────────────
 document.addEventListener('mousedown', function(e) {
+  // Never collapse panels when interacting with an open modal
+  if (e.target.closest('.modal-overlay')) return;
+
   const acPanel = document.getElementById('acPanel');
   const acTab   = document.getElementById('acTab');
   const wdPanel = document.getElementById('wdPanel');
   const wdTab   = document.getElementById('wdTab');
 
-  if (_acOpen && acPanel && acTab &&
-      !acPanel.contains(e.target) && !acTab.contains(e.target)) {
+  if (_acOpen && acPanel && !acPanel.classList.contains('ac-hidden') &&
+      acTab && !acPanel.contains(e.target) && !acTab.contains(e.target)) {
     _acOpen = false;
     acPanel.classList.remove('ac-open');
     acTab.style.display = '';
   }
 
-  if (_wdOpen && wdPanel && wdTab &&
-      !wdPanel.contains(e.target) && !wdTab.contains(e.target)) {
+  if (_wdOpen && wdPanel && !wdPanel.classList.contains('wd-hidden') &&
+      wdTab && !wdPanel.contains(e.target) && !wdTab.contains(e.target)) {
     _wdOpen = false;
     wdPanel.classList.remove('wd-open');
     wdTab.style.display = '';
@@ -6932,4 +6947,4 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
-// 13</body></html>
+// 14</body></html>
