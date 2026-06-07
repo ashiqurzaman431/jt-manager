@@ -487,20 +487,22 @@ body {
   border: 1.5px solid var(--border2);
   border-radius: 10px;
   overflow: hidden;
-  box-shadow: 0 1px 6px rgba(21,101,192,0.06);
+  box-shadow: 0 2px 10px rgba(21,101,192,0.10);
+  margin-bottom: 2px;
 }
 .wd-banner-header {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 12px 14px;
+  padding: 13px 14px;
   background: var(--jt-light);
   cursor: pointer;
   user-select: none;
+  border-bottom: 2px solid var(--jt-border);
 }
 .wd-banner-name {
   font-family: var(--mono);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
   color: var(--jt);
   flex: 1;
@@ -508,29 +510,35 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  letter-spacing: 0.2px;
 }
 .wd-banner-chevron { font-size: 10px; color: var(--jt); transition: transform 0.18s; flex-shrink: 0; }
 .wd-banner-chevron.open { transform: rotate(180deg); }
-.wd-banner-body { display: none; flex-direction: column; gap: 4px; padding: 6px 8px; }
+.wd-banner-body { display: none; flex-direction: column; gap: 4px; padding: 8px 10px 10px; }
 .wd-banner-body.open { display: flex; }
 
 .wd-version-row {
   display: flex;
   align-items: center;
   gap: 5px;
-  padding: 6px 8px 3px;
+  padding: 6px 8px 3px 10px;
+  border-left: 3px solid var(--border2);
+  margin-left: 2px;
+  margin-top: 4px;
 }
 .wd-version-name {
   font-family: var(--mono);
-  font-size: 11px;
+  font-size: 11.5px;
   color: var(--ink3);
-  font-weight: 600;
+  font-weight: 700;
   flex: 1;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
 }
 .wd-version-chevron { font-size: 9px; color: var(--ink3); transition: transform 0.15s; flex-shrink: 0; cursor: pointer; }
 .wd-version-chevron.open { transform: rotate(180deg); }
@@ -539,12 +547,13 @@ body {
   color: var(--jt); font-size: 15px; line-height: 1;
   flex-shrink: 0; padding: 0 2px;
 }
-.wd-version-cards { display: none; flex-direction: column; gap: 6px; padding: 0 4px 8px; }
+.wd-version-cards { display: none; flex-direction: column; gap: 6px; padding: 0 4px 8px 14px; }
 .wd-version-cards.open { display: flex; }
 
 .wd-word-card {
   background: #fff;
   border: 1.5px solid var(--border2);
+  border-left: 3px solid var(--jt-border);
   border-radius: var(--radius-sm);
   overflow: hidden;
   cursor: pointer;
@@ -559,20 +568,20 @@ body {
   background: var(--jt-light);
   border-bottom: 1px solid var(--jt-border);
   font-family: var(--mono);
-  font-size: 10.5px;
+  font-size: 9.5px;
   font-weight: 700;
   color: var(--jt);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  padding: 5px 10px;
+  letter-spacing: 0.8px;
+  padding: 4px 10px;
 }
 .wd-card-word {
   font-family: var(--mono);
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 700;
   color: var(--ink);
-  padding: 8px 10px;
-  line-height: 1.4;
+  padding: 9px 10px;
+  line-height: 1.45;
   word-break: break-word;
   background: #fff;
 }
@@ -2400,7 +2409,7 @@ let wordLibrary = [];
 // Increment UHLV any time bugLog or bugHistory is modified by AI
 // loadDataJson compares this vs JSON uhlv and keeps whichever is higher
 // ─────────────────────────────────────────
-let UHLV = 18;
+let UHLV = 19;
 /*BUG_LOG_START*/
 let bugLog = [
   {
@@ -2471,6 +2480,14 @@ let bugLog = [
 /*BUG_LOG_END*/
 /*BUG_HISTORY_START*/
 let bugHistory = [
+  {
+    "id": "UPDATE-056",
+    "title": "WD Panel visual hierarchy — site / version / word levels now visually distinct",
+    "date": "2026.06.07",
+    "status": "resolved",
+    "report": "Word Display panel had three hierarchy levels (website, page version, word card) that all looked visually similar — no structural contrast between them.",
+    "fix": "12 CSS + template changes: .wd-banner stronger shadow + margin; .wd-banner-header 2px bottom border; .wd-banner-name 14px + letter-spacing; .wd-banner-body padding increased; .wd-version-row colored left-border accent + indent; .wd-version-name UPPERCASE + 0.4px spacing; .wd-version-cards indented 14px; .wd-word-card 3px colored left border; .wd-card-title label shrunk to 9.5px; .wd-card-word bumped to 15px; version row border-left-color tied to site color; word card left-border color preserved on mouseleave. UHLV bumped 18\u219219, APP_V_VERSION bumped 3.2\u21923.3."
+  },
   {
     "id": "UPDATE-055",
     "title": "gisSignIn / gisSignOut not accessible from onclick — exposed to window scope",
@@ -4942,7 +4959,7 @@ window.deleteLink = function(taskId, index) {
   renderTasks();
   toast('Link removed');
 };
-const APP_V_VERSION = '3.2';
+const APP_V_VERSION = '3.3';
 
 function parseAppVersion(version) {
   if (!version || typeof version !== 'string') return null;
@@ -6594,16 +6611,17 @@ function renderWordLibrary() {
       <div class="wd-banner-body open" id="wdBannerBody_${site.id}">
         ${(site.pageVersions||[]).map(ver => `
           <div>
-            <div class="wd-version-row">
-              <span class="wd-version-name" onclick="toggleWdVersion('${ver.id}')" style="color: ${col.text}; opacity: 0.8;">${ver.name}</span>
+            <div class="wd-version-row" style="border-left-color: ${col.border};">
+              <span class="wd-version-name" onclick="toggleWdVersion('${ver.id}')" style="color: ${col.text};">${ver.name}</span>
               <span class="wd-version-chevron open" id="wdVerChev_${ver.id}" onclick="toggleWdVersion('${ver.id}')">▼</span>
               <button class="wd-add-word-btn" onclick="openAddWordModal('${site.id}','${ver.id}')" title="Add word card" style="color: ${col.text};">＋</button>
             </div>
             <div class="wd-version-cards open" id="wdVerCards_${ver.id}">
               ${(ver.words||[]).map(w => `
                 <div class="wd-word-card" onclick="copyWdWord('${w.id}','${site.id}','${ver.id}')"
+                  style="border-left-color: ${col.border};"
                   onmouseenter="this.style.borderColor='${col.border}'"
-                  onmouseleave="this.style.borderColor=''">
+                  onmouseleave="this.style.borderColor=''; this.style.borderLeftColor='${col.border}'">
                   <div class="wd-card-title" style="background: ${col.bg}; border-bottom-color: ${col.border}; color: ${col.text};">${w.title}</div>
                   <div class="wd-card-word">${w.word}</div>
                 </div>
