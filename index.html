@@ -8,60 +8,62 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="JT Manager">
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,400;0,500;1,400&amp;family=DM+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
 :root {
-  --bg: #f0f4ff;
-  --surface: #ffffff;
-  --surface2: #f5f8ff;
-  --border: rgba(21,101,192,0.10);
-  --border2: rgba(21,101,192,0.20);
-  --ink: #0d1b3e;
-  --ink2: #1e3a6e;
-  --ink3: #6b84b0;
+  --bg: #0a0c12;
+  --surface: #111318;
+  --surface2: #161921;
+  --border: rgba(255,255,255,0.06);
+  --border2: rgba(255,255,255,0.10);
+  --ink: #e8ecf4;
+  --ink2: #b4bdd0;
+  --ink3: #616d85;
 
-  --jt: #1565C0;
-  --jt2: #1976D2;
-  --jt-light: rgba(21,101,192,0.08);
-  --jt-border: rgba(21,101,192,0.25);
-  --jt-grad: linear-gradient(135deg, #1565C0, #0d47a1);
+  --jt: #4f8ef7;
+  --jt2: #6ba3ff;
+  --jt-light: rgba(79,142,247,0.10);
+  --jt-border: rgba(79,142,247,0.28);
+  --jt-grad: linear-gradient(135deg, #4f8ef7, #2563eb);
 
-  --green: #1a7a3c;
-  --green-light: rgba(26,122,60,0.09);
-  --green-border: rgba(26,122,60,0.25);
+  --green: #34d399;
+  --green-light: rgba(52,211,153,0.09);
+  --green-border: rgba(52,211,153,0.25);
 
-  --amber: #d97706;
-  --amber-light: rgba(217,119,6,0.09);
-  --amber-border: rgba(217,119,6,0.25);
+  --amber: #fbbf24;
+  --amber-light: rgba(251,191,36,0.09);
+  --amber-border: rgba(251,191,36,0.28);
 
-  --red: #c0392b;
-  --red-light: rgba(192,57,43,0.08);
-  --red-border: rgba(192,57,43,0.25);
+  --red: #f87171;
+  --red-light: rgba(248,113,113,0.09);
+  --red-border: rgba(248,113,113,0.28);
 
-  --purple: #7c3aed;
-  --purple-light: rgba(124,58,237,0.08);
-  --purple-border: rgba(124,58,237,0.25);
+  --purple: #a78bfa;
+  --purple-light: rgba(167,139,250,0.09);
+  --purple-border: rgba(167,139,250,0.28);
 
-  --gray: #6b7280;
-  --gray-light: rgba(107,114,128,0.09);
-  --gray-border: rgba(107,114,128,0.22);
+  --gray: #64748b;
+  --gray-light: rgba(100,116,139,0.10);
+  --gray-border: rgba(100,116,139,0.25);
 
-  --mono: 'DM Mono', monospace;
-  --sans: 'DM Sans', sans-serif;
-  --radius: 14px;
+  --mono: 'JetBrains Mono', monospace;
+  --sans: 'Syne', sans-serif;
+  --radius: 12px;
   --radius-sm: 8px;
-  --shadow: 0 2px 12px rgba(21,101,192,0.07), inset 0 1px 0 rgba(255,255,255,0.9);
-  --shadow-md: 0 4px 24px rgba(21,101,192,0.12), inset 0 1px 0 rgba(255,255,255,0.9);
+  --shadow: 0 1px 8px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.04);
+  --shadow-md: 0 4px 24px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06);
 }
 
 * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-html { scroll-behavior:smooth; color-scheme:light; }
+html { scroll-behavior:smooth; color-scheme:dark; }
 ::-webkit-scrollbar { width:5px; }
-::-webkit-scrollbar-thumb { background:rgba(21,101,192,0.2); border-radius:99px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:rgba(79,142,247,0.18); border-radius:99px; }
+::-webkit-scrollbar-thumb:hover { background:rgba(79,142,247,0.35); }
 
 body {
-  font-size: 15.6px;
+  font-size: 15px;
   background: var(--bg);
   color: var(--ink);
   font-family: var(--sans);
@@ -69,14 +71,15 @@ body {
   padding-bottom: 80px;
   overflow-x: hidden;
   background-image:
-    radial-gradient(circle at 10% 20%, rgba(21,101,192,0.06) 0%, transparent 50%),
-    radial-gradient(circle at 90% 80%, rgba(13,71,161,0.05) 0%, transparent 50%);
+    radial-gradient(ellipse at 15% 10%, rgba(79,142,247,0.07) 0%, transparent 55%),
+    radial-gradient(ellipse at 85% 90%, rgba(37,99,235,0.05) 0%, transparent 55%),
+    radial-gradient(ellipse at 50% 50%, rgba(10,12,20,0.8) 0%, transparent 100%);
 }
 
 #rain-canvas {
   position:fixed; top:0; left:0;
   width:100%; height:100%;
-  pointer-events:none; z-index:0; opacity:0.15;
+  pointer-events:none; z-index:0; opacity:0.07;
 }
 
 .app { position:relative; z-index:1; max-width:1300px; margin:0 auto; padding:0 18px; }
@@ -92,28 +95,29 @@ body {
   background: var(--jt-grad);
   border-radius:10px;
   display:flex; align-items:center; justify-content:center;
-  font-family:var(--mono); font-size:14.3px; font-weight:600; color:#fff;
-  box-shadow:0 2px 10px rgba(21,101,192,0.35);
+  font-family:var(--mono); font-size:13px; font-weight:700; color:#fff;
+  box-shadow:0 0 0 1px rgba(79,142,247,0.3), 0 4px 14px rgba(79,142,247,0.35);
   flex-shrink:0;
 }
-.topbar-title { font-family:var(--mono); font-size:19.8px; font-weight:500; color:var(--ink); letter-spacing:-0.3px; }
-.topbar-sub { font-family:var(--mono); font-size:11px; color:var(--ink3); margin-top:2px; }
+.topbar-title { font-family:var(--sans); font-size:18px; font-weight:700; color:var(--ink); letter-spacing:-0.5px; }
+.topbar-sub { font-family:var(--mono); font-size:10px; color:var(--ink3); margin-top:2px; }
 .version-badge {
-  font-family:var(--mono); font-size:11px;
+  font-family:var(--mono); font-size:10px;
   background:var(--jt-light); color:var(--jt);
-  border:1px solid var(--jt-border); padding:5px 12px; border-radius:99px;
+  border:1px solid var(--jt-border); padding:4px 11px; border-radius:99px;
+  letter-spacing:0.3px;
 }
 
 /* ── NAV ── */
 .nav {
-  display:flex; background:#fff;
+  display:flex; background:var(--surface);
   border:1px solid var(--border); border-radius:var(--radius);
   padding:4px; margin-bottom:24px; box-shadow:var(--shadow);
 }
 .nav-btn {
-  flex:1; padding:11px 4px; border:1px solid transparent;
+  flex:1; padding:10px 4px; border:1px solid transparent;
   background:transparent; color:var(--ink3);
-  font-family:var(--mono); font-size:12.1px; font-weight:500;
+  font-family:var(--mono); font-size:11.5px; font-weight:500;
   cursor:pointer; border-radius:var(--radius-sm); transition:all 0.18s;
   display:flex; align-items:center; justify-content:center; gap:6px;
 }
@@ -121,8 +125,9 @@ body {
 .nav-btn.active {
   background:var(--jt-light); color:var(--jt);
   border-color:var(--jt-border); font-weight:600;
+  box-shadow:0 0 0 1px var(--jt-border) inset;
 }
-.nav-icon { font-size:14.3px; }
+.nav-icon { font-size:13px; }
 
 /* ── PAGE VIEWS ── */
 .page { display:none; }
@@ -134,9 +139,9 @@ body {
   top: 0; right: 0;
   height: 100vh;
   width: 300px;
-  background: #fff;
-  border-left: 1.5px solid var(--jt-border);
-  box-shadow: -4px 0 24px rgba(21,101,192,0.10);
+  background: var(--surface);
+  border-left: 1px solid var(--border2);
+  box-shadow: -4px 0 40px rgba(0,0,0,0.5);
   z-index: 800;
   display: flex;
   flex-direction: column;
@@ -198,7 +203,8 @@ body {
   padding: 14px 14px 12px;
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
-  background: var(--jt-light);
+  background: rgba(79,142,247,0.07);
+  backdrop-filter: blur(10px);
 }
 #acPanelTitle {
   font-family: var(--mono);
@@ -389,14 +395,14 @@ body {
 
 /* Flow card enlarged */
 .ac-flow-card {
-  background: #fff;
+  background: var(--surface2);
   border: 1.5px solid var(--border2);
   border-radius: 10px;
   padding: 12px 12px 10px;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  box-shadow: 0 2px 10px rgba(21,101,192,0.07);
+  box-shadow: var(--shadow);
 }
 
 /* ── SECTION TITLE ── */
@@ -411,7 +417,7 @@ body {
   display:flex; flex-wrap:wrap; gap:8px; margin-bottom:24px;
 }
 .stat-chip {
-  background:#fff; border:1px solid var(--border);
+  background:var(--surface); border:1px solid var(--border);
   border-radius:var(--radius); padding:12px 16px;
   box-shadow:var(--shadow); min-width:100px; flex:1;
   cursor:pointer; transition:border-color 0.15s;
@@ -429,7 +435,7 @@ body {
 /* ── DASHBOARD ACCOUNT CARDS ── */
 .dash-cards { display:grid; grid-template-columns:repeat(auto-fill, minmax(260px,1fr)); gap:14px; margin-bottom:28px; }
 .dash-card {
-  background:#fff; border:1px solid var(--border);
+  background:var(--surface); border:1px solid var(--border);
   border-radius:var(--radius); padding:16px;
   box-shadow:var(--shadow); position:relative; overflow:hidden;
   transition:box-shadow 0.15s, border-color 0.15s;
@@ -439,7 +445,7 @@ body {
   content:''; position:absolute; top:0; left:0; right:0; height:3px;
   background:var(--jt-grad);
 }
-.dash-card.dash-card-ready { border-color:var(--green-border); background:linear-gradient(160deg,#f0fdf4 0%,#fff 60%); }
+.dash-card.dash-card-ready { border-color:var(--green-border); background:linear-gradient(160deg,rgba(52,211,153,0.07) 0%,var(--surface) 60%); }
 .dash-card.dash-card-ready::before { background:linear-gradient(90deg,var(--green),#34d399); }
 .dash-card-head { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:12px; }
 .dash-card-name { font-size:15.4px; font-weight:600; color:var(--ink); }
@@ -480,7 +486,7 @@ body {
   display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:8px;
 }
 .earnings-card {
-  background:#fff; border:1px solid var(--border);
+  background:var(--surface); border:1px solid var(--border);
   border-radius:var(--radius); padding:18px 20px;
   box-shadow:var(--shadow); text-align:center;
 }
@@ -489,12 +495,12 @@ body {
 .earnings-sub { font-family:var(--mono); font-size:9.9px; color:var(--ink3); margin-top:3px; }
 
 /* ── TASK MANAGEMENT ── */
-.task-tabs { display:flex; gap:4px; background:#fff; border:1px solid var(--border); border-radius:var(--radius); padding:4px; margin-bottom:16px; box-shadow:var(--shadow); }
+.task-tabs { display:flex; gap:4px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:4px; margin-bottom:16px; box-shadow:var(--shadow); }
 .task-tab { flex:1; padding:9px; border-radius:var(--radius-sm); border:1px solid transparent; background:transparent; color:var(--ink3); font-family:var(--mono); font-size:12.1px; cursor:pointer; transition:all 0.15s; }
 .task-tab.active { background:var(--jt-light); color:var(--jt); border-color:var(--jt-border); font-weight:600; }
 
 .task-add-panel {
-  background:#fff; border:1px solid var(--border);
+  background:var(--surface); border:1px solid var(--border);
   border-radius:var(--radius); margin-bottom:20px; box-shadow:var(--shadow);
 }
 .panel-header {
@@ -517,7 +523,7 @@ body {
 .field { display:flex; flex-direction:column; gap:5px; }
 .field label { font-family:var(--mono); font-size:11px; color:var(--ink3); text-transform:uppercase; }
 .field input, .field select, .field textarea {
-  background:#fafbff; border:1px solid var(--border2);
+  background:var(--surface2); border:1px solid var(--border2);
   border-radius:var(--radius-sm); color:var(--ink);
   font-family:var(--mono); font-size:14.3px; padding:9px 10px; outline:none;
 }
@@ -530,7 +536,7 @@ body {
   border:1.5px dashed var(--border2); border-radius:var(--radius-sm);
   padding:16px; text-align:center; cursor:pointer;
   font-family:var(--mono); font-size:12.1px; color:var(--ink3);
-  background:#fafbff; transition:border-color 0.15s;
+  background:var(--surface2); transition:border-color 0.15s;
   position:relative;
 }
 .thumb-upload-area:hover { border-color:var(--jt); }
@@ -561,7 +567,7 @@ body {
 /* ── TASK CARDS ── */
 .tasks-list { display:flex; flex-direction:column; gap:10px; }
 .task-card {
-  background:#fff; border:1px solid var(--border);
+  background:var(--surface); border:1px solid var(--border);
   border-radius:var(--radius); padding:14px 16px;
   box-shadow:var(--shadow); display:flex; align-items:flex-start; gap:14px;
 }
@@ -590,7 +596,7 @@ body {
   .acc-mgmt-layout { grid-template-columns:1fr; }
 }
 .acc-list-panel {
-  background:#fff; border:1px solid var(--border);
+  background:var(--surface); border:1px solid var(--border);
   border-radius:var(--radius); box-shadow:var(--shadow); overflow:hidden;
 }
 .acc-list-header {
@@ -610,7 +616,7 @@ body {
 .acc-list-item-sub { font-family:var(--mono); font-size:11px; color:var(--ink3); margin-top:1px; }
 
 .acc-detail-panel {
-  background:#fff; border:1px solid var(--border);
+  background:var(--surface); border:1px solid var(--border);
   border-radius:var(--radius); box-shadow:var(--shadow); overflow:hidden;
   min-width:0;
 }
@@ -659,7 +665,7 @@ body {
   flex:1; padding:7px; border-radius:6px; border:none; background:transparent;
   color:var(--ink3); font-family:var(--mono); font-size:11px; cursor:pointer; transition:all 0.15s;
 }
-.acc-right-tab.active { background:#fff; color:var(--jt); font-weight:600; box-shadow:0 1px 4px rgba(21,101,192,0.1); }
+.acc-right-tab.active { background:var(--surface); color:var(--jt); font-weight:600; box-shadow:0 1px 4px rgba(79,142,247,0.2); }
 
 /* Active tasks list in account */
 .acc-active-task {
@@ -677,7 +683,7 @@ body {
 .acc-task-status-btns { display:flex; gap:4px; margin-top:6px; flex-wrap:wrap; }
 .btn-status-change {
   font-family:var(--mono); font-size:9.9px; padding:3px 8px; border-radius:99px;
-  border:1px solid var(--border2); background:#fff; color:var(--ink2); cursor:pointer;
+  border:1px solid var(--border2); background:var(--surface2); color:var(--ink2); cursor:pointer;
   transition:all 0.12s;
 }
 .btn-status-change:hover { border-color:var(--jt); color:var(--jt); }
@@ -688,7 +694,7 @@ body {
 
 /* History items */
 .history-item {
-  background:#fff; border:1px solid var(--border);
+  background:var(--surface); border:1px solid var(--border);
   border-radius:var(--radius-sm); padding:10px 12px; margin-bottom:8px;
   position:relative;
 }
@@ -697,7 +703,7 @@ body {
   width:4px; border-radius:var(--radius-sm) 0 0 var(--radius-sm);
 }
 .history-item.task-hist::before { background:var(--jt); }
-.history-item.payout-hist { background:linear-gradient(120deg,#f0fdf4 0%,#dcfce7 100%); border:1.5px solid var(--green-border); }
+.history-item.payout-hist { background:linear-gradient(120deg,rgba(52,211,153,0.07) 0%,rgba(52,211,153,0.12) 100%); border:1.5px solid var(--green-border); }
 .history-item.payout-hist::before { background:var(--green); width:5px; }
 .history-item-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:3px; }
 .history-item-title { font-size:13.2px; font-weight:500; color:var(--ink); }
@@ -719,8 +725,8 @@ body {
 }
 .modal-overlay.open { display:flex; }
 .modal {
-  background:#fff; border-radius:var(--radius); padding:24px;
-  width:100%; max-width:420px; box-shadow:0 8px 40px rgba(21,101,192,0.2);
+  background:var(--surface); border:1px solid var(--border2); border-radius:var(--radius); padding:24px;
+  width:100%; max-width:420px; box-shadow:0 8px 40px rgba(0,0,0,0.6);
   max-height:90vh; overflow-y:auto;
 }
 .modal-title { font-family:var(--mono); font-size:15.4px; font-weight:600; color:var(--ink); margin-bottom:18px; display:flex; align-items:center; justify-content:space-between; }
@@ -763,8 +769,8 @@ body {
 
 .save-bar {
   position:fixed; bottom:0; left:0; right:0;
-  background:rgba(255,255,255,0.93); backdrop-filter:blur(20px);
-  border-top:1px solid var(--border);
+  background:rgba(17,19,24,0.96); backdrop-filter:blur(20px);
+  border-top:1px solid var(--border2);
   display:flex; align-items:center; justify-content:space-between;
   padding:11px 24px; z-index:100; gap:12px;
   overflow:hidden;
@@ -783,7 +789,7 @@ body {
 .toast {
   position:fixed; bottom:70px; left:50%;
   transform:translateX(-50%) translateY(30px);
-  background:#fff; border:1px solid var(--jt-border); color:var(--jt);
+  background:var(--surface); border:1px solid var(--jt-border); color:var(--jt);
   font-family:var(--mono); font-size:12.1px; padding:8px 18px;
   border-radius:99px; opacity:0; transition:all 0.22s; z-index:600;
   box-shadow:var(--shadow-md); pointer-events:none;
@@ -825,13 +831,13 @@ body {
 /* conflict warning bar */
 .conflict-bar {
   display:none; position:fixed; top:0; left:0; right:0; z-index:200;
-  background:#fff3cd; border-bottom:2px solid #d97706;
-  padding:9px 20px; font-family:var(--mono); font-size:11.5px; color:#92400e;
+  background:rgba(251,191,36,0.1); border-bottom:2px solid var(--amber);
+  padding:9px 20px; font-family:var(--mono); font-size:11.5px; color:var(--amber);
   align-items:center; justify-content:space-between; gap:10px;
 }
 .conflict-bar.visible { display:flex; }
 .conflict-bar button {
-  background:#d97706; color:#fff; border:none; border-radius:6px;
+  background:var(--amber); color:#000; border:none; border-radius:6px;
   padding:4px 10px; font-family:var(--mono); font-size:11px; cursor:pointer;
 }
 
@@ -868,7 +874,7 @@ body {
 .filter-bar { display:flex; gap:4px; margin-bottom:12px; flex-wrap:wrap; }
 .filter-btn {
   padding:5px 12px; border-radius:99px; border:1px solid var(--border2);
-  background:#fff; color:var(--ink3); font-family:var(--mono); font-size:11px; cursor:pointer;
+  background:var(--surface); color:var(--ink3); font-family:var(--mono); font-size:11px; cursor:pointer;
   transition:all 0.12s;
 }
 .filter-btn.active { background:var(--jt-light); color:var(--jt); border-color:var(--jt-border); font-weight:600; }
@@ -882,13 +888,13 @@ body {
 /* ── GOOGLE LOGIN OVERLAY ── */
 #loginOverlay {
   position:fixed; inset:0; z-index:9999;
-  background:linear-gradient(135deg,#e8efff 0%,#f0f4ff 100%);
+  background:var(--bg);
   display:flex; align-items:center; justify-content:center;
 }
 #loginOverlay.hidden { display:none; }
 .login-card {
-  background:#fff; border-radius:20px; padding:44px 40px;
-  box-shadow:0 8px 48px rgba(21,101,192,0.15);
+  background:var(--surface); border:1px solid var(--border2); border-radius:20px; padding:44px 40px;
+  box-shadow:0 8px 48px rgba(0,0,0,0.5);
   text-align:center; max-width:360px; width:90%;
 }
 .login-logo {
@@ -902,7 +908,7 @@ body {
 .login-btn {
   display:inline-flex; align-items:center; gap:10px;
   padding:12px 24px; border-radius:99px; border:1.5px solid var(--border2);
-  background:#fff; color:var(--ink2); font-family:var(--sans); font-size:14px;
+  background:var(--surface2); color:var(--ink2); font-family:var(--sans); font-size:14px;
   font-weight:600; cursor:pointer; transition:all 0.15s;
   box-shadow:0 2px 8px rgba(21,101,192,0.08);
 }
@@ -913,7 +919,7 @@ body {
 .user-pill {
   display:flex; align-items:center; gap:7px;
   padding:4px 10px 4px 4px; border-radius:99px;
-  border:1px solid var(--border2); background:#fff;
+  border:1px solid var(--border2); background:var(--surface2);
   font-family:var(--mono); font-size:11px; color:var(--ink2);
   cursor:pointer; transition:all 0.12s;
 }
@@ -928,7 +934,7 @@ body {
 /* Drive notification banner */
 #driveNewFileBanner {
   display:none; margin-bottom:14px;
-  background:#eff6ff; border:1.5px solid #93c5fd; border-radius:12px;
+  background:rgba(79,142,247,0.08); border:1.5px solid var(--jt-border); border-radius:12px;
   padding:12px 18px; align-items:center; gap:12px;
 }
 #driveNewFileBanner.visible { display:flex; }
@@ -979,7 +985,7 @@ body {
       <div class="version-badge" id="dvBadge" title="Data Version">DV: 2026.06.03.23.01.56</div>
       <div class="drive-dot green" id="driveDot" title="Drive: just saved"></div>
       <div class="unsaved-dot" id="unsavedDot" title="Unsaved changes"></div>
-      <button id="bugReportBtn" onclick="openBugModal(false)" style="font-family: &quot;DM Mono&quot;, monospace; font-size: 11px; padding: 5px 12px; border-radius: 99px; background: rgb(254, 243, 199); color: rgb(180, 83, 9); cursor: pointer; display: flex; align-items: center; gap: 5px; white-space: nowrap; border-color: rgb(217, 119, 6);">📋 16 Updates</button>
+      <button id="bugReportBtn" onclick="openBugModal(false)" style="font-family: var(--mono); font-size: 11px; padding: 5px 12px; border-radius: 99px; background: var(--amber-light); color: var(--amber); border: 1px solid var(--amber-border); cursor: pointer; display: flex; align-items: center; gap: 5px; white-space: nowrap;">📋 16 Updates</button>
 
       <button class="btn-get-latest" id="btnGetLatest" onclick="driveGetLatest()">☁ Get Latest</button>
       <button class="user-pill" id="userPill" onclick="gisSignOut()" title="Click to sign out" style="display:none;">
@@ -993,21 +999,21 @@ body {
   <!-- DRIVE NEW FILE NOTIFICATION BANNER -->
   <div id="driveNewFileBanner" class="">
     <span style="font-size:18px;flex-shrink:0;">☁</span>
-    <div style="flex:1;font-family:var(--mono);font-size:12px;color:#1e40af;line-height:1.5;">
-      A newer data file is available in Drive. <span id="driveNewFileInfo" style="color:#1d4ed8;font-weight:600;"></span>
+    <div style="flex:1;font-family:var(--mono);font-size:12px;color:var(--jt2);line-height:1.5;">
+      A newer data file is available in Drive. <span id="driveNewFileInfo" style="color:var(--jt);font-weight:600;"></span>
     </div>
-    <button onclick="driveGetLatestFromBanner()" style="font-family:var(--mono);font-size:11px;padding:6px 14px;border-radius:99px;border:1px solid #93c5fd;background:#dbeafe;color:#1e40af;cursor:pointer;white-space:nowrap;font-weight:600;">Load Now</button>
-    <button onclick="document.getElementById('driveNewFileBanner').classList.remove('visible')" style="margin-left:6px;font-family:var(--mono);font-size:11px;padding:6px 12px;border-radius:99px;border:1px solid #cbd5e1;background:#fff;color:var(--ink3);cursor:pointer;">Dismiss</button>
+    <button onclick="driveGetLatestFromBanner()" style="font-family:var(--mono);font-size:11px;padding:6px 14px;border-radius:99px;border:1px solid var(--jt-border);background:var(--jt-light);color:var(--jt);cursor:pointer;white-space:nowrap;font-weight:600;">Load Now</button>
+    <button onclick="document.getElementById('driveNewFileBanner').classList.remove('visible')" style="margin-left:6px;font-family:var(--mono);font-size:11px;padding:6px 12px;border-radius:99px;border:1px solid var(--border2);background:var(--surface2);color:var(--ink3);cursor:pointer;">Dismiss</button>
   </div>
 
   <!-- BUG BANNER — shows when bugLog has entries -->
-  <div id="bugLockBanner" style="display: flex; margin-bottom: 18px; background: rgb(255, 248, 240); border: 2px solid rgb(217, 119, 6); border-radius: 14px; padding: 14px 20px; align-items: center; gap: 14px; box-shadow: rgba(217, 119, 6, 0.13) 0px 4px 18px;">
+  <div id="bugLockBanner" style="display: flex; margin-bottom: 18px; background: rgba(251,191,36,0.07); border: 2px solid rgba(251,191,36,0.4); border-radius: 14px; padding: 14px 20px; align-items: center; gap: 14px; box-shadow: 0 4px 18px rgba(251,191,36,0.1);">
     <span style="font-size:24px;flex-shrink:0;">🐛</span>
     <div style="flex:1;">
-      <div style="font-family:'DM Mono',monospace;font-size:13px;font-weight:700;color:#b45309;letter-spacing:0.2px;">UPDATES PENDING — <span id="bugBannerCount">16</span> update(s) logged</div>
-      <div style="font-family:'DM Mono',monospace;font-size:10.5px;color:#92400e;margin-top:3px;">This file has pending updates. Contact the AI to apply and clear the log.</div>
+      <div style="font-family:'DM Mono',monospace;font-size:13px;font-weight:700;color:var(--amber);letter-spacing:0.2px;">UPDATES PENDING — <span id="bugBannerCount">16</span> update(s) logged</div>
+      <div style="font-family:'DM Mono',monospace;font-size:10.5px;color:rgba(251,191,36,0.7);margin-top:3px;">This file has pending updates. Contact the AI to apply and clear the log.</div>
     </div>
-    <button onclick="openBugModal(false)" style="font-family:'DM Mono',monospace;font-size:11px;padding:6px 14px;border-radius:99px;border:1px solid #d97706;background:#fef3c7;color:#b45309;cursor:pointer;white-space:nowrap;">📋 View Updates</button>
+    <button onclick="openBugModal(false)" style="font-family:'DM Mono',monospace;font-size:11px;padding:6px 14px;border-radius:99px;border:1px solid var(--amber-border);background:var(--amber-light);color:var(--amber);cursor:pointer;white-space:nowrap;">📋 View Updates</button>
   </div>
 
   <!-- BUG REPORT MODAL -->
@@ -1022,69 +1028,69 @@ body {
         <div id="bugLogList">
           <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--ink3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Pending Updates</div>
           <div id="bugLogEntries" style="display:flex;flex-direction:column;gap:8px;max-height:200px;overflow-y:auto;margin-bottom:4px;">
-      <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:10px 12px;">
-        <div style="font-family:'DM Mono',monospace;font-size:9px;color:#92400e;margin-bottom:4px;">#1 · 2026.05.25 17:39</div>
-        <div style="font-family:'DM Mono',monospace;font-size:12px;color:#451a03;line-height:1.5;">count for today tasks isnt reseting at 5 pm of the day, as per time of +6 gmt or dhaka timezone.</div>
+      <div style="background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.2);border-radius:8px;padding:10px 12px;">
+        <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--amber);margin-bottom:4px;">#1 · 2026.05.25 17:39</div>
+        <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--ink2);line-height:1.5;">count for today tasks isnt reseting at 5 pm of the day, as per time of +6 gmt or dhaka timezone.</div>
       </div>
-      <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:10px 12px;">
-        <div style="font-family:'DM Mono',monospace;font-size:9px;color:#92400e;margin-bottom:4px;">#2 · 2026.05.25 17:39</div>
-        <div style="font-family:'DM Mono',monospace;font-size:12px;color:#451a03;line-height:1.5;">search for tasks using task title system in the task list.</div>
+      <div style="background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.2);border-radius:8px;padding:10px 12px;">
+        <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--amber);margin-bottom:4px;">#2 · 2026.05.25 17:39</div>
+        <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--ink2);line-height:1.5;">search for tasks using task title system in the task list.</div>
       </div>
-      <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:10px 12px;">
-        <div style="font-family:'DM Mono',monospace;font-size:9px;color:#92400e;margin-bottom:4px;">#3 · 2026.05.25 17:45</div>
-        <div style="font-family:'DM Mono',monospace;font-size:12px;color:#451a03;line-height:1.5;">tasks have tags, like fresh(which are just added), after 1 hours from the added time of task, they changes to today's task.</div>
+      <div style="background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.2);border-radius:8px;padding:10px 12px;">
+        <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--amber);margin-bottom:4px;">#3 · 2026.05.25 17:45</div>
+        <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--ink2);line-height:1.5;">tasks have tags, like fresh(which are just added), after 1 hours from the added time of task, they changes to today's task.</div>
       </div>
-      <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:10px 12px;">
-        <div style="font-family:'DM Mono',monospace;font-size:9px;color:#92400e;margin-bottom:4px;">#4 · 2026.05.25 17:48</div>
-        <div style="font-family:'DM Mono',monospace;font-size:12px;color:#451a03;line-height:1.5;">for nw updates #6 and #4, the system of the file checks times when clicked on save to drive button. the tags in the update #6 needs to have animation relavant to the tags.</div>
+      <div style="background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.2);border-radius:8px;padding:10px 12px;">
+        <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--amber);margin-bottom:4px;">#4 · 2026.05.25 17:48</div>
+        <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--ink2);line-height:1.5;">for nw updates #6 and #4, the system of the file checks times when clicked on save to drive button. the tags in the update #6 needs to have animation relavant to the tags.</div>
       </div>
-      <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:10px 12px;">
-        <div style="font-family:'DM Mono',monospace;font-size:9px;color:#92400e;margin-bottom:4px;">#5 · 2026.05.25 21:11</div>
-        <div style="font-family:'DM Mono',monospace;font-size:12px;color:#451a03;line-height:1.5;">needs update for account filter. create a checkbox of except. if that is checked, all tasks that were assignd to other accounts except that account be shown.</div>
+      <div style="background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.2);border-radius:8px;padding:10px 12px;">
+        <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--amber);margin-bottom:4px;">#5 · 2026.05.25 21:11</div>
+        <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--ink2);line-height:1.5;">needs update for account filter. create a checkbox of except. if that is checked, all tasks that were assignd to other accounts except that account be shown.</div>
       </div>
-      <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:10px 12px;">
-        <div style="font-family:'DM Mono',monospace;font-size:9px;color:#92400e;margin-bottom:4px;">#6 · 2026.05.25 21:27</div>
-        <div style="font-family:'DM Mono',monospace;font-size:12px;color:#451a03;line-height:1.5;">task er arekta new sort krar holo je last edited, eta default sort thakbe.</div>
+      <div style="background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.2);border-radius:8px;padding:10px 12px;">
+        <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--amber);margin-bottom:4px;">#6 · 2026.05.25 21:27</div>
+        <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--ink2);line-height:1.5;">task er arekta new sort krar holo je last edited, eta default sort thakbe.</div>
       </div>
-      <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:10px 12px;">
-        <div style="font-family:'DM Mono',monospace;font-size:9px;color:#92400e;margin-bottom:4px;">#7 · 2026.05.25 21:45</div>
-        <div style="font-family:'DM Mono',monospace;font-size:12px;color:#451a03;line-height:1.5;">there is a new update related to #6 and #12, this is basically filter. filter by fresh, todays tags. another tag will be given which is quicky. all of the tags new to have their own animation and style. this tags are shown top of the task list. any number of tag can be selected once. now we have 3 tag, Fresh, todays task and quicky. fresh and todays are automated and removed after time. but quicky tags is given to a task while adding the task and is never removed if user didnt do it.</div>
+      <div style="background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.2);border-radius:8px;padding:10px 12px;">
+        <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--amber);margin-bottom:4px;">#7 · 2026.05.25 21:45</div>
+        <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--ink2);line-height:1.5;">there is a new update related to #6 and #12, this is basically filter. filter by fresh, todays tags. another tag will be given which is quicky. all of the tags new to have their own animation and style. this tags are shown top of the task list. any number of tag can be selected once. now we have 3 tag, Fresh, todays task and quicky. fresh and todays are automated and removed after time. but quicky tags is given to a task while adding the task and is never removed if user didnt do it.</div>
       </div>
-      <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:10px 12px;">
-        <div style="font-family:'DM Mono',monospace;font-size:9px;color:#92400e;margin-bottom:4px;">#8 · 2026.05.26 06:35</div>
-        <div style="font-family:'DM Mono',monospace;font-size:12px;color:#451a03;line-height:1.5;">new tag, error fixed.</div>
+      <div style="background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.2);border-radius:8px;padding:10px 12px;">
+        <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--amber);margin-bottom:4px;">#8 · 2026.05.26 06:35</div>
+        <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--ink2);line-height:1.5;">new tag, error fixed.</div>
       </div>
-      <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:10px 12px;">
-        <div style="font-family:'DM Mono',monospace;font-size:9px;color:#92400e;margin-bottom:4px;">#9 · 2026.05.26 07:01</div>
-        <div style="font-family:'DM Mono',monospace;font-size:12px;color:#451a03;line-height:1.5;">the system is using global time. pls fix it to local device time.</div>
+      <div style="background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.2);border-radius:8px;padding:10px 12px;">
+        <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--amber);margin-bottom:4px;">#9 · 2026.05.26 07:01</div>
+        <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--ink2);line-height:1.5;">the system is using global time. pls fix it to local device time.</div>
       </div>
-      <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:10px 12px;">
-        <div style="font-family:'DM Mono',monospace;font-size:9px;color:#92400e;margin-bottom:4px;">#10 · 2026.05.26 07:15</div>
-        <div style="font-family:'DM Mono',monospace;font-size:12px;color:#451a03;line-height:1.5;">in the task management tab, i need something to come to the top instantly. cause this will have a lot tasks and sometimes, scrolling is taking a longer.</div>
+      <div style="background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.2);border-radius:8px;padding:10px 12px;">
+        <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--amber);margin-bottom:4px;">#10 · 2026.05.26 07:15</div>
+        <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--ink2);line-height:1.5;">in the task management tab, i need something to come to the top instantly. cause this will have a lot tasks and sometimes, scrolling is taking a longer.</div>
       </div>
-      <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:10px 12px;">
-        <div style="font-family:'DM Mono',monospace;font-size:9px;color:#92400e;margin-bottom:4px;">#11 · 2026.05.26 07:53</div>
-        <div style="font-family:'DM Mono',monospace;font-size:12px;color:#451a03;line-height:1.5;">eror note is not visible in the task card.</div>
+      <div style="background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.2);border-radius:8px;padding:10px 12px;">
+        <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--amber);margin-bottom:4px;">#11 · 2026.05.26 07:53</div>
+        <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--ink2);line-height:1.5;">eror note is not visible in the task card.</div>
       </div>
-      <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:10px 12px;">
-        <div style="font-family:'DM Mono',monospace;font-size:9px;color:#92400e;margin-bottom:4px;">#12 · 2026.05.26 07:56</div>
-        <div style="font-family:'DM Mono',monospace;font-size:12px;color:#451a03;line-height:1.5;">an update regarding #17, i thik we should have a task description, which is optional but can be added. note for error, ignore it for now. skip #17.</div>
+      <div style="background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.2);border-radius:8px;padding:10px 12px;">
+        <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--amber);margin-bottom:4px;">#12 · 2026.05.26 07:56</div>
+        <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--ink2);line-height:1.5;">an update regarding #17, i thik we should have a task description, which is optional but can be added. note for error, ignore it for now. skip #17.</div>
       </div>
-      <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:10px 12px;">
-        <div style="font-family:'DM Mono',monospace;font-size:9px;color:#92400e;margin-bottom:4px;">#13 · 2026.05.26 10:16</div>
-        <div style="font-family:'DM Mono',monospace;font-size:12px;color:#451a03;line-height:1.5;">#15y you need to fix it to the local device time but in 24h format.</div>
+      <div style="background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.2);border-radius:8px;padding:10px 12px;">
+        <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--amber);margin-bottom:4px;">#13 · 2026.05.26 10:16</div>
+        <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--ink2);line-height:1.5;">#15y you need to fix it to the local device time but in 24h format.</div>
       </div>
-      <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:10px 12px;">
-        <div style="font-family:'DM Mono',monospace;font-size:9px;color:#92400e;margin-bottom:4px;">#14 · 2026.05.26 10:18</div>
-        <div style="font-family:'DM Mono',monospace;font-size:12px;color:#451a03;line-height:1.5;">if a accounts is dead, dont show it in the dashboard.</div>
+      <div style="background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.2);border-radius:8px;padding:10px 12px;">
+        <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--amber);margin-bottom:4px;">#14 · 2026.05.26 10:18</div>
+        <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--ink2);line-height:1.5;">if a accounts is dead, dont show it in the dashboard.</div>
       </div>
-      <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:10px 12px;">
-        <div style="font-family:'DM Mono',monospace;font-size:9px;color:#92400e;margin-bottom:4px;">#15 · 2026.06.02 00:01</div>
-        <div style="font-family:'DM Mono',monospace;font-size:12px;color:#451a03;line-height:1.5;">Drive auto-fetch notification: the app currently auto-fetches the latest data file on load. Change this so it does NOT fetch automatically. Instead show a notification/banner that a newer data file is available and let the user manually click to get it.</div>
+      <div style="background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.2);border-radius:8px;padding:10px 12px;">
+        <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--amber);margin-bottom:4px;">#15 · 2026.06.02 00:01</div>
+        <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--ink2);line-height:1.5;">Drive auto-fetch notification: the app currently auto-fetches the latest data file on load. Change this so it does NOT fetch automatically. Instead show a notification/banner that a newer data file is available and let the user manually click to get it.</div>
       </div>
-      <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:10px 12px;">
-        <div style="font-family:'DM Mono',monospace;font-size:9px;color:#92400e;margin-bottom:4px;">#16 · 2026.06.02 00:04</div>
-        <div style="font-family:'DM Mono',monospace;font-size:12px;color:#451a03;line-height:1.5;">Earnings history payout view: currently earnings history lists which accounts and tasks were rewarded on a given day. Replace this with a view that shows per-account payout amounts for the selected time range (daily, monthly, yearly, or custom range), making it easy to see how much each account paid out in that period.</div>
+      <div style="background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.2);border-radius:8px;padding:10px 12px;">
+        <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--amber);margin-bottom:4px;">#16 · 2026.06.02 00:04</div>
+        <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--ink2);line-height:1.5;">Earnings history payout view: currently earnings history lists which accounts and tasks were rewarded on a given day. Replace this with a view that shows per-account payout amounts for the selected time range (daily, monthly, yearly, or custom range), making it easy to see how much each account paid out in that period.</div>
       </div></div>
           <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--ink3);margin-bottom:10px;">Only the AI can clear this log (apply the fixes).</div>
           <div style="border-top:1px solid var(--border);padding-top:12px;"></div>
@@ -6324,9 +6330,9 @@ function renderBugLogEntries() {
     el.innerHTML = '<div style="font-family:\'DM Mono\',monospace;font-size:12px;color:var(--ink3);text-align:center;padding:8px 0;">No bugs reported yet.</div>';
   } else {
     el.innerHTML = bugLog.map((b, i) => `
-      <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:10px 12px;">
-        <div style="font-family:'DM Mono',monospace;font-size:9px;color:#92400e;margin-bottom:4px;">#${i+1} · ${b.ts}</div>
-        <div style="font-family:'DM Mono',monospace;font-size:12px;color:#451a03;line-height:1.5;">${b.text}</div>
+      <div style="background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.2);border-radius:8px;padding:10px 12px;">
+        <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--amber);margin-bottom:4px;">#${i+1} · ${b.ts}</div>
+        <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--ink2);line-height:1.5;">${b.text}</div>
       </div>`).join('');
   }
 }
