@@ -399,6 +399,192 @@ body {
   box-shadow: 0 2px 10px rgba(21,101,192,0.07);
 }
 
+/* ── WORD DISPLAY PANEL ── */
+#wdPanel {
+  position: fixed;
+  top: 0; left: 0;
+  height: 100vh;
+  width: 280px;
+  background: #fff;
+  border-right: 1.5px solid var(--jt-border);
+  box-shadow: 4px 0 24px rgba(21,101,192,0.10);
+  z-index: 800;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(-100%);
+  transition: transform 0.25s cubic-bezier(0.4,0,0.2,1);
+}
+#wdPanel.wd-open { transform: translateX(0); }
+#wdPanel.wd-hidden { display: none; }
+
+#wdTab {
+  position: fixed;
+  left: 0;
+  top: 50%;
+  z-index: 801;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  background: var(--jt-grad);
+  color: #fff;
+  width: 28px;
+  padding: 14px 0;
+  border-radius: 0 10px 10px 0;
+  cursor: pointer;
+  box-shadow: 2px 0 12px rgba(21,101,192,0.18);
+  writing-mode: vertical-rl;
+  transform: translateY(-50%) rotate(180deg);
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  user-select: none;
+  transition: background 0.15s;
+}
+#wdTab:hover { background: linear-gradient(135deg,#1976D2,#1565C0); }
+#wdTab.wd-hidden { display: none; }
+
+#wdPanelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 14px 12px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  background: var(--jt-light);
+}
+#wdPanelTitle {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--jt);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+#wdCollapseBtn {
+  background: none; border: none; cursor: pointer;
+  color: var(--jt); font-size: 16px; line-height: 1;
+  padding: 2px 4px; border-radius: 6px; transition: background 0.15s;
+}
+#wdCollapseBtn:hover { background: var(--jt-border); }
+
+#wdPanelBody {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+#wdPanelBody::-webkit-scrollbar { width: 4px; }
+#wdPanelBody::-webkit-scrollbar-thumb { background: var(--jt-border); border-radius: 4px; }
+
+.wd-banner {
+  background: #fff;
+  border: 1.5px solid var(--border2);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 1px 6px rgba(21,101,192,0.06);
+}
+.wd-banner-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 10px;
+  background: var(--jt-light);
+  cursor: pointer;
+  user-select: none;
+}
+.wd-banner-name {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--jt);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.wd-banner-chevron { font-size: 10px; color: var(--jt); transition: transform 0.18s; flex-shrink: 0; }
+.wd-banner-chevron.open { transform: rotate(180deg); }
+.wd-banner-body { display: none; flex-direction: column; gap: 4px; padding: 6px 8px; }
+.wd-banner-body.open { display: flex; }
+
+.wd-version-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 6px 2px;
+}
+.wd-version-name {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  color: var(--ink3);
+  font-weight: 600;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.wd-version-chevron { font-size: 9px; color: var(--ink3); transition: transform 0.15s; flex-shrink: 0; cursor: pointer; }
+.wd-version-chevron.open { transform: rotate(180deg); }
+.wd-add-word-btn {
+  background: none; border: none; cursor: pointer;
+  color: var(--jt); font-size: 15px; line-height: 1;
+  flex-shrink: 0; padding: 0 2px;
+}
+.wd-version-cards { display: none; flex-direction: column; gap: 3px; padding: 0 4px 4px; }
+.wd-version-cards.open { display: flex; }
+
+.wd-word-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 7px 10px;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s;
+}
+.wd-word-card:hover { background: var(--jt-light); border-color: var(--jt-border); }
+.wd-card-title {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--ink2);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin-bottom: 3px;
+}
+.wd-card-word {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--jt);
+  line-height: 1.3;
+  word-break: break-word;
+}
+
+.wd-add-site-btn {
+  width: 100%;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 8px 0;
+  border-radius: var(--radius-sm);
+  border: 1.5px dashed var(--jt-border);
+  background: var(--jt-light);
+  color: var(--jt);
+  cursor: pointer;
+  transition: all 0.15s;
+  margin-top: 4px;
+}
+.wd-add-site-btn:hover { background: var(--jt); color: #fff; border-style: solid; }
+
 /* ── SECTION TITLE ── */
 .sec-title {
   font-family:var(--mono); font-size:13.2px; font-weight:600;
@@ -975,7 +1161,7 @@ body {
       </div>
     </div>
     <div class="drive-indicator-row">
-      <div class="version-badge" id="avBadge" title="App Version">AV: V1.95</div>
+      <div class="version-badge" id="avBadge" title="App Version">AV: V3.0</div>
       <div class="version-badge" id="dvBadge" title="Data Version">DV: 2026.06.03.23.01.56</div>
       <div class="drive-dot green" id="driveDot" title="Drive: just saved"></div>
       <div class="unsaved-dot" id="unsavedDot" title="Unsaved changes"></div>
@@ -1100,6 +1286,71 @@ body {
             <button class="btn-primary" style="background:#d97706;box-shadow:0 2px 8px rgba(217,119,6,0.25);" onclick="submitBugReport()">🐛 Add to Log</button>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WORD DISPLAY MODALS -->
+  <div class="modal-overlay" id="wdAddSiteModal">
+    <div class="modal" style="max-width:360px;">
+      <div class="modal-title">
+        <span>+ Add Website</span>
+        <button class="modal-close" onclick="closeModal('wdAddSiteModal')">✕</button>
+      </div>
+      <div class="modal-fields">
+        <div class="field">
+          <label>Website Name</label>
+          <input type="text" id="wdAddSiteInput" placeholder="e.g. Remotasks" onkeydown="if(event.key==='Enter')confirmAddSite()">
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-primary" onclick="confirmAddSite()">Add Website</button>
+        <button class="btn-secondary" onclick="closeModal('wdAddSiteModal')">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="wdAddVersionModal">
+    <div class="modal" style="max-width:360px;">
+      <div class="modal-title">
+        <span>+ Add Page Version</span>
+        <button class="modal-close" onclick="closeModal('wdAddVersionModal')">✕</button>
+      </div>
+      <div class="modal-fields">
+        <div class="field">
+          <label>Page Version Name</label>
+          <input type="text" id="wdAddVersionInput" placeholder="e.g. Remotasks.2026.06.07" onkeydown="if(event.key==='Enter')confirmAddVersion()">
+        </div>
+      </div>
+      <input type="hidden" id="wdAddVersionSiteId">
+      <div class="modal-actions">
+        <button class="btn-primary" onclick="confirmAddVersion()">Add Version</button>
+        <button class="btn-secondary" onclick="closeModal('wdAddVersionModal')">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="wdAddWordModal">
+    <div class="modal" style="max-width:360px;">
+      <div class="modal-title">
+        <span>+ Add Word Card</span>
+        <button class="modal-close" onclick="closeModal('wdAddWordModal')">✕</button>
+      </div>
+      <div class="modal-fields">
+        <div class="field">
+          <label>Title</label>
+          <input type="text" id="wdAddWordTitle" placeholder="e.g. Brand Name">
+        </div>
+        <div class="field">
+          <label>Word / Text to Copy</label>
+          <input type="text" id="wdAddWordText" placeholder="e.g. Coca-Cola" onkeydown="if(event.key==='Enter')confirmAddWord()">
+        </div>
+      </div>
+      <input type="hidden" id="wdAddWordSiteId">
+      <input type="hidden" id="wdAddWordVerId">
+      <div class="modal-actions">
+        <button class="btn-primary" onclick="confirmAddWord()">Add Word</button>
+        <button class="btn-secondary" onclick="closeModal('wdAddWordModal')">Cancel</button>
       </div>
     </div>
   </div>
@@ -2127,6 +2378,10 @@ let globalSettings = { "jmptRate": 0, "defaultGoogleReward": 0.04, "defaultYoutu
 let auditLog = [];
 /*EMBEDDED_LOG_END*/
 
+/*EMBEDDED_WORDLIB_START*/
+let wordLibrary = [];
+/*EMBEDDED_WORDLIB_END*/
+
 // ─────────────────────────────────────────
 // ─────────────────────────────────────────
 // BUG REPORT SYSTEM — controlled by AI
@@ -2898,6 +3153,7 @@ function showPage(id) {
   if (id === 'auditlog') { renderBugHistory(); }
   // Action Center panel: only visible on Task Management tab
   setAcPanelVisibility(id === 'tasks');
+  setWdPanelVisibility(id === 'tasks');
 }
 window.showPage = showPage;
 
@@ -4678,7 +4934,7 @@ window.deleteLink = function(taskId, index) {
   renderTasks();
   toast('Link removed');
 };
-const APP_V_VERSION = '1.95';
+const APP_V_VERSION = '3.0';
 
 function parseAppVersion(version) {
   if (!version || typeof version !== 'string') return null;
@@ -4737,7 +4993,8 @@ function buildSaveJSON() {
     globalSettings: Object.assign({}, globalSettings, { appVersion: APP_V_VERSION }),
     auditLog: JSON.parse(JSON.stringify(auditLog)),
     bugLog: JSON.parse(JSON.stringify(bugLog)),
-    bugHistory: JSON.parse(JSON.stringify(bugHistory))
+    bugHistory: JSON.parse(JSON.stringify(bugHistory)),
+    wordLibrary: JSON.parse(JSON.stringify(wordLibrary))
   };
 }
 
@@ -4749,6 +5006,7 @@ function loadDataJson(payload) {
     globalSettings = Object.assign({}, globalSettings, payload.globalSettings, { appVersion: APP_V_VERSION });
   }
   if (Array.isArray(payload.auditLog)) { auditLog.length = 0; auditLog.push(...payload.auditLog); }
+  if (Array.isArray(payload.wordLibrary)) { wordLibrary.length = 0; wordLibrary.push(...payload.wordLibrary); }
   // UHLV comparison: keep whichever source (HTML or JSON) has the higher UHLV.
   // If JSON uhlv > HTML UHLV → JSON wins, load its bugLog/bugHistory and update UHLV.
   // If JSON uhlv < HTML UHLV → HTML wins, keep current in-memory bugLog/bugHistory.
@@ -4772,6 +5030,7 @@ function loadDataJson(payload) {
   renderAccList();
   renderTasks();
   renderAuditLog();
+  renderWordLibrary();
 }
 
 async function loadLatestDataFile(fileId, fileName) {
@@ -5195,6 +5454,10 @@ let globalSettings = { "jmptRate": 0, "defaultGoogleReward": 0.04, "defaultYoutu
     `/*EMBEDDED_LOG_START*/
 let auditLog = [];
 /*EMBEDDED_LOG_END*/`
+  );
+  src = src.replace(
+    /\/\*EMBEDDED_WORDLIB_START\*\/[\s\S]*?\/\*EMBEDDED_WORDLIB_END\*\//,
+    `/*EMBEDDED_WORDLIB_START*/\nlet wordLibrary = [];\n/*EMBEDDED_WORDLIB_END*/`
   );
   const bugLogJson = JSON.stringify(bugLog, null, 2);
   src = src.replace(
@@ -6295,6 +6558,142 @@ function renderBugHistory() {
     </div>`).join('');
 }
 
+// ─────────────────────────────────────────
+// WORD DISPLAY PANEL
+// ─────────────────────────────────────────
+function renderWordLibrary() {
+  const body = document.getElementById('wdPanelBody');
+  if (!body) return;
+  if (!wordLibrary.length) {
+    body.innerHTML = `<div style="text-align:center;padding:32px 10px;font-family:var(--mono);font-size:12px;color:var(--ink3);">No word libraries yet.<br>Click + Add Website below.</div>`;
+    return;
+  }
+  body.innerHTML = wordLibrary.map(site => `
+    <div class="wd-banner" id="wdBanner_${site.id}">
+      <div class="wd-banner-header" onclick="toggleWdBanner('${site.id}')">
+        <span class="wd-banner-name">${site.siteName}</span>
+        <span class="wd-banner-chevron open" id="wdBannerChev_${site.id}">▼</span>
+      </div>
+      <div class="wd-banner-body open" id="wdBannerBody_${site.id}">
+        ${(site.pageVersions||[]).map(ver => `
+          <div>
+            <div class="wd-version-row">
+              <span class="wd-version-name" onclick="toggleWdVersion('${ver.id}')">${ver.name}</span>
+              <span class="wd-version-chevron open" id="wdVerChev_${ver.id}" onclick="toggleWdVersion('${ver.id}')">▼</span>
+              <button class="wd-add-word-btn" onclick="openAddWordModal('${site.id}','${ver.id}')" title="Add word card">＋</button>
+            </div>
+            <div class="wd-version-cards open" id="wdVerCards_${ver.id}">
+              ${(ver.words||[]).map(w => `
+                <div class="wd-word-card" onclick="copyWdWord('${w.id}','${site.id}','${ver.id}')">
+                  <div class="wd-card-title">${w.title}</div>
+                  <div class="wd-card-word">${w.word}</div>
+                </div>
+              `).join('')}
+              ${!(ver.words||[]).length ? `<div style="font-family:var(--mono);font-size:10px;color:var(--ink3);padding:4px 4px 2px;">No words yet — click ＋</div>` : ''}
+            </div>
+          </div>
+        `).join('')}
+        <button onclick="openAddVersionModal('${site.id}')" style="font-family:var(--mono);font-size:10px;color:var(--jt);background:var(--jt-light);border:1px solid var(--jt-border);border-radius:6px;padding:3px 8px;cursor:pointer;margin:2px 0 4px;">+ Add Page Version</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+window.toggleWdBanner = function(siteId) {
+  const body = document.getElementById('wdBannerBody_' + siteId);
+  const chev = document.getElementById('wdBannerChev_' + siteId);
+  if (!body) return;
+  const open = body.classList.toggle('open');
+  if (chev) chev.classList.toggle('open', open);
+};
+
+window.toggleWdVersion = function(verId) {
+  const cards = document.getElementById('wdVerCards_' + verId);
+  const chev  = document.getElementById('wdVerChev_'  + verId);
+  if (!cards) return;
+  const open = cards.classList.toggle('open');
+  if (chev) chev.classList.toggle('open', open);
+};
+
+window.copyWdWord = function(wordId, siteId, verId) {
+  const site = wordLibrary.find(s => s.id === siteId); if (!site) return;
+  const ver  = (site.pageVersions||[]).find(v => v.id === verId); if (!ver) return;
+  const w    = (ver.words||[]).find(x => x.id === wordId); if (!w) return;
+  navigator.clipboard.writeText(w.word).then(() => {
+    toast('📋 ' + w.word);
+  }).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = w.word; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    toast('📋 ' + w.word);
+  });
+};
+
+window.openAddSiteModal = function() {
+  document.getElementById('wdAddSiteInput').value = '';
+  openModal('wdAddSiteModal');
+  setTimeout(() => document.getElementById('wdAddSiteInput').focus(), 80);
+};
+
+window.confirmAddSite = function() {
+  const name = document.getElementById('wdAddSiteInput').value.trim();
+  if (!name) { toast('Enter a website name'); return; }
+  wordLibrary.push({ id: uid(), siteName: name, pageVersions: [] });
+  closeModal('wdAddSiteModal');
+  renderWordLibrary();
+  markUnsaved(true);
+  toast('Website added: ' + name);
+};
+
+window.openAddVersionModal = function(siteId) {
+  const site = wordLibrary.find(s => s.id === siteId); if (!site) return;
+  document.getElementById('wdAddVersionSiteId').value = siteId;
+  const d = new Date();
+  const dateSuffix = d.getFullYear() + '.' + String(d.getMonth()+1).padStart(2,'0') + '.' + String(d.getDate()).padStart(2,'0');
+  document.getElementById('wdAddVersionInput').value = site.siteName + '.' + dateSuffix;
+  openModal('wdAddVersionModal');
+  setTimeout(() => { const el = document.getElementById('wdAddVersionInput'); if(el){el.focus();el.select();} }, 80);
+};
+
+window.confirmAddVersion = function() {
+  const siteId = document.getElementById('wdAddVersionSiteId').value;
+  const name   = document.getElementById('wdAddVersionInput').value.trim();
+  if (!name) { toast('Enter a version name'); return; }
+  const site = wordLibrary.find(s => s.id === siteId); if (!site) return;
+  site.pageVersions.unshift({ id: uid(), name, createdAt: new Date().toISOString(), words: [] });
+  closeModal('wdAddVersionModal');
+  renderWordLibrary();
+  markUnsaved(true);
+  toast('Page version added');
+};
+
+window.openAddWordModal = function(siteId, verId) {
+  document.getElementById('wdAddWordSiteId').value = siteId;
+  document.getElementById('wdAddWordVerId').value  = verId;
+  document.getElementById('wdAddWordTitle').value  = '';
+  document.getElementById('wdAddWordText').value   = '';
+  openModal('wdAddWordModal');
+  setTimeout(() => document.getElementById('wdAddWordTitle').focus(), 80);
+};
+
+window.confirmAddWord = function() {
+  const siteId = document.getElementById('wdAddWordSiteId').value;
+  const verId  = document.getElementById('wdAddWordVerId').value;
+  const title  = document.getElementById('wdAddWordTitle').value.trim();
+  const word   = document.getElementById('wdAddWordText').value.trim();
+  if (!title || !word) { toast('Fill in both title and word'); return; }
+  const site = wordLibrary.find(s => s.id === siteId); if (!site) return;
+  const ver  = (site.pageVersions||[]).find(v => v.id === verId); if (!ver) return;
+  if (!ver.words) ver.words = [];
+  ver.words.push({ id: uid(), title, word });
+  closeModal('wdAddWordModal');
+  renderWordLibrary();
+  markUnsaved(true);
+  toast('Word added');
+};
+
 function renderBugState() {
   const banner = document.getElementById('bugLockBanner');
   const btn = document.getElementById('bugReportBtn');
@@ -6364,7 +6763,9 @@ renderTasks();
 renderActionCenter();
 // Sync AC panel visibility with whichever page is active on load
 setAcPanelVisibility(document.getElementById('page-tasks') && document.getElementById('page-tasks').classList.contains('active'));
+setWdPanelVisibility(document.getElementById('page-tasks') && document.getElementById('page-tasks').classList.contains('active'));
 renderAuditLog();
+renderWordLibrary();
 // Pre-populate earnings history so it's ready when user clicks the tab
 populateEhAccountSelect();
 renderEarningsHistory();
@@ -6437,6 +6838,61 @@ function setAcPanelVisibility(visible) {
 }
 </script>
 
+<!-- ── WORD DISPLAY PANEL (fixed, left-docked) ── -->
+<div id="wdTab" class="wd-hidden" onclick="toggleWordDisplay()">
+  📖 WD
+</div>
+
+<div id="wdPanel" class="wd-hidden">
+  <div id="wdPanelHeader">
+    <div id="wdPanelTitle">
+      <span>📖</span> Word Display
+    </div>
+    <button id="wdCollapseBtn" onclick="toggleWordDisplay()" title="Collapse">‹</button>
+  </div>
+  <div id="wdPanelBody">
+    <div style="text-align:center;padding:32px 10px;font-family:var(--mono);font-size:12px;color:var(--ink3);">No word libraries yet.</div>
+  </div>
+  <div style="padding:8px;">
+    <button class="wd-add-site-btn" onclick="openAddSiteModal()">+ Add Website</button>
+  </div>
+</div>
+
+<script>
+// ── WORD DISPLAY PANEL LOGIC ───────────────────────────────────────────────
+let _wdOpen = false;
+
+window.toggleWordDisplay = function() {
+  _wdOpen = !_wdOpen;
+  const panel = document.getElementById('wdPanel');
+  const tab   = document.getElementById('wdTab');
+  if (_wdOpen) {
+    panel.classList.add('wd-open');
+    tab.style.display = 'none';
+  } else {
+    panel.classList.remove('wd-open');
+    tab.style.display = '';
+  }
+};
+
+function setWdPanelVisibility(visible) {
+  const panel = document.getElementById('wdPanel');
+  const tab   = document.getElementById('wdTab');
+  if (!panel || !tab) return;
+  if (visible) {
+    panel.classList.remove('wd-hidden');
+    tab.classList.remove('wd-hidden');
+    if (!_wdOpen) tab.style.display = '';
+    else tab.style.display = 'none';
+  } else {
+    panel.classList.add('wd-hidden');
+    tab.classList.add('wd-hidden');
+    _wdOpen = false;
+    panel.classList.remove('wd-open');
+  }
+}
+</script>
+
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
@@ -6446,4 +6902,4 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
-// 11</body></html>
+// 12</body></html>
