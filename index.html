@@ -879,84 +879,83 @@ body {
   .dash-cards { grid-template-columns:1fr; }
 }
 
-/* ── LOGIN OVERLAY ── */
+/* ── GOOGLE LOGIN OVERLAY ── */
 #loginOverlay {
   position:fixed; inset:0; z-index:9999;
-  background: linear-gradient(135deg, #0d1b3e 0%, #1565C0 60%, #0d47a1 100%);
+  background:linear-gradient(135deg,#e8efff 0%,#f0f4ff 100%);
   display:flex; align-items:center; justify-content:center;
-  flex-direction:column; gap:0;
 }
 #loginOverlay.hidden { display:none; }
 .login-card {
-  background:#fff; border-radius:20px;
-  box-shadow:0 8px 48px rgba(0,0,0,0.28);
-  padding:40px 44px 36px;
-  display:flex; flex-direction:column; align-items:center; gap:22px;
-  max-width:380px; width:90%;
+  background:#fff; border-radius:20px; padding:44px 40px;
+  box-shadow:0 8px 48px rgba(21,101,192,0.15);
+  text-align:center; max-width:360px; width:90%;
 }
 .login-logo {
-  width:56px; height:56px;
-  background: var(--jt-grad);
-  border-radius:16px;
-  display:flex; align-items:center; justify-content:center;
-  font-family:var(--mono); font-size:22px; font-weight:700; color:#fff;
-  box-shadow:0 4px 16px rgba(21,101,192,0.4);
+  width:56px; height:56px; background:var(--jt-grad);
+  border-radius:14px; display:flex; align-items:center; justify-content:center;
+  font-family:var(--mono); font-size:22px; font-weight:600; color:#fff;
+  margin:0 auto 20px; box-shadow:0 4px 16px rgba(21,101,192,0.35);
 }
-.login-title { font-family:var(--mono); font-size:22px; font-weight:700; color:var(--ink); letter-spacing:-0.5px; }
-.login-sub { font-family:var(--mono); font-size:11.5px; color:var(--ink3); text-align:center; line-height:1.6; margin-top:-10px; }
-.login-divider { width:100%; height:1px; background:var(--border); }
-.login-note { font-family:var(--mono); font-size:10px; color:var(--ink3); text-align:center; line-height:1.7; }
-#loginStatus {
-  font-family:var(--mono); font-size:11.5px; color:var(--jt);
-  min-height:18px; text-align:center;
+.login-title { font-family:var(--mono); font-size:22px; font-weight:600; color:var(--ink); margin-bottom:6px; }
+.login-sub { font-family:var(--mono); font-size:11.5px; color:var(--ink3); margin-bottom:32px; line-height:1.6; }
+.login-btn {
+  display:inline-flex; align-items:center; gap:10px;
+  padding:12px 24px; border-radius:99px; border:1.5px solid var(--border2);
+  background:#fff; color:var(--ink2); font-family:var(--sans); font-size:14px;
+  font-weight:600; cursor:pointer; transition:all 0.15s;
+  box-shadow:0 2px 8px rgba(21,101,192,0.08);
 }
-
-/* ── USER AVATAR IN TOPBAR ── */
-.topbar-user {
-  display:flex; align-items:center; gap:8px; cursor:pointer;
-  padding:5px 10px 5px 5px;
-  border-radius:99px; border:1px solid var(--border2);
-  background:#fff; transition:border-color 0.15s;
+.login-btn:hover { background:var(--jt-light); border-color:var(--jt-border); }
+.login-btn svg { width:20px; height:20px; flex-shrink:0; }
+.login-status { font-family:var(--mono); font-size:11px; color:var(--ink3); margin-top:16px; min-height:18px; }
+/* User info pill in topbar */
+.user-pill {
+  display:flex; align-items:center; gap:7px;
+  padding:4px 10px 4px 4px; border-radius:99px;
+  border:1px solid var(--border2); background:#fff;
+  font-family:var(--mono); font-size:11px; color:var(--ink2);
+  cursor:pointer; transition:all 0.12s;
 }
-.topbar-user:hover { border-color:var(--jt-border); }
-.topbar-avatar {
-  width:26px; height:26px; border-radius:50%; object-fit:cover;
-  background:var(--jt-light); border:1px solid var(--jt-border);
+.user-pill:hover { background:var(--jt-light); border-color:var(--jt-border); }
+.user-avatar {
+  width:24px; height:24px; border-radius:50%;
+  background:var(--jt-grad); display:flex; align-items:center;
+  justify-content:center; font-size:10px; font-weight:700; color:#fff;
+  flex-shrink:0; overflow:hidden;
 }
-.topbar-user-name {
-  font-family:var(--mono); font-size:11px; font-weight:600; color:var(--ink2);
-  max-width:100px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+.user-avatar img { width:100%; height:100%; object-fit:cover; }
+/* Drive notification banner */
+#driveNewFileBanner {
+  display:none; margin-bottom:14px;
+  background:#eff6ff; border:1.5px solid #93c5fd; border-radius:12px;
+  padding:12px 18px; align-items:center; gap:12px;
 }
-.btn-signout {
-  font-family:var(--mono); font-size:10px; padding:4px 10px;
-  border-radius:99px; border:1px solid var(--red-border);
-  background:var(--red-light); color:var(--red); cursor:pointer; white-space:nowrap;
-}
-.btn-signout:hover { background:var(--red); color:#fff; }
+#driveNewFileBanner.visible { display:flex; }
 </style>
 </head>
 <body>
 
-<!-- ── LOGIN OVERLAY ── -->
+<canvas id="rain-canvas" width="1366" height="657"></canvas>
+
+<!-- ── GOOGLE LOGIN OVERLAY ── -->
 <div id="loginOverlay">
   <div class="login-card">
     <div class="login-logo">JT</div>
-    <div>
-      <div class="login-title" style="text-align:center;">JT Manager</div>
-      <div class="login-sub">JumpTask Enterprise · Multi-Account System</div>
-    </div>
-    <div class="login-divider"></div>
-    <div id="loginStatus">Initialising…</div>
-    <!-- Google Sign-In button rendered here by GIS -->
-    <div id="googleSignInBtn"></div>
-    <div class="login-note">
-      Sign in with the Google account that owns your Drive.<br>
-      All data is stored in your own Google Drive folder.
-    </div>
+    <div class="login-title">JT Manager</div>
+    <div class="login-sub">JumpTask Enterprise · Multi-Account System<br>Sign in with Google to access your Drive data.</div>
+    <button class="login-btn" onclick="gisSignIn()">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+      </svg>
+      Sign in with Google
+    </button>
+    <div class="login-status" id="loginStatus"></div>
   </div>
 </div>
-
-<canvas id="rain-canvas" width="1366" height="657"></canvas>
 
 <div class="app">
 
@@ -976,22 +975,29 @@ body {
       </div>
     </div>
     <div class="drive-indicator-row">
-      <div class="version-badge" id="avBadge" title="App Version">AV: V1.93</div>
+      <div class="version-badge" id="avBadge" title="App Version">AV: V1.94</div>
       <div class="version-badge" id="dvBadge" title="Data Version">DV: 2026.06.03.23.01.56</div>
       <div class="drive-dot green" id="driveDot" title="Drive: just saved"></div>
       <div class="unsaved-dot" id="unsavedDot" title="Unsaved changes"></div>
       <button id="bugReportBtn" onclick="openBugModal(false)" style="font-family: &quot;DM Mono&quot;, monospace; font-size: 11px; padding: 5px 12px; border-radius: 99px; background: rgb(254, 243, 199); color: rgb(180, 83, 9); cursor: pointer; display: flex; align-items: center; gap: 5px; white-space: nowrap; border-color: rgb(217, 119, 6);">📋 16 Updates</button>
 
       <button class="btn-get-latest" id="btnGetLatest" onclick="driveGetLatest()">☁ Get Latest</button>
-      <!-- OAuth user info -->
-      <div id="topbarUser" style="display:none;align-items:center;gap:6px;">
-        <div class="topbar-user" title="Signed in" id="topbarUserInfo">
-          <img id="topbarAvatar" class="topbar-avatar" src="" alt="">
-          <span id="topbarUserName" class="topbar-user-name"></span>
-        </div>
-        <button class="btn-signout" onclick="signOut()">Sign Out</button>
-      </div>
+      <button class="user-pill" id="userPill" onclick="gisSignOut()" title="Click to sign out" style="display:none;">
+        <div class="user-avatar" id="userAvatar"></div>
+        <span id="userNameShort">User</span>
+        <span style="color:var(--ink3);font-size:10px;">✕</span>
+      </button>
     </div>
+  </div>
+
+  <!-- DRIVE NEW FILE NOTIFICATION BANNER -->
+  <div id="driveNewFileBanner" class="">
+    <span style="font-size:18px;flex-shrink:0;">☁</span>
+    <div style="flex:1;font-family:var(--mono);font-size:12px;color:#1e40af;line-height:1.5;">
+      A newer data file is available in Drive. <span id="driveNewFileInfo" style="color:#1d4ed8;font-weight:600;"></span>
+    </div>
+    <button onclick="driveGetLatestFromBanner()" style="font-family:var(--mono);font-size:11px;padding:6px 14px;border-radius:99px;border:1px solid #93c5fd;background:#dbeafe;color:#1e40af;cursor:pointer;white-space:nowrap;font-weight:600;">Load Now</button>
+    <button onclick="document.getElementById('driveNewFileBanner').classList.remove('visible')" style="margin-left:6px;font-family:var(--mono);font-size:11px;padding:6px 12px;border-radius:99px;border:1px solid #cbd5e1;background:#fff;color:var(--ink3);cursor:pointer;">Dismiss</button>
   </div>
 
   <!-- BUG BANNER — shows when bugLog has entries -->
@@ -2131,7 +2137,7 @@ let auditLog = [];
 // Increment UHLV any time bugLog or bugHistory is modified by AI
 // loadDataJson compares this vs JSON uhlv and keeps whichever is higher
 // ─────────────────────────────────────────
-let UHLV = 14;
+let UHLV = 15;
 /*BUG_LOG_START*/
 let bugLog = [
   {
@@ -2203,7 +2209,15 @@ let bugLog = [
 /*BUG_HISTORY_START*/
 let bugHistory = [
   {
-    "id": "UPDATE-053",
+    "id": "UPDATE-054",
+    "title": "Google OAuth via GIS — replaced Apps Script proxy with direct Drive REST API",
+    "date": "2026.06.07",
+    "status": "resolved",
+    "report": "Drive integration relied on a deployed Google Apps Script acting as a CORS proxy for all Drive operations (list files, upload, download, thumbnail lookup). This required maintaining a deployed script URL and a hardcoded folder ID — fragile, requires re-deployment on script expiry, and blocks use on GitHub Pages since the script URL was account-tied.",
+    "cause": "All Drive API calls used fetch(DRIVE_SCRIPT_URL, ...) with action params routed through Apps Script. No OAuth token — authentication was baked into the Apps Script deployment. Folder ID was a hardcoded constant. No user login state.",
+    "fix": "Replaced DRIVE_SCRIPT_URL and DRIVE_FOLDER_ID with Google Identity Services (GIS) OAuth flow using Client ID 122560609463-vvejkpk1phego89icu12410bq0bmeha7.apps.googleusercontent.com and origin https://realershad67-ship-it.github.io. Added login overlay (shown on load, dismissed after token), user pill with avatar in topbar (click to sign out), silent token restore via localStorage hint on return visits. All Drive fetch calls replaced with direct Drive REST API v3 calls using Bearer token: driveListFiles(), driveGetFileContent(), driveUploadFile() helpers. Folder auto-created on first login — ensureDriveFolder() searches for JT MANAGER APP DATA folder by name, creates it if missing, caches ID in _gisFolderIdCache. saveAppVersion, saveCurrentAsLatest, checkLatestAppVersion, driveGetLatest, btnSave handler, thumbnail loader all updated to use new helpers. Offline fallback: if not signed in, save falls back to local download. UHLV bumped 14→15, APP_V_VERSION bumped 1.93→1.94."
+  },
+  {
     "title": "Strip regex for bugHistoryList fixed — now reliable on every app save",
     "date": "2026.06.03",
     "status": "resolved",
@@ -3660,8 +3674,8 @@ window.openTaskMediaModal = async function(taskId) {
     return;
   }
 
-  if (!DRIVE_THUMBNAIL_FOLDER_ID) {
-    toast('No thumbnail folder configured. Set DRIVE_THUMBNAIL_FOLDER_ID in the script.');
+  if (!_gisAccessToken) {
+    toast('Sign in to Google Drive first to load Drive thumbnails.');
     return;
   }
 
@@ -3672,11 +3686,13 @@ window.openTaskMediaModal = async function(taskId) {
 
   try {
     const now = Date.now();
-    // Use cached file list if fresh
+    // Use cached file list if fresh — thumbnail folder is a subfolder of the app data folder
     if (!_driveThumbnailCache || (now - _driveThumbnailCacheTime) > DRIVE_CACHE_TTL) {
-      const res = await fetch(`${DRIVE_SCRIPT_URL}?action=list&folderId=${DRIVE_THUMBNAIL_FOLDER_ID}&fileType=image`, { mode: 'cors' });
-      const data = await res.json();
-      _driveThumbnailCache = Array.isArray(data.files) ? data.files : [];
+      if (!_gisFolderIdCache) { await ensureDriveFolder(); }
+      // List all images in the app folder (thumbnails stored alongside data)
+      const imgFiles = await driveListFiles(_gisFolderIdCache, 'image/jpeg');
+      const imgFiles2 = await driveListFiles(_gisFolderIdCache, 'image/png');
+      _driveThumbnailCache = [...imgFiles, ...imgFiles2];
       _driveThumbnailCacheTime = now;
     }
 
@@ -4654,7 +4670,7 @@ window.deleteLink = function(taskId, index) {
   renderTasks();
   toast('Link removed');
 };
-const APP_V_VERSION = '1.93';
+const APP_V_VERSION = '1.94';
 
 function parseAppVersion(version) {
   if (!version || typeof version !== 'string') return null;
@@ -4751,14 +4767,11 @@ function loadDataJson(payload) {
 }
 
 async function loadLatestDataFile(fileId, fileName) {
-  if (!navigator.onLine) { setDriveDot('gray', 'offline'); return; }
+  if (!_gisAccessToken) { toast('Sign in to Google first.'); return; }
   setDriveDot('spin', 'loading…');
   try {
-    const res = await fetch(`${DRIVE_SCRIPT_URL}?action=getFileContent&fileId=${fileId}`, { mode: 'cors' });
-    const data = await res.json();
-    if (data.error) throw new Error(data.error);
-    if (!data.content) throw new Error('Empty file content');
-    const payload = JSON.parse(data.content);
+    const raw = await driveGetFileContent(fileId);
+    const payload = JSON.parse(raw);
     if (!payload || typeof payload !== 'object') throw new Error('Invalid JSON payload');
     loadDataJson(payload);
     _driveLatestName = fileName || _driveLatestName;
@@ -4850,251 +4863,239 @@ window.togglePanel = function(panelId) {
 };
 
 // ─────────────────────────────────────────
-// GOOGLE OAUTH + DRIVE INTEGRATION
+// GOOGLE DRIVE INTEGRATION
 // ─────────────────────────────────────────
-const OAUTH_CLIENT_ID = '122560609463-vvejkpk1phego89icu12410bq0bmeha7.apps.googleusercontent.com';
-const OAUTH_SCOPES    = 'https://www.googleapis.com/auth/drive.file';
-const APP_FOLDER_NAME = 'JT MANAGER APP DATA';
-const DATA_FILE_PREFIX     = 'JT_Manager_';
-const DATA_FILE_EXTENSION  = '.json';
-
+// ─────────────────────────────────────────
+// GOOGLE DRIVE INTEGRATION — OAuth via GIS
+// ─────────────────────────────────────────
+const DRIVE_CLIENT_ID = '122560609463-vvejkpk1phego89icu12410bq0bmeha7.apps.googleusercontent.com';
+const DRIVE_REDIRECT_ORIGIN = 'https://realershad67-ship-it.github.io';
+const DRIVE_APP_FOLDER_NAME = 'JT MANAGER APP DATA';
+const DRIVE_SCOPES = 'https://www.googleapis.com/auth/drive.file';
+const DATA_FILE_PREFIX = 'JT_Manager_';
+const DATA_FILE_EXTENSION = '.json';
 // Runtime OAuth state
-let _oauthToken       = null;   // current access token string
-let _oauthExpiry      = 0;      // epoch ms when token expires
-let _driveAppFolderId = localStorage.getItem('jt_drive_folder_id') || null;
-let _tokenClient      = null;   // GIS token client
+let _gisAccessToken = null;
+let _gisTokenExpiry = 0;
+let _gisFolderIdCache = null;       // data/json folder id (auto-created)
+let _gisAppFolderIdCache = null;    // html app folder id (same folder for now)
+let _gisTokenClient = null;
+let _gisUserProfile = null;         // {name, email, picture}
 
-// ── Token helpers ─────────────────────────────────────────────────────────
-function isTokenValid() {
-  return _oauthToken && Date.now() < _oauthExpiry - 30000;
+// Track state for conflict detection
+let _driveLatestName = null;   // filename of latest file on Drive (from last check)
+let _lastOpenedName  = null;   // filename we last loaded from Drive this session
+let _openCount       = 0;      // how many times Get Latest was called this session
+let _hasUnsaved      = false;  // whether there are unsaved changes
+
+// ── OAuth / GIS helpers ────────────────────────────────────────────────────
+function isFileOrigin() {
+  try { return location.protocol === 'file:' || (window.origin && window.origin === 'null'); } catch(e) { return false; }
 }
 
-async function getToken() {
-  if (isTokenValid()) return _oauthToken;
-  // Request a fresh token (shows consent popup only first time or after revoke)
+// Initialize GIS token client (called once on load)
+function initGIS() {
+  if (!window.google || !window.google.accounts) {
+    // GIS not loaded yet — retry shortly
+    setTimeout(initGIS, 300);
+    return;
+  }
+  _gisTokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: DRIVE_CLIENT_ID,
+    scope: DRIVE_SCOPES,
+    callback: (response) => {
+      if (response.error) {
+        setLoginStatus('Auth error: ' + response.error);
+        return;
+      }
+      _gisAccessToken = response.access_token;
+      _gisTokenExpiry = Date.now() + (response.expires_in - 60) * 1000;
+      setLoginStatus('');
+      onSignedIn();
+    },
+  });
+  // Try silent token restore via stored hint
+  const hint = localStorage.getItem('gis_login_hint');
+  if (hint) {
+    _gisTokenClient.requestAccessToken({ hint, prompt: '' });
+  }
+}
+
+function gisSignIn() {
+  setLoginStatus('Opening Google sign-in…');
+  if (!_gisTokenClient) { setLoginStatus('GIS not ready — try again in a moment.'); return; }
+  _gisTokenClient.requestAccessToken({ prompt: 'consent' });
+}
+
+function gisSignOut() {
+  if (!confirm('Sign out of Google Drive integration?')) return;
+  if (_gisAccessToken) google.accounts.oauth2.revoke(_gisAccessToken, () => {});
+  _gisAccessToken = null; _gisTokenExpiry = 0; _gisFolderIdCache = null;
+  _gisAppFolderIdCache = null; _gisUserProfile = null;
+  localStorage.removeItem('gis_login_hint');
+  showLoginOverlay();
+}
+
+function gisGetToken() {
+  // Returns a promise that resolves with a valid token, refreshing if needed
+  if (_gisAccessToken && Date.now() < _gisTokenExpiry) return Promise.resolve(_gisAccessToken);
   return new Promise((resolve, reject) => {
-    _tokenClient.callback = (resp) => {
-      if (resp.error) { reject(new Error(resp.error)); return; }
-      _oauthToken  = resp.access_token;
-      _oauthExpiry = Date.now() + (resp.expires_in || 3600) * 1000;
-      resolve(_oauthToken);
+    if (!_gisTokenClient) { reject(new Error('GIS not initialised')); return; }
+    const orig = _gisTokenClient.callback;
+    _gisTokenClient.callback = (r) => {
+      _gisTokenClient.callback = orig;
+      if (r.error) { reject(new Error(r.error)); return; }
+      _gisAccessToken = r.access_token;
+      _gisTokenExpiry = Date.now() + (r.expires_in - 60) * 1000;
+      resolve(_gisAccessToken);
     };
-    _tokenClient.requestAccessToken({ prompt: '' });
+    _gisTokenClient.requestAccessToken({ prompt: '' });
   });
 }
 
-// ── Drive REST helpers ────────────────────────────────────────────────────
-async function driveRequest(url, options = {}) {
-  const token = await getToken();
-  const resp = await fetch(url, {
-    ...options,
-    headers: {
-      'Authorization': 'Bearer ' + token,
-      ...(options.headers || {})
-    }
-  });
-  if (!resp.ok) {
-    const errText = await resp.text();
-    throw new Error(`Drive API ${resp.status}: ${errText.slice(0, 200)}`);
-  }
-  return resp;
+function setLoginStatus(msg) {
+  const el = document.getElementById('loginStatus');
+  if (el) el.textContent = msg;
 }
 
-// ── Ensure app folder exists (create on first login) ─────────────────────
-async function ensureAppFolder() {
-  if (_driveAppFolderId) return _driveAppFolderId;
+function showLoginOverlay() {
+  const ov = document.getElementById('loginOverlay');
+  if (ov) ov.classList.remove('hidden');
+  const pill = document.getElementById('userPill');
+  if (pill) pill.style.display = 'none';
+}
 
-  // Search for existing folder
-  const q = encodeURIComponent(`name='${APP_FOLDER_NAME}' and mimeType='application/vnd.google-apps.folder' and trashed=false`);
-  const listResp = await driveRequest(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)&spaces=drive`);
-  const listData = await listResp.json();
+function hideLoginOverlay() {
+  const ov = document.getElementById('loginOverlay');
+  if (ov) ov.classList.add('hidden');
+}
 
-  if (listData.files && listData.files.length > 0) {
-    _driveAppFolderId = listData.files[0].id;
-  } else {
-    // Create new folder
-    const createResp = await driveRequest('https://www.googleapis.com/drive/v3/files', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: APP_FOLDER_NAME, mimeType: 'application/vnd.google-apps.folder' })
+async function onSignedIn() {
+  // Fetch user profile
+  try {
+    const tok = await gisGetToken();
+    const r = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+      headers: { Authorization: 'Bearer ' + tok }
     });
-    const created = await createResp.json();
-    _driveAppFolderId = created.id;
-    toast('📁 Created "' + APP_FOLDER_NAME + '" folder in your Drive');
-  }
-  localStorage.setItem('jt_drive_folder_id', _driveAppFolderId);
-  return _driveAppFolderId;
+    if (r.ok) {
+      _gisUserProfile = await r.json();
+      localStorage.setItem('gis_login_hint', _gisUserProfile.email || '');
+      // Update user pill
+      const pill = document.getElementById('userPill');
+      const avatar = document.getElementById('userAvatar');
+      const name = document.getElementById('userNameShort');
+      if (pill) { pill.style.display = 'inline-flex'; }
+      if (avatar) {
+        if (_gisUserProfile.picture) {
+          avatar.innerHTML = `<img src="${_gisUserProfile.picture}" alt="">`;
+        } else {
+          avatar.textContent = (_gisUserProfile.name || 'U')[0].toUpperCase();
+        }
+      }
+      if (name) name.textContent = (_gisUserProfile.name || _gisUserProfile.email || '').split(' ')[0];
+    }
+  } catch(e) { /* non-fatal */ }
+  hideLoginOverlay();
+  // Ensure folder exists then do background version check
+  try {
+    await ensureDriveFolder();
+    checkDriveVersion();
+  } catch(e) { setDriveDot('gray', 'folder error: ' + e.message); }
 }
 
-// ── Upload a file to Drive (multipart) ───────────────────────────────────
-async function driveUploadFile(filename, content, mimeType) {
-  const folderId = await ensureAppFolder();
-  const token = await getToken();
-  const metadata = { name: filename, parents: [folderId] };
-  const boundary = 'jt_boundary_' + Date.now();
-  const body =
-    `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n` +
-    JSON.stringify(metadata) +
-    `\r\n--${boundary}\r\nContent-Type: ${mimeType}\r\n\r\n` +
-    content +
-    `\r\n--${boundary}--`;
-  const resp = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,webContentLink', {
+// ── Drive folder auto-create ───────────────────────────────────────────────
+async function ensureDriveFolder() {
+  if (_gisFolderIdCache) return _gisFolderIdCache;
+  const tok = await gisGetToken();
+  // Search for existing folder
+  const q = encodeURIComponent(`mimeType='application/vnd.google-apps.folder' and name='${DRIVE_APP_FOLDER_NAME}' and trashed=false`);
+  const sr = await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)`, {
+    headers: { Authorization: 'Bearer ' + tok }
+  });
+  if (!sr.ok) throw new Error('Folder search failed: ' + sr.status);
+  const sd = await sr.json();
+  if (sd.files && sd.files.length > 0) {
+    _gisFolderIdCache = sd.files[0].id;
+    _gisAppFolderIdCache = sd.files[0].id;
+    return _gisFolderIdCache;
+  }
+  // Create folder
+  const cr = await fetch('https://www.googleapis.com/drive/v3/files', {
     method: 'POST',
+    headers: { Authorization: 'Bearer ' + tok, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name: DRIVE_APP_FOLDER_NAME, mimeType: 'application/vnd.google-apps.folder' })
+  });
+  if (!cr.ok) throw new Error('Folder create failed: ' + cr.status);
+  const cd = await cr.json();
+  _gisFolderIdCache = cd.id;
+  _gisAppFolderIdCache = cd.id;
+  toast('✅ Created Drive folder: ' + DRIVE_APP_FOLDER_NAME);
+  return _gisFolderIdCache;
+}
+
+// ── Drive REST helpers (replaces Apps Script proxy) ────────────────────────
+async function driveListFiles(folderId, mimeTypeFilter) {
+  const tok = await gisGetToken();
+  let q = `'${folderId}' in parents and trashed=false`;
+  if (mimeTypeFilter) q += ` and mimeType='${mimeTypeFilter}'`;
+  const url = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=files(id,name,createdTime,modifiedTime,webContentLink)&orderBy=modifiedTime+desc&pageSize=100`;
+  const r = await fetch(url, { headers: { Authorization: 'Bearer ' + tok } });
+  if (!r.ok) throw new Error('Drive list failed: ' + r.status);
+  const d = await r.json();
+  return d.files || [];
+}
+
+async function driveGetFileContent(fileId) {
+  const tok = await gisGetToken();
+  const r = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
+    headers: { Authorization: 'Bearer ' + tok }
+  });
+  if (!r.ok) throw new Error('Drive download failed: ' + r.status);
+  return await r.text();
+}
+
+async function driveUploadFile(folderId, filename, content, mimeType) {
+  const tok = await gisGetToken();
+  // Check if file with same name exists → update it, else create
+  const existing = await driveListFiles(folderId, null);
+  const existingFile = existing.find(f => f.name === filename);
+  const meta = JSON.stringify({ name: filename, parents: existingFile ? undefined : [folderId] });
+  const boundary = '-------jt_boundary_' + Date.now();
+  const body = `--${boundary}\r\nContent-Type: application/json\r\n\r\n${meta}\r\n--${boundary}\r\nContent-Type: ${mimeType}\r\n\r\n${content}\r\n--${boundary}--`;
+  const method = existingFile ? 'PATCH' : 'POST';
+  const url = existingFile
+    ? `https://www.googleapis.com/upload/drive/v3/files/${existingFile.id}?uploadType=multipart`
+    : 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
+  const r = await fetch(url, {
+    method,
     headers: {
-      'Authorization': 'Bearer ' + token,
+      Authorization: 'Bearer ' + tok,
       'Content-Type': `multipart/related; boundary=${boundary}`
     },
     body
   });
-  if (!resp.ok) {
-    const t = await resp.text();
-    throw new Error('Upload failed: ' + t.slice(0, 200));
-  }
-  return await resp.json();
+  if (!r.ok) throw new Error('Drive upload failed: ' + r.status);
+  return await r.json();
 }
 
-// ── List files in app folder ──────────────────────────────────────────────
-async function driveListFiles(fileType) {
-  const folderId = await ensureAppFolder();
-  const q = encodeURIComponent(`'${folderId}' in parents and trashed=false`);
-  const resp = await driveRequest(
-    `https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name,createdTime,webContentLink)&orderBy=createdTime%20desc&pageSize=50`
-  );
-  const data = await resp.json();
-  let files = data.files || [];
-  // Filter by extension
-  if (fileType === 'json')  files = files.filter(f => f.name.endsWith('.json'));
-  if (fileType === 'html')  files = files.filter(f => f.name.endsWith('.html'));
-  if (fileType === 'image') files = files.filter(f => /\.(png|jpg|jpeg|gif|webp)$/i.test(f.name));
-  return files;
+// Convenience: upload with base64 content (keep existing callers happy)
+async function driveUploadFileBase64(folderId, filename, base64Content, mimeType) {
+  const content = decodeURIComponent(escape(atob(base64Content)));
+  return driveUploadFile(folderId, filename, content, mimeType);
 }
 
-// ── Get file content from Drive ────────────────────────────────────────────
-async function driveGetFileContent(fileId) {
-  const resp = await driveRequest(
-    `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`
-  );
-  return await resp.text();
+// ── Banner: notify of newer file without auto-loading ─────────────────────
+function showDriveNewFileBanner(fileName) {
+  const banner = document.getElementById('driveNewFileBanner');
+  const info = document.getElementById('driveNewFileInfo');
+  if (info) info.textContent = fileName;
+  if (banner) banner.classList.add('visible');
 }
 
-// ── GIS Initialisation (called once GIS script loads) ─────────────────────
-function initGIS() {
-  const loginStatus = document.getElementById('loginStatus');
-  const overlay     = document.getElementById('loginOverlay');
-
-  _tokenClient = google.accounts.oauth2.initTokenClient({
-    client_id: OAUTH_CLIENT_ID,
-    scope: OAUTH_SCOPES,
-    callback: () => {} // overridden at getToken() time
-  });
-
-  // Try to init the One Tap credential (for sign-in UI)
-  google.accounts.id.initialize({
-    client_id: OAUTH_CLIENT_ID,
-    callback: async (credResp) => {
-      // One-tap gave us an ID credential; we also need an access token for Drive
-      loginStatus.textContent = 'Requesting Drive access…';
-      try {
-        await getToken();
-        const payload = JSON.parse(atob(credResp.credential.split('.')[1]));
-        onSignedIn(payload.name, payload.picture);
-      } catch (e) {
-        loginStatus.textContent = '✗ ' + e.message;
-      }
-    },
-    auto_select: true
-  });
-
-  // Render the Google Sign-In button (fallback for browsers that block One Tap)
-  google.accounts.id.renderButton(
-    document.getElementById('googleSignInBtn'),
-    { theme: 'outline', size: 'large', text: 'signin_with_google', shape: 'rectangular' }
-  );
-
-  // Try auto-sign-in (One Tap prompt)
-  loginStatus.textContent = 'Sign in to continue';
-  google.accounts.id.prompt((notification) => {
-    // If One Tap is suppressed (dismissed/not supported), fall back to button
-    // — button is already rendered above, nothing more to do
-  });
-}
-
-// ── Called after OAuth token is obtained ─────────────────────────────────
-async function onSignedIn(displayName, avatarUrl) {
-  const overlay = document.getElementById('loginOverlay');
-  const loginStatus = document.getElementById('loginStatus');
-
-  loginStatus.textContent = '✓ Signed in — loading Drive folder…';
-
-  try {
-    await ensureAppFolder(); // create folder if needed
-  } catch(e) {
-    loginStatus.textContent = '✗ Drive error: ' + e.message;
-    return;
-  }
-
-  // Hide login overlay, show app
-  overlay.classList.add('hidden');
-
-  // Show user info in topbar
-  const topbarUser = document.getElementById('topbarUser');
-  if (topbarUser) { topbarUser.style.display = 'flex'; }
-  const avatar = document.getElementById('topbarAvatar');
-  if (avatar && avatarUrl) { avatar.src = avatarUrl; }
-  const nameEl = document.getElementById('topbarUserName');
-  if (nameEl && displayName) { nameEl.textContent = displayName.split(' ')[0]; }
-
-  // Now run the Drive background check
-  checkDriveVersion();
-  markUnsaved(false);
-}
-
-// ── Sign out ───────────────────────────────────────────────────────────────
-window.signOut = function() {
-  google.accounts.id.disableAutoSelect();
-  _oauthToken  = null;
-  _oauthExpiry = 0;
-  _driveAppFolderId = null;
-  localStorage.removeItem('jt_drive_folder_id');
-  // Revoke token if available
-  if (_oauthToken) google.accounts.oauth2.revoke(_oauthToken);
-  // Show login overlay again
-  document.getElementById('loginOverlay').classList.remove('hidden');
-  document.getElementById('loginStatus').textContent = 'Sign in to continue';
-  const topbarUser = document.getElementById('topbarUser');
-  if (topbarUser) topbarUser.style.display = 'none';
-  toast('Signed out');
+window.driveGetLatestFromBanner = async function() {
+  document.getElementById('driveNewFileBanner').classList.remove('visible');
+  driveGetLatest();
 };
-
-// ── Called on DOMContentLoaded: boot GIS when script is ready ────────────
-function bootGIS() {
-  if (typeof google !== 'undefined' && google.accounts) {
-    initGIS();
-  } else {
-    // Poll until GIS script finishes loading
-    const timer = setInterval(() => {
-      if (typeof google !== 'undefined' && google.accounts) {
-        clearInterval(timer);
-        initGIS();
-      }
-    }, 150);
-  }
-}
-
-// Track state for conflict detection
-let _driveLatestName = null;
-let _lastOpenedName  = null;
-let _openCount       = 0;
-let _hasUnsaved      = false;
-
-// Helper: detect when page is opened from file:// (origin will be 'null')
-function isFileOrigin() {
-  try {
-    return location.protocol === 'file:' || (window.origin && window.origin === 'null');
-  } catch (e) {
-    return false;
-  }
-}
 
 // ── Audit log helpers ──────────────────────────────────────────────────────
 function auditTimestamp() {
@@ -5205,14 +5206,14 @@ let auditLog = [];
 
 // ── Check Drive for latest version (silent background check) ──────────────
 async function checkDriveVersion() {
-  if (!navigator.onLine) { setDriveDot('gray','offline'); return; }
+  if (!_gisAccessToken) { setDriveDot('gray','not signed in'); return; }
   setDriveDot('spin','checking…');
   try {
-    const res = await fetch(`${DRIVE_SCRIPT_URL}?action=list&folderId=${DRIVE_FOLDER_ID}&fileType=json`, { mode: 'cors' });
-    const data = await res.json();
-    if (!data.files || !data.files.length) { setDriveDot('gray','no data in Drive'); return; }
+    const folderId = await ensureDriveFolder();
+    const files = await driveListFiles(folderId, 'application/json');
+    if (!files || !files.length) { setDriveDot('gray','no data in Drive'); return; }
 
-    const latest = selectLatestDataFile(data.files);
+    const latest = selectLatestDataFile(files);
     if (!latest) { setDriveDot('gray','no valid JSON data'); return; }
     _driveLatestName = latest.name;
 
@@ -5303,23 +5304,8 @@ function bumpAndPatchAppSrc(src, currentVer, isFinal) {
 }
 
 async function uploadHtmlToDrive(filename, htmlContent) {
-  const base64 = btoa(unescape(encodeURIComponent(htmlContent)));
-  const payload = {
-    action: 'upload',
-    folderId: DRIVE_APP_FOLDER_ID,   // ← app HTML folder, not data JSON folder
-    filename,
-    content: base64,
-    mimeType: 'text/html'
-  };
-  const res = await fetch(DRIVE_SCRIPT_URL, {
-    method: 'POST',
-    mode: 'cors',
-    body: JSON.stringify(payload)
-  });
-  const text = await res.text();
-  const data = JSON.parse(text);
-  if (data.error) throw new Error(data.error);
-  return data;
+  const folderId = await ensureDriveFolder();
+  return driveUploadFile(folderId, filename, htmlContent, 'text/html');
 }
 
 // ── Save App Version ───────────────────────────────────────────────────────
@@ -5329,7 +5315,7 @@ window.saveAppVersion = async function saveAppVersion() {
   const pbar = document.getElementById('driveProgressBar');
   if (pbar) pbar.className = 'drive-progress-bar indeterminate';
   try {
-    if (!navigator.onLine) { toast('⚠ Offline — cannot save app to Drive'); return; }
+    if (!_gisAccessToken) { toast('⚠ Sign in to Google first'); return; }
     let src = document.documentElement.outerHTML;
     // isFinal = true if bugLog is now empty (last batch completed)
     const isFinal = (bugLog.length === 0);
@@ -5362,15 +5348,13 @@ window.checkLatestAppVersion = async function checkLatestAppVersion() {
   const btn = document.getElementById('btnLoadAppVer');
   if (btn) btn.disabled = true;
   try {
-    if (!navigator.onLine) { toast('⚠ Offline — cannot check Drive'); return; }
-    // List the APP folder (html files), not the data JSON folder
-    const res = await fetch(`${DRIVE_SCRIPT_URL}?action=list&folderId=${DRIVE_APP_FOLDER_ID}&fileType=html`, { mode: 'cors' });
-    const data = await res.json();
-    const appFiles = (data.files || [])
+    if (!_gisAccessToken) { toast('⚠ Sign in to Google first'); return; }
+    const folderId = await ensureDriveFolder();
+    const files = await driveListFiles(folderId, 'text/html');
+    const appFiles = files
       .map(f => Object.assign({}, f, parseAppFilename(f.name)))
       .filter(f => f.version);
     if (!appFiles.length) { toast('No app versions found in Drive'); return; }
-    // Sort by version descending, then timestamp descending as tiebreaker
     appFiles.sort((a, b) => {
       const vDiff = parseFloat(b.version) - parseFloat(a.version);
       if (vDiff !== 0) return vDiff;
@@ -5382,10 +5366,7 @@ window.checkLatestAppVersion = async function checkLatestAppVersion() {
       toast('✓ You are on the latest app version');
       return;
     }
-    // Show popup — Drive returns webContentLink, not downloadUrl
-    const downloadLink = latest.webContentLink || latest.downloadUrl || latest.id
-      ? `https://drive.google.com/uc?export=download&id=${latest.id}`
-      : null;
+    const downloadLink = `https://drive.google.com/uc?export=download&id=${latest.id}`;
     const modal = document.getElementById('appVerModal');
     document.getElementById('appVerModalBody').innerHTML =
       `Newer version found in Drive:<br>` +
@@ -5412,7 +5393,7 @@ window.saveCurrentAsLatest = async function saveCurrentAsLatest() {
   const pbar = document.getElementById('driveProgressBar');
   if (pbar) pbar.className = 'drive-progress-bar indeterminate';
   try {
-    if (!navigator.onLine) { toast('⚠ Offline — cannot save to Drive'); return; }
+    if (!_gisAccessToken) { toast('⚠ Sign in to Google first'); return; }
     let src = document.documentElement.outerHTML;
     const isFinal = (bugLog.length === 0);
     const { src: patchedSrc, newVer } = bumpAndPatchAppSrc(src, APP_V_VERSION, isFinal);
@@ -5441,9 +5422,8 @@ window.saveCurrentAsLatest = async function saveCurrentAsLatest() {
 
 // ── Get Latest from Drive ─────────────────────────────────────────────────
 window.driveGetLatest = async function() {
-  if (!navigator.onLine) {
-    toast('⚠ Offline — cannot fetch from Drive');
-    setDriveDot('gray','offline');
+  if (!_gisAccessToken) {
+    toast('⚠ Sign in to Google Drive first');
     return;
   }
 
@@ -5454,23 +5434,21 @@ window.driveGetLatest = async function() {
   if (glPbar) { glPbar.className = 'drive-progress-bar indeterminate'; }
 
   try {
-    const res = await fetch(`${DRIVE_SCRIPT_URL}?action=list&folderId=${DRIVE_FOLDER_ID}&fileType=json`, { mode: 'cors' });
-    const data = await res.json();
-    if (!data.files || !data.files.length) {
+    const folderId = await ensureDriveFolder();
+    const files = await driveListFiles(folderId, 'application/json');
+    if (!files || !files.length) {
       toast('No Drive data files found');
       setDriveDot('gray','folder empty');
-      const glPb2 = document.getElementById('driveProgressBar');
-      if (glPb2) glPb2.className = 'drive-progress-bar';
+      if (glPbar) glPbar.className = 'drive-progress-bar';
       if (btn) btn.disabled = false;
       return;
     }
 
-    const latest = selectLatestDataFile(data.files);
+    const latest = selectLatestDataFile(files);
     if (!latest) {
       toast('No valid JSON data file found');
       setDriveDot('gray','no valid data');
-      const glPb2 = document.getElementById('driveProgressBar');
-      if (glPb2) glPb2.className = 'drive-progress-bar';
+      if (glPbar) glPbar.className = 'drive-progress-bar';
       if (btn) btn.disabled = false;
       return;
     }
@@ -5481,8 +5459,7 @@ window.driveGetLatest = async function() {
       const proceed = confirm(`⚠ You opened "${_lastOpenedName}" from Drive last time but never saved it back. Open latest anyway?`);
       if (!proceed) {
         if (btn) btn.disabled = false;
-        const glPb2 = document.getElementById('driveProgressBar');
-        if (glPb2) glPb2.className = 'drive-progress-bar';
+        if (glPbar) glPbar.className = 'drive-progress-bar';
         return;
       }
     }
@@ -5491,8 +5468,7 @@ window.driveGetLatest = async function() {
       const proceed = confirm('⚠ You have unsaved changes. Loading latest Drive data will discard them. Continue?');
       if (!proceed) {
         if (btn) btn.disabled = false;
-        const glPb2 = document.getElementById('driveProgressBar');
-        if (glPb2) glPb2.className = 'drive-progress-bar';
+        if (glPbar) glPbar.className = 'drive-progress-bar';
         return;
       }
     }
@@ -5500,11 +5476,11 @@ window.driveGetLatest = async function() {
     await loadLatestDataFile(latest.id, latest.name);
     _lastOpenedName = latest.name;
     _openCount += 1;
+    if (glPbar) { glPbar.className = 'drive-progress-bar complete'; setTimeout(() => { if (glPbar) glPbar.className = 'drive-progress-bar'; }, 1400); }
     toast('✓ Loaded latest Drive data');
   } catch (e) {
     console.error(e);
-    const glPbErr = document.getElementById('driveProgressBar');
-    if (glPbErr) glPbErr.className = 'drive-progress-bar';
+    if (glPbar) glPbar.className = 'drive-progress-bar';
     toast('✗ Drive error: ' + e.message);
     setDriveDot('red','error — ' + e.message);
   } finally {
@@ -5545,101 +5521,51 @@ document.getElementById('btnSave').addEventListener('click', async () => {
   const filename = `JT_Manager_${suffix}.json`;
   const payload = buildSaveJSON();
   const content = JSON.stringify(payload, null, 2);
-
-  addAuditEntry('SAVED', filename);
-
-  const blob = new Blob([content], { type: 'application/json' });
   const btn = document.getElementById('btnSave');
   if (btn) btn.disabled = true;
 
-  if (!navigator.onLine) {
+  // Offline fallback — local download
+  if (!_gisAccessToken) {
     addAuditEntry('OFFLINE SAVE', filename);
     _triggerLocalDownload(content, filename, 'application/json');
-    toast('📥 Offline — saved locally: ' + filename);
+    toast('📥 Not signed in — saved locally: ' + filename);
     markUnsaved(false);
-    const conflictBar = document.getElementById('conflictBar');
-    if (conflictBar) conflictBar.classList.remove('visible');
+    const cb = document.getElementById('conflictBar');
+    if (cb) cb.classList.remove('visible');
     if (btn) btn.disabled = false;
     return;
   }
+
   setDriveDot('spin', 'uploading…');
   const pbar = document.getElementById('driveProgressBar');
-  if (pbar) { pbar.className = 'drive-progress-bar indeterminate'; }
+  if (pbar) pbar.className = 'drive-progress-bar indeterminate';
 
   try {
-    console.log('=== JT SAVE START ===');
-    console.log('DRIVE_SCRIPT_URL:', DRIVE_SCRIPT_URL);
-    console.log('DRIVE_FOLDER_ID:', DRIVE_FOLDER_ID);
-    console.log('filename:', filename);
-    console.log('navigator.onLine:', navigator.onLine);
-    console.log('location.protocol:', location.protocol);
-    console.log('window.origin:', window.origin);
-
-    const base64 = btoa(unescape(encodeURIComponent(content)));
-    console.log('base64 length:', base64.length);
-
-    const uploadPayload = {
-      action: 'upload',
-      folderId: DRIVE_FOLDER_ID,
-      filename: filename,
-      content: base64,
-      mimeType: 'application/json'
-    };
-    console.log('Sending fetch POST to Apps Script...');
-    // Send as plain text (no Content-Type header) to avoid CORS preflight.
-    // Apps Script reads e.postData.contents regardless of content-type.
-    let res;
-    try {
-      res = await fetch(DRIVE_SCRIPT_URL, {
-        method: 'POST',
-        mode: 'cors',
-        body: JSON.stringify(uploadPayload)
-      });
-      console.log('fetch completed — status:', res.status, res.statusText);
-    } catch (fetchErr) {
-      console.error('fetch THREW (network/CORS error):', fetchErr);
-      throw fetchErr;
-    }
-    let data;
-    const responseText = await res.text();
-    console.log('Raw response text:', responseText.substring(0, 300));
-    try {
-      data = JSON.parse(responseText);
-    } catch (je) {
-      console.error('Response parse error:', je);
-      throw new Error('Drive script returned non-JSON — check deployment and access settings.');
-    }
-    console.log('Parsed response data:', data);
-    if (data.error) throw new Error(data.error);
-
+    const folderId = await ensureDriveFolder();
+    await driveUploadFile(folderId, filename, content, 'application/json');
     const pbOk = document.getElementById('driveProgressBar');
-    if (pbOk) {
-      pbOk.className = 'drive-progress-bar complete';
-      setTimeout(() => { pbOk.className = 'drive-progress-bar'; }, 1400);
-    }
+    if (pbOk) { pbOk.className = 'drive-progress-bar complete'; setTimeout(() => { pbOk.className = 'drive-progress-bar'; }, 1400); }
     toast('☁ Saved to Drive → ' + filename);
     setDriveDot('green', 'just saved');
     markUnsaved(false);
     _driveLatestName = filename;
+    addAuditEntry('SAVED', filename);
     const dv = document.getElementById('dvBadge');
     if (dv) dv.textContent = `DV: ${y}.${m}.${day}.${hh}.${mm}.${ss}`;
     const conflictBar = document.getElementById('conflictBar');
     if (conflictBar) conflictBar.classList.remove('visible');
-    if (btn) btn.disabled = false;
   } catch (e) {
-      console.error('=== JT SAVE FAILED ===');
-      console.error('Error name:', e.name);
-      console.error('Error message:', e.message);
-      console.error('Full error:', e);
-      const pbErr = document.getElementById('driveProgressBar');
-      if (pbErr) { pbErr.className = 'drive-progress-bar'; }
-      toast('✗ Drive upload failed — saving locally instead');
-      addAuditEntry('OFFLINE SAVE', filename + ' (upload failed: ' + e.message + ')');
-      _triggerLocalDownload(content, filename, 'application/json');
-      setDriveDot('red', 'upload failed');
-      markUnsaved(false);
-      if (btn) btn.disabled = false;
-    }
+    console.error('Drive save failed:', e);
+    const pbErr = document.getElementById('driveProgressBar');
+    if (pbErr) pbErr.className = 'drive-progress-bar';
+    toast('✗ Drive upload failed — saving locally instead');
+    addAuditEntry('OFFLINE SAVE', filename + ' (upload failed: ' + e.message + ')');
+    _triggerLocalDownload(content, filename, 'application/json');
+    setDriveDot('red', 'upload failed');
+    markUnsaved(false);
+  } finally {
+    if (btn) btn.disabled = false;
+  }
 });
 
 // ─────────────────────────────────────────
@@ -6435,8 +6361,10 @@ renderEarningsHistory();
 // Init bulk add reward default
 bulkTaskTypeChanged();
 
-// Drive: background version check on load
-checkDriveVersion();
+// Drive: OAuth init — GIS will trigger checkDriveVersion() after sign-in
+// Show login overlay; GIS will hide it after token obtained
+showLoginOverlay();
+initGIS();
 markUnsaved(false);
 
 }); // DOMContentLoaded
@@ -6508,4 +6436,4 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
-// 9</body></html>
+// 10</body></html>
