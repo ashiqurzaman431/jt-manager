@@ -975,7 +975,7 @@ body {
       </div>
     </div>
     <div class="drive-indicator-row">
-      <div class="version-badge" id="avBadge" title="App Version">AV: V1.94</div>
+      <div class="version-badge" id="avBadge" title="App Version">AV: V1.95</div>
       <div class="version-badge" id="dvBadge" title="Data Version">DV: 2026.06.03.23.01.56</div>
       <div class="drive-dot green" id="driveDot" title="Drive: just saved"></div>
       <div class="unsaved-dot" id="unsavedDot" title="Unsaved changes"></div>
@@ -2137,7 +2137,7 @@ let auditLog = [];
 // Increment UHLV any time bugLog or bugHistory is modified by AI
 // loadDataJson compares this vs JSON uhlv and keeps whichever is higher
 // ─────────────────────────────────────────
-let UHLV = 15;
+let UHLV = 16;
 /*BUG_LOG_START*/
 let bugLog = [
   {
@@ -2209,7 +2209,15 @@ let bugLog = [
 /*BUG_HISTORY_START*/
 let bugHistory = [
   {
-    "id": "UPDATE-054",
+    "id": "UPDATE-055",
+    "title": "gisSignIn / gisSignOut not accessible from onclick — exposed to window scope",
+    "date": "2026.06.07",
+    "status": "resolved",
+    "report": "Clicking 'Sign in with Google' on the login overlay did nothing. Console showed: Uncaught ReferenceError: gisSignIn is not defined at HTMLButtonElement.onclick.",
+    "cause": "gisSignIn and gisSignOut were defined as plain local functions inside the DOMContentLoaded closure. onclick= HTML attributes resolve in window scope — local closure functions are invisible to them.",
+    "fix": "Added window.gisSignIn = gisSignIn and window.gisSignOut = gisSignOut immediately after each function definition. UHLV bumped 15→16, AV 1.94→1.95."
+  },
+  {
     "title": "Google OAuth via GIS — replaced Apps Script proxy with direct Drive REST API",
     "date": "2026.06.07",
     "status": "resolved",
@@ -4670,7 +4678,7 @@ window.deleteLink = function(taskId, index) {
   renderTasks();
   toast('Link removed');
 };
-const APP_V_VERSION = '1.94';
+const APP_V_VERSION = '1.95';
 
 function parseAppVersion(version) {
   if (!version || typeof version !== 'string') return null;
@@ -4926,6 +4934,7 @@ function gisSignIn() {
   if (!_gisTokenClient) { setLoginStatus('GIS not ready — try again in a moment.'); return; }
   _gisTokenClient.requestAccessToken({ prompt: 'consent' });
 }
+window.gisSignIn = gisSignIn;
 
 function gisSignOut() {
   if (!confirm('Sign out of Google Drive integration?')) return;
@@ -4935,6 +4944,7 @@ function gisSignOut() {
   localStorage.removeItem('gis_login_hint');
   showLoginOverlay();
 }
+window.gisSignOut = gisSignOut;
 
 function gisGetToken() {
   // Returns a promise that resolves with a valid token, refreshing if needed
@@ -6436,4 +6446,4 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
-// 10</body></html>
+// 11</body></html>
