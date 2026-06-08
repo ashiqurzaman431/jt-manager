@@ -585,6 +585,49 @@ body {
   word-break: break-word;
   background: #fff;
 }
+.wd-card-title {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.wd-drag-handle {
+  cursor: grab;
+  color: var(--ink3);
+  opacity: 0.4;
+  font-size: 12px;
+  flex-shrink: 0;
+  user-select: none;
+  padding: 0 1px;
+  transition: opacity 0.15s;
+}
+.wd-word-card:hover .wd-drag-handle { opacity: 0.75; }
+.wd-drag-handle:active { cursor: grabbing; }
+.wd-card-title-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.wd-card-delete-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--ink3);
+  font-size: 13px;
+  line-height: 1;
+  padding: 0 2px;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.15s, color 0.15s;
+  border-radius: 4px;
+}
+.wd-word-card:hover .wd-card-delete-btn { opacity: 0.55; }
+.wd-card-delete-btn:hover { opacity: 1 !important; color: var(--red); }
+.wd-word-card.drag-over-top { border-top: 2.5px solid var(--jt); }
+.wd-word-card.drag-over-bottom { border-bottom: 2.5px solid var(--jt); }
+.wd-word-card[draggable="true"] { cursor: grab; }
+.wd-word-card.dragging { opacity: 0.38; }
 
 .wd-add-site-btn {
   width: 100%;
@@ -6618,11 +6661,19 @@ function renderWordLibrary() {
             </div>
             <div class="wd-version-cards open" id="wdVerCards_${ver.id}">
               ${(ver.words||[]).map(w => `
-                <div class="wd-word-card" onclick="copyWdWord('${w.id}','${site.id}','${ver.id}')"
+                <div class="wd-word-card"
+                  draggable="true"
+                  data-word-id="${w.id}" data-site-id="${site.id}" data-ver-id="${ver.id}"
+                  onclick="copyWdWord('${w.id}','${site.id}','${ver.id}')"
                   style="border-left-color: ${col.border};"
                   onmouseenter="this.style.borderColor='${col.border}'"
                   onmouseleave="this.style.borderColor=''; this.style.borderLeftColor='${col.border}'">
-                  <div class="wd-card-title" style="background: ${col.bg}; border-bottom-color: ${col.border}; color: ${col.text};">${w.title}</div>
+                  <div class="wd-card-title" style="background: ${col.bg}; border-bottom-color: ${col.border}; color: ${col.text};">
+                    <span class="wd-drag-handle" onclick="event.stopPropagation()">⠿</span>
+                    <span class="wd-card-title-text">${w.title}</span>
+                    <button class="wd-card-delete-btn" title="Delete word"
+                      onclick="event.stopPropagation(); deleteWdWord('${w.id}','${site.id}','${ver.id}')">✕</button>
+                  </div>
                   <div class="wd-card-word">${w.word}</div>
                 </div>
               `).join('')}
@@ -6731,6 +6782,96 @@ window.confirmAddWord = function() {
   markUnsaved(true);
   toast('Word added');
 };
+
+window.deleteWdWord = function(wordId, siteId, verId) {
+  const site = wordLibrary.find(s => s.id === siteId); if (!site) return;
+  const ver  = (site.pageVersions||[]).find(v => v.id === verId); if (!ver) return;
+  const idx  = (ver.words||[]).findIndex(w => w.id === wordId);
+  if (idx === -1) return;
+  ver.words.splice(idx, 1);
+  renderWordLibrary();
+  markUnsaved(true);
+  toast('Word deleted');
+};
+
+// ── WORD CARD DRAG-AND-DROP ────────────────────────────────────────────────
+let _wdDrag = null; // { wordId, siteId, verId }
+
+document.addEventListener('dragstart', function(e) {
+  const card = e.target.closest('.wd-word-card[draggable="true"]');
+  if (!card) return;
+  _wdDrag = {
+    wordId: card.dataset.wordId,
+    siteId: card.dataset.siteId,
+    verId:  card.dataset.verId
+  };
+  card.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+});
+
+document.addEventListener('dragend', function(e) {
+  const card = e.target.closest('.wd-word-card');
+  if (card) card.classList.remove('dragging');
+  document.querySelectorAll('.wd-word-card').forEach(c => {
+    c.classList.remove('drag-over-top', 'drag-over-bottom');
+  });
+  _wdDrag = null;
+});
+
+document.addEventListener('dragover', function(e) {
+  if (!_wdDrag) return;
+  const card = e.target.closest('.wd-word-card');
+  if (!card) return;
+  if (card.dataset.verId !== _wdDrag.verId) return; // only same version
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  document.querySelectorAll('.wd-word-card').forEach(c => {
+    c.classList.remove('drag-over-top', 'drag-over-bottom');
+  });
+  const rect = card.getBoundingClientRect();
+  const midY = rect.top + rect.height / 2;
+  if (e.clientY < midY) {
+    card.classList.add('drag-over-top');
+  } else {
+    card.classList.add('drag-over-bottom');
+  }
+});
+
+document.addEventListener('dragleave', function(e) {
+  const card = e.target.closest('.wd-word-card');
+  if (card) { card.classList.remove('drag-over-top', 'drag-over-bottom'); }
+});
+
+document.addEventListener('drop', function(e) {
+  if (!_wdDrag) return;
+  const targetCard = e.target.closest('.wd-word-card');
+  if (!targetCard) return;
+  if (targetCard.dataset.verId !== _wdDrag.verId) return;
+  e.preventDefault();
+
+  const site = wordLibrary.find(s => s.id === _wdDrag.siteId); if (!site) return;
+  const ver  = (site.pageVersions||[]).find(v => v.id === _wdDrag.verId); if (!ver || !ver.words) return;
+
+  const fromIdx = ver.words.findIndex(w => w.id === _wdDrag.wordId);
+  const toWordId = targetCard.dataset.wordId;
+  let toIdx = ver.words.findIndex(w => w.id === toWordId);
+  if (fromIdx === -1 || toIdx === -1 || fromIdx === toIdx) return;
+
+  const rect = targetCard.getBoundingClientRect();
+  const dropAfter = e.clientY >= rect.top + rect.height / 2;
+
+  const [moved] = ver.words.splice(fromIdx, 1);
+  // recalculate toIdx after splice
+  toIdx = ver.words.findIndex(w => w.id === toWordId);
+  ver.words.splice(dropAfter ? toIdx + 1 : toIdx, 0, moved);
+
+  document.querySelectorAll('.wd-word-card').forEach(c => {
+    c.classList.remove('drag-over-top', 'drag-over-bottom', 'dragging');
+  });
+  _wdDrag = null;
+  renderWordLibrary();
+  markUnsaved(true);
+});
 
 function renderBugState() {
   const banner = document.getElementById('bugLockBanner');
