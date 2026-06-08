@@ -653,21 +653,6 @@ body {
   word-break: break-word;
   line-height: 1.35;
 }
-.wd-card-delete-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--ink3);
-  font-size: 13px;
-  line-height: 1;
-  padding: 0 2px;
-  flex-shrink: 0;
-  opacity: 0;
-  transition: opacity 0.15s, color 0.15s;
-  border-radius: 4px;
-}
-.wd-word-card:hover .wd-card-delete-btn { opacity: 0.55; }
-.wd-card-delete-btn:hover { opacity: 1 !important; color: var(--red); }
 .wd-card-edit-btn {
   background: none; border: none; cursor: pointer;
   color: var(--ink3); font-size: 13px; line-height: 1;
@@ -688,6 +673,11 @@ body {
 .wd-word-card.drag-over-bottom { border-bottom: 2.5px solid var(--jt); }
 .wd-word-card[draggable="true"] { cursor: grab; }
 .wd-word-card.dragging { opacity: 0.38; }
+.wd-selected {
+  outline: 2.5px solid var(--red) !important;
+  background: var(--red-light) !important;
+  opacity: 0.82;
+}
 
 .wd-add-site-btn {
   width: 100%;
@@ -1439,6 +1429,11 @@ body {
               style="font-family:var(--mono);font-size:10px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:#fff;color:var(--ink3);cursor:pointer;">Clear</button>
           </div>
         </div>
+        <div class="field">
+          <label>Color Split % — how much is Color 1 (1–99, default 50)</label>
+          <input type="number" id="wdAddSiteColorRatio" value="50" min="1" max="99"
+            style="background:#fafbff;border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:13px;padding:7px 10px;outline:none;width:100%;">
+        </div>
       </div>
       <input type="hidden" id="wdAddSiteEditId">
       <div class="modal-actions">
@@ -1530,6 +1525,11 @@ body {
             <button type="button" onclick="document.getElementById('wdAddWordColor2').value='#ffffff';"
               style="font-family:var(--mono);font-size:10px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:#fff;color:var(--ink3);cursor:pointer;">Clear</button>
           </div>
+        </div>
+        <div class="field">
+          <label>Title Bar Color Split % — how much is Color 1 (1–99, default 50)</label>
+          <input type="number" id="wdAddWordColorRatio" value="50" min="1" max="99"
+            style="background:#fafbff;border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:13px;padding:7px 10px;outline:none;width:100%;">
         </div>
       </div>
       <input type="hidden" id="wdAddWordSiteId">
@@ -5568,9 +5568,24 @@ async function driveUploadFile(folderId, filename, content, mimeType) {
   // Check if file with same name exists → update it, else create
   const existing = await driveListFiles(folderId, null);
   const existingFile = existing.find(f => f.name === filename);
-  const meta = JSON.stringify({ name: filename, parents: existingFile ? undefined : [folderId] });
-  const boundary = '-------jt_boundary_' + Date.now();
-  const body = `--${boundary}\r\nContent-Type: application/json\r\n\r\n${meta}\r\n--${boundary}\r\nContent-Type: ${mimeType}\r\n\r\n${content}\r\n--${boundary}--`;
+  const metaObj = existingFile
+    ? { name: filename }
+    : { name: filename, parents: [folderId] };
+  const meta = JSON.stringify(metaObj);
+  const boundary = 'jt_boundary_' + Date.now();
+  const CRLF = '\r\n';
+  // Build multipart body with actual CRLF bytes (template literals don't produce real \r\n)
+  const body = [
+    '--' + boundary, CRLF,
+    'Content-Type: application/json; charset=UTF-8', CRLF,
+    CRLF,
+    meta, CRLF,
+    '--' + boundary, CRLF,
+    'Content-Type: ' + mimeType, CRLF,
+    CRLF,
+    content, CRLF,
+    '--' + boundary + '--'
+  ].join('');
   const method = existingFile ? 'PATCH' : 'POST';
   const url = existingFile
     ? `https://www.googleapis.com/upload/drive/v3/files/${existingFile.id}?uploadType=multipart`
@@ -5583,7 +5598,11 @@ async function driveUploadFile(folderId, filename, content, mimeType) {
     },
     body
   });
-  if (!r.ok) throw new Error('Drive upload failed: ' + r.status);
+  if (!r.ok) {
+    let errDetail = r.status;
+    try { const errBody = await r.json(); errDetail = r.status + ' — ' + (errBody.error?.message || JSON.stringify(errBody)); } catch(e) {}
+    throw new Error('Drive upload failed: ' + errDetail);
+  }
   return await r.json();
 }
 
@@ -6706,10 +6725,11 @@ function renderWordLibrary() {
   const isFirstRender = openBanners.size === 0 && openVersions.size === 0;
 
   // Helper for 2-color gradient backgrounds (Change 19c)
-  function makeBgStyle(color1, color2, fallback) {
+  function makeBgStyle(color1, color2, fallback, ratio) {
     const c1 = color1 && color1 !== '#ffffff' ? color1 : null;
     const c2 = color2 && color2 !== '#ffffff' ? color2 : null;
-    if (c1 && c2) return `background: linear-gradient(to right, ${c1} 50%, ${c2} 50%);`;
+    const pct = (ratio != null && !isNaN(ratio) && ratio >= 1 && ratio <= 99) ? ratio : 50;
+    if (c1 && c2) return `background: linear-gradient(to right, ${c1} ${pct}%, ${c2} ${pct}%);`;
     if (c1)       return `background: ${c1};`;
     if (c2)       return `background: ${c2};`;
     return        `background: ${fallback};`;
@@ -6726,8 +6746,8 @@ function renderWordLibrary() {
     const col = WD_SITE_COLORS[siteIdx % WD_SITE_COLORS.length];
     const bannerOpen    = isFirstRender || openBanners.has(site.id);
     return `
-    <div class="wd-banner" id="wdBanner_${site.id}" style="border-color: ${col.border};">
-      <div class="wd-banner-header" onclick="toggleWdBanner('${site.id}')" style="${makeBgStyle(site.color1, site.color2, col.bg)}">
+    <div class="wd-banner${_wdDeleteMode && _wdSelectedItems.has('banner:'+site.id) ? ' wd-selected' : ''}" id="wdBanner_${site.id}" style="border-color: ${col.border};${_wdDeleteMode ? 'transition:outline 0.1s;' : ''}">
+      <div class="wd-banner-header" onclick="${_wdDeleteMode ? `wdToggleSelect('banner:${site.id}')` : `toggleWdBanner('${site.id}')`}" style="${makeBgStyle(site.color1, site.color2, col.bg, site.colorRatio)}${_wdDeleteMode ? 'cursor:pointer;' : ''}">
         <span class="wd-banner-name" style="color: ${col.text};">${site.siteName}</span>
         <button class="wd-banner-edit-btn" title="Edit website"
           onclick="event.stopPropagation(); openEditSiteModal('${site.id}')">✎</button>
@@ -6738,21 +6758,21 @@ function renderWordLibrary() {
           const verOpen = isFirstRender ? (verIdx === 0) : openVersions.has(ver.id);
           return `
           <div>
-            <div class="wd-version-row" style="border-left-color: ${col.border};">
+            <div class="wd-version-row${_wdDeleteMode && _wdSelectedItems.has('version:'+site.id+':'+ver.id) ? ' wd-selected' : ''}" style="border-left-color: ${col.border};${_wdDeleteMode ? 'cursor:pointer;' : ''}" ${_wdDeleteMode ? `onclick="wdToggleSelect('version:${site.id}:${ver.id}')"` : ''}>
               <span class="wd-version-name" onclick="toggleWdVersion('${ver.id}')" style="color: ${col.text};">${ver.name}</span>
               <span class="wd-version-chevron ${verOpen ? 'open' : ''}" id="wdVerChev_${ver.id}" onclick="toggleWdVersion('${ver.id}')">▼</span>
               <button class="wd-add-word-btn" onclick="openAddWordModal('${site.id}','${ver.id}')" title="Add word card" style="color: ${col.text};">＋</button>
             </div>
             <div class="wd-version-cards ${verOpen ? 'open' : ''}" id="wdVerCards_${ver.id}">
               ${(ver.words||[]).map(w => `
-                <div class="wd-word-card"
-                  draggable="true"
+                <div class="wd-word-card${_wdDeleteMode && _wdSelectedItems.has('word:'+site.id+':'+ver.id+':'+w.id) ? ' wd-selected' : ''}"
+                  draggable="${_wdDeleteMode ? 'false' : 'true'}"
                   data-word-id="${w.id}" data-site-id="${site.id}" data-ver-id="${ver.id}"
-                  onclick="copyWdWord('${w.id}','${site.id}','${ver.id}')"
+                  onclick="${_wdDeleteMode ? `wdToggleSelect('word:${site.id}:${ver.id}:${w.id}')` : `copyWdWord('${w.id}','${site.id}','${ver.id}')`}"
                   style="border-left-color: ${col.border};"
-                  onmouseenter="this.style.borderColor='${col.border}'"
-                  onmouseleave="this.style.borderColor=''; this.style.borderLeftColor='${col.border}'">
-                  <div class="wd-card-title" style="${makeBgStyle(w.color1, w.color2, col.bg)} border-bottom-color: ${col.border}; color: ${col.text};">
+                  onmouseenter="${_wdDeleteMode ? '' : `this.style.borderColor='${col.border}'`}"
+                  onmouseleave="${_wdDeleteMode ? '' : `this.style.borderColor=''; this.style.borderLeftColor='${col.border}'`}">
+                  <div class="wd-card-title" style="${makeBgStyle(w.color1, w.color2, col.bg, w.colorRatio)} border-bottom-color: ${col.border}; color: ${col.text};">
                     <span class="wd-drag-handle" onclick="event.stopPropagation()">⠿</span>
                     <div class="wd-card-title-text">
                       <span style="font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;">${w.sectionName || w.title || ''}</span>
@@ -6760,8 +6780,6 @@ function renderWordLibrary() {
                     </div>
                     <button class="wd-card-edit-btn" title="Edit word"
                       onclick="event.stopPropagation(); openEditWordModal('${w.id}','${site.id}','${ver.id}')">✎</button>
-                    <button class="wd-card-delete-btn" title="Delete word"
-                      onclick="event.stopPropagation(); deleteWdWord('${w.id}','${site.id}','${ver.id}')">✕</button>
                   </div>
                   <div class="wd-card-word" style="${w.highlightColor && w.highlightColor !== '#ffffff' ? 'background:'+w.highlightColor+';' : ''}${w.fontColor && w.fontColor !== '#0d1b3e' ? 'color:'+w.fontColor+';' : ''}">${w.word}</div>
                 </div>
@@ -6826,6 +6844,7 @@ window.openAddSiteModal = function() {
   document.getElementById('wdAddSiteInput').value   = '';
   document.getElementById('wdAddSiteColor1').value  = '#ffffff';
   document.getElementById('wdAddSiteColor2').value  = '#ffffff';
+  document.getElementById('wdAddSiteColorRatio').value = 50;
   document.getElementById('wdAddSiteModalTitle').textContent = '+ Add Website';
   document.getElementById('wdAddSiteSubmitBtn').textContent  = 'Add Website';
   openModal('wdAddSiteModal');
@@ -6837,12 +6856,13 @@ window.confirmAddSite = function() {
   const name   = document.getElementById('wdAddSiteInput').value.trim();
   const color1 = document.getElementById('wdAddSiteColor1').value;
   const color2 = document.getElementById('wdAddSiteColor2').value;
+  const colorRatio = parseInt(document.getElementById('wdAddSiteColorRatio').value) || 50;
   if (!name) { toast('Enter a website name'); return; }
   if (editId) {
     const site = wordLibrary.find(s => s.id === editId);
-    if (site) { site.siteName = name; site.color1 = color1; site.color2 = color2; }
+    if (site) { site.siteName = name; site.color1 = color1; site.color2 = color2; site.colorRatio = colorRatio; }
   } else {
-    wordLibrary.push({ id: uid(), siteName: name, color1, color2, pageVersions: [] });
+    wordLibrary.push({ id: uid(), siteName: name, color1, color2, colorRatio, pageVersions: [] });
   }
   closeModal('wdAddSiteModal');
   renderWordLibrary();
@@ -6856,6 +6876,7 @@ window.openEditSiteModal = function(siteId) {
   document.getElementById('wdAddSiteInput').value   = site.siteName || '';
   document.getElementById('wdAddSiteColor1').value  = site.color1 || '#ffffff';
   document.getElementById('wdAddSiteColor2').value  = site.color2 || '#ffffff';
+  document.getElementById('wdAddSiteColorRatio').value = site.colorRatio ?? 50;
   document.getElementById('wdAddSiteModalTitle').textContent = '✎ Edit Website';
   document.getElementById('wdAddSiteSubmitBtn').textContent  = 'Save Changes';
   openModal('wdAddSiteModal');
@@ -6897,6 +6918,7 @@ window.openAddWordModal = function(siteId, verId) {
   document.getElementById('wdAddWordHighlightColorHex').value = '';
   document.getElementById('wdAddWordColor1').value = '#ffffff';
   document.getElementById('wdAddWordColor2').value = '#ffffff';
+  document.getElementById('wdAddWordColorRatio').value = 50;
   document.getElementById('wdAddWordModalTitle').textContent = '+ Add Word Card';
   document.getElementById('wdAddWordSubmitBtn').textContent  = 'Add Word';
   openModal('wdAddWordModal');
@@ -6919,6 +6941,7 @@ window.openEditWordModal = function(wordId, siteId, verId) {
   document.getElementById('wdAddWordHighlightColorHex').value = w.highlightColor || '';
   document.getElementById('wdAddWordColor1').value = w.color1 || '#ffffff';
   document.getElementById('wdAddWordColor2').value = w.color2 || '#ffffff';
+  document.getElementById('wdAddWordColorRatio').value = w.colorRatio ?? 50;
   document.getElementById('wdAddWordModalTitle').textContent = '✎ Edit Word Card';
   document.getElementById('wdAddWordSubmitBtn').textContent  = 'Save Changes';
   openModal('wdAddWordModal');
@@ -6938,6 +6961,7 @@ window.confirmAddWord = function() {
                       || document.getElementById('wdAddWordHighlightColor').value || '';
   const color1 = document.getElementById('wdAddWordColor1').value || '';
   const color2 = document.getElementById('wdAddWordColor2').value || '';
+  const colorRatio = parseInt(document.getElementById('wdAddWordColorRatio').value) || 50;
   if (!sectionName || !word) { toast('Fill in Section Name and word'); return; }
   const site = wordLibrary.find(s => s.id === siteId); if (!site) return;
   const ver  = (site.pageVersions||[]).find(v => v.id === verId); if (!ver) return;
@@ -6946,9 +6970,9 @@ window.confirmAddWord = function() {
     const w = ver.words.find(x => x.id === editId);
     if (w) { w.sectionName = sectionName; w.wordsCount = wordsCount; w.word = word;
              w.fontColor = fontColor; w.highlightColor = highlightColor;
-             w.color1 = color1; w.color2 = color2; }
+             w.color1 = color1; w.color2 = color2; w.colorRatio = colorRatio; }
   } else {
-    ver.words.push({ id: uid(), sectionName, wordsCount, word, fontColor, highlightColor, color1, color2 });
+    ver.words.push({ id: uid(), sectionName, wordsCount, word, fontColor, highlightColor, color1, color2, colorRatio });
   }
   closeModal('wdAddWordModal');
   renderWordLibrary();
@@ -6965,6 +6989,75 @@ window.deleteWdWord = function(wordId, siteId, verId) {
   renderWordLibrary();
   markUnsaved(true);
   toast('Word deleted');
+};
+
+// ── WORD DISPLAY DELETE MODE ───────────────────────────────────────────────
+let _wdDeleteMode = false;
+let _wdSelectedItems = new Set(); // "banner:siteId" | "version:siteId:verId" | "word:siteId:verId:wordId"
+
+window.toggleWdDeleteMode = function() {
+  _wdDeleteMode = !_wdDeleteMode;
+  _wdSelectedItems.clear();
+  const btn = document.getElementById('wdDeleteModeBtn');
+  if (btn) {
+    btn.style.background    = _wdDeleteMode ? 'var(--red-light)' : '#fff';
+    btn.style.color         = _wdDeleteMode ? 'var(--red)'       : 'var(--ink3)';
+    btn.style.borderColor   = _wdDeleteMode ? 'var(--red-border)': 'var(--border2)';
+  }
+  updateWdDeleteBar();
+  renderWordLibrary();
+};
+
+function updateWdDeleteBar() {
+  const bar     = document.getElementById('wdDeleteBar');
+  const countEl = document.getElementById('wdDeleteBarCount');
+  if (!bar || !countEl) return;
+  const n = _wdSelectedItems.size;
+  bar.style.display = (_wdDeleteMode && n > 0) ? 'flex' : 'none';
+  countEl.textContent = n + ' selected';
+}
+
+window.wdToggleSelect = function(key) {
+  if (!_wdDeleteMode) return;
+  if (_wdSelectedItems.has(key)) _wdSelectedItems.delete(key);
+  else _wdSelectedItems.add(key);
+  updateWdDeleteBar();
+  renderWordLibrary();
+};
+
+window.wdConfirmDelete = function() {
+  if (!_wdSelectedItems.size) return;
+  if (!confirm('Delete ' + _wdSelectedItems.size + ' selected item(s)? This cannot be undone.')) return;
+  _wdSelectedItems.forEach(key => {
+    const parts = key.split(':');
+    if (parts[0] === 'banner') {
+      const idx = wordLibrary.findIndex(s => s.id === parts[1]);
+      if (idx !== -1) wordLibrary.splice(idx, 1);
+    } else if (parts[0] === 'version') {
+      const site = wordLibrary.find(s => s.id === parts[1]);
+      if (site) {
+        const vi = (site.pageVersions||[]).findIndex(v => v.id === parts[2]);
+        if (vi !== -1) site.pageVersions.splice(vi, 1);
+      }
+    } else if (parts[0] === 'word') {
+      const site = wordLibrary.find(s => s.id === parts[1]);
+      if (site) {
+        const ver = (site.pageVersions||[]).find(v => v.id === parts[2]);
+        if (ver && ver.words) {
+          const wi = ver.words.findIndex(w => w.id === parts[3]);
+          if (wi !== -1) ver.words.splice(wi, 1);
+        }
+      }
+    }
+  });
+  _wdSelectedItems.clear();
+  _wdDeleteMode = false;
+  const btn = document.getElementById('wdDeleteModeBtn');
+  if (btn) { btn.style.background='#fff'; btn.style.color='var(--ink3)'; btn.style.borderColor='var(--border2)'; }
+  updateWdDeleteBar();
+  renderWordLibrary();
+  markUnsaved(true);
+  toast('Deleted selected items');
 };
 
 // ── WORD CARD DRAG-AND-DROP ────────────────────────────────────────────────
@@ -7205,8 +7298,18 @@ function setAcPanelVisibility(visible) {
   <div id="wdPanelBody">
     <div style="text-align:center;padding:32px 10px;font-family:var(--mono);font-size:12px;color:var(--ink3);">No word libraries yet.</div>
   </div>
-  <div style="padding:8px;">
-    <button class="wd-add-site-btn" onclick="openAddSiteModal()">+ Add Website</button>
+  <div style="padding:8px;display:flex;flex-direction:column;gap:6px;">
+    <div id="wdDeleteBar" style="display:none;background:var(--red-light);border:1px solid var(--red-border);border-radius:var(--radius-sm);padding:8px 10px;flex-direction:row;align-items:center;justify-content:space-between;gap:8px;">
+      <span id="wdDeleteBarCount" style="font-family:var(--mono);font-size:11px;color:var(--red);font-weight:700;">0 selected</span>
+      <button onclick="wdConfirmDelete()" style="font-family:var(--mono);font-size:11px;font-weight:700;padding:5px 12px;background:var(--red);color:#fff;border:none;border-radius:var(--radius-sm);cursor:pointer;">Delete Selected</button>
+    </div>
+    <div style="display:flex;gap:6px;">
+      <button class="wd-add-site-btn" style="flex:1;" onclick="openAddSiteModal()">+ Add Website</button>
+      <button id="wdDeleteModeBtn" onclick="toggleWdDeleteMode()"
+        style="font-family:var(--mono);font-size:14px;padding:10px 13px;border-radius:var(--radius-sm);
+               border:1.5px solid var(--border2);background:#fff;color:var(--ink3);cursor:pointer;flex-shrink:0;
+               transition:all 0.15s;" title="Toggle delete mode">🗑</button>
+    </div>
   </div>
 </div>
 
@@ -7279,7 +7382,7 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
-// 16
+// 18
 <button id="taskScrollTopBtn"
   onclick="document.getElementById('pageContent') ? document.getElementById('pageContent').scrollTo({top:0,behavior:'smooth'}) : window.scrollTo({top:0,behavior:'smooth'})"
   title="Back to top"
