@@ -521,6 +521,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  min-height: 0;
 }
 #wdPanelBody::-webkit-scrollbar { width: 4px; }
 #wdPanelBody::-webkit-scrollbar-thumb { background: var(--jt-border); border-radius: 4px; }
@@ -667,6 +668,22 @@ body {
 }
 .wd-word-card:hover .wd-card-delete-btn { opacity: 0.55; }
 .wd-card-delete-btn:hover { opacity: 1 !important; color: var(--red); }
+.wd-card-edit-btn {
+  background: none; border: none; cursor: pointer;
+  color: var(--ink3); font-size: 13px; line-height: 1;
+  padding: 0 3px; flex-shrink: 0; opacity: 0;
+  transition: opacity 0.15s, color 0.15s; border-radius: 4px;
+}
+.wd-word-card:hover .wd-card-edit-btn { opacity: 0.55; }
+.wd-card-edit-btn:hover { opacity: 1 !important; color: var(--jt); }
+.wd-banner-edit-btn {
+  background: none; border: none; cursor: pointer;
+  color: var(--ink3); font-size: 13px; line-height: 1;
+  padding: 0 3px; flex-shrink: 0; opacity: 0;
+  transition: opacity 0.15s, color 0.15s; border-radius: 4px;
+}
+.wd-banner-header:hover .wd-banner-edit-btn { opacity: 0.55; }
+.wd-banner-edit-btn:hover { opacity: 1 !important; color: var(--jt); }
 .wd-word-card.drag-over-top { border-top: 2.5px solid var(--jt); }
 .wd-word-card.drag-over-bottom { border-bottom: 2.5px solid var(--jt); }
 .wd-word-card[draggable="true"] { cursor: grab; }
@@ -1264,7 +1281,6 @@ body {
       </div>
     </div>
     <div class="drive-indicator-row">
-      <div class="version-badge" id="avBadge" title="App Version">AV: V4.0</div>
       <div class="version-badge" id="dvBadge" title="Data Version">DV: 2026.06.03.23.01.56</div>
       <div class="drive-dot green" id="driveDot" title="Drive: just saved"></div>
       <div class="unsaved-dot" id="unsavedDot" title="Unsaved changes"></div>
@@ -1397,7 +1413,7 @@ body {
   <div class="modal-overlay" id="wdAddSiteModal">
     <div class="modal" style="max-width:360px;">
       <div class="modal-title">
-        <span>+ Add Website</span>
+        <span id="wdAddSiteModalTitle">+ Add Website</span>
         <button class="modal-close" onclick="closeModal('wdAddSiteModal')">✕</button>
       </div>
       <div class="modal-fields">
@@ -1405,9 +1421,28 @@ body {
           <label>Website Name</label>
           <input type="text" id="wdAddSiteInput" placeholder="e.g. Remotasks" onkeydown="if(event.key==='Enter')confirmAddSite()">
         </div>
+        <div class="field">
+          <label>Banner Color 1 (optional)</label>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <input type="color" id="wdAddSiteColor1" value="#ffffff"
+              style="width:38px;height:34px;border:1px solid var(--border2);border-radius:6px;cursor:pointer;padding:2px;flex-shrink:0;">
+            <button type="button" onclick="document.getElementById('wdAddSiteColor1').value='#ffffff';"
+              style="font-family:var(--mono);font-size:10px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:#fff;color:var(--ink3);cursor:pointer;">Clear</button>
+          </div>
+        </div>
+        <div class="field">
+          <label>Banner Color 2 (optional)</label>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <input type="color" id="wdAddSiteColor2" value="#ffffff"
+              style="width:38px;height:34px;border:1px solid var(--border2);border-radius:6px;cursor:pointer;padding:2px;flex-shrink:0;">
+            <button type="button" onclick="document.getElementById('wdAddSiteColor2').value='#ffffff';"
+              style="font-family:var(--mono);font-size:10px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:#fff;color:var(--ink3);cursor:pointer;">Clear</button>
+          </div>
+        </div>
       </div>
+      <input type="hidden" id="wdAddSiteEditId">
       <div class="modal-actions">
-        <button class="btn-primary" onclick="confirmAddSite()">Add Website</button>
+        <button class="btn-primary" id="wdAddSiteSubmitBtn" onclick="confirmAddSite()">Add Website</button>
         <button class="btn-secondary" onclick="closeModal('wdAddSiteModal')">Cancel</button>
       </div>
     </div>
@@ -1436,7 +1471,7 @@ body {
   <div class="modal-overlay" id="wdAddWordModal">
     <div class="modal" style="max-width:400px;">
       <div class="modal-title">
-        <span>+ Add Word Card</span>
+        <span id="wdAddWordModalTitle">+ Add Word Card</span>
         <button class="modal-close" onclick="closeModal('wdAddWordModal')">✕</button>
       </div>
       <div class="modal-fields">
@@ -1478,11 +1513,30 @@ body {
               style="font-family:var(--mono);font-size:10px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:#fff;color:var(--ink3);cursor:pointer;white-space:nowrap;">Clear</button>
           </div>
         </div>
+        <div class="field">
+          <label>Title Bar Color 1 (optional — left half)</label>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <input type="color" id="wdAddWordColor1" value="#ffffff"
+              style="width:38px;height:34px;border:1px solid var(--border2);border-radius:6px;cursor:pointer;padding:2px;flex-shrink:0;">
+            <button type="button" onclick="document.getElementById('wdAddWordColor1').value='#ffffff';"
+              style="font-family:var(--mono);font-size:10px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:#fff;color:var(--ink3);cursor:pointer;">Clear</button>
+          </div>
+        </div>
+        <div class="field">
+          <label>Title Bar Color 2 (optional — right half)</label>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <input type="color" id="wdAddWordColor2" value="#ffffff"
+              style="width:38px;height:34px;border:1px solid var(--border2);border-radius:6px;cursor:pointer;padding:2px;flex-shrink:0;">
+            <button type="button" onclick="document.getElementById('wdAddWordColor2').value='#ffffff';"
+              style="font-family:var(--mono);font-size:10px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:#fff;color:var(--ink3);cursor:pointer;">Clear</button>
+          </div>
+        </div>
       </div>
       <input type="hidden" id="wdAddWordSiteId">
       <input type="hidden" id="wdAddWordVerId">
+      <input type="hidden" id="wdAddWordEditId">
       <div class="modal-actions">
-        <button class="btn-primary" onclick="confirmAddWord()">Add Word</button>
+        <button class="btn-primary" id="wdAddWordSubmitBtn" onclick="confirmAddWord()">Add Word</button>
         <button class="btn-secondary" onclick="closeModal('wdAddWordModal')">Cancel</button>
       </div>
     </div>
@@ -2144,8 +2198,7 @@ TaskRec01: task assigned, timer started.</div>
         <div class="sec-title" style="margin-bottom:0;">Update History</div>
       </div>
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-        <button id="btnSaveAppVer" onclick="saveAppVersion()" style="font-family:var(--mono);font-size:11.5px;padding:6px 14px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:#fff;color:var(--ink2);cursor:pointer;white-space:nowrap;">⬆ Save App Version</button>
-        <button id="btnLoadAppVer" onclick="checkLatestAppVersion()" style="font-family:var(--mono);font-size:11.5px;padding:6px 14px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:#fff;color:var(--ink2);cursor:pointer;white-space:nowrap;">⬇ Load Latest App Version</button>
+        <button id="btnExportForAI" onclick="exportForAI()" style="font-family:var(--mono);font-size:11.5px;padding:6px 14px;border-radius:var(--radius-sm);border:1px solid var(--jt-border);background:var(--jt-light);color:var(--jt);cursor:pointer;white-space:nowrap;">🤖 Export for AI</button>
         <span style="font-family:var(--mono);font-size:10px;color:var(--ink3);background:var(--surface2);border:1px solid var(--border);border-radius:99px;padding:4px 12px;">🔒 Read-only · Managed by AI</span>
         <span id="uhlvBadge" style="font-family:var(--mono);font-size:10px;color:var(--jt);background:var(--jt-light);border:1px solid var(--jt-border);border-radius:99px;padding:4px 12px;" title="Update History and Log Version — higher number wins on data load">UHLV: 22</span>
       </div>
@@ -2159,18 +2212,6 @@ TaskRec01: task assigned, timer started.</div>
 
 <!-- /app -->
 
-<!-- APP VERSION POPUP -->
-<div id="appVerModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.45);align-items:center;justify-content:center;">
-  <div style="background:#fff;border-radius:var(--radius);box-shadow:0 8px 40px rgba(0,0,0,0.18);padding:28px 28px 22px;max-width:420px;width:92%;font-family:var(--mono);">
-    <div style="font-size:14px;font-weight:700;color:var(--ink);margin-bottom:6px;">📦 Newer App Version Found</div>
-    <div id="appVerModalBody" style="font-size:12px;color:var(--ink2);line-height:1.7;margin-bottom:20px;"></div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;">
-      <button onclick="document.getElementById('appVerModal').style.display='none'" style="font-family:var(--mono);font-size:12px;padding:7px 16px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:#fff;color:var(--ink2);cursor:pointer;">Cancel</button>
-      <button id="btnSaveCurrentLatest" onclick="saveCurrentAsLatest()" style="font-family:var(--mono);font-size:12px;padding:7px 16px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--surface2);color:var(--ink);cursor:pointer;">💾 Save Current as Latest</button>
-      <button id="btnDownloadLatestApp" onclick="" style="font-family:var(--mono);font-size:12px;padding:7px 16px;border-radius:var(--radius-sm);border:none;background:var(--jt-grad);color:#fff;cursor:pointer;">⬇ Download Newer Version</button>
-    </div>
-  </div>
-</div>
 
 <!-- DRIVE LOG PANEL (slides up above save bar) -->
 <div id="driveLogPanel" style="display: none; position: fixed; bottom: 56px; left: 0px; right: 0px; z-index: 99; background: rgba(255, 255, 255, 0.97); backdrop-filter: blur(20px); border-top: 1px solid var(--border); padding: 10px 24px; max-height: 180px; overflow-y: auto;">
@@ -3110,28 +3151,16 @@ let bugHistory = [
  * 4. bugHistory panel is read-only for the user. Never make
  *    it editable. Only source edits can change it.
  *
- * 5. ANY time you update the code, you MUST append a one-line
- *    comment at the end of the file containing ONLY a single
- *    incrementing number, e.g.: // 12. If a comment already
- *    exists at the end, replace it with the incremented number.
- *    This is a hard requirement to force save detection.
+ * 5. ANY time you update the code, you MUST replace the
+ *    incrementing comment at the very end of the file with
+ *    the next number (e.g. // 15 → // 16). This is a hard
+ *    requirement to force save detection.
  *
- * 6. BATCHING AND APP VERSION (AV) RULES:
+ * 6. BATCHING RULES:
  *    - Updates are done in batches of max 2 at a time.
  *    - If a 3rd update is directly related to the current
  *      batch's 2 updates, include it in the same batch.
- *    - After completing each batch, bump APP_V_VERSION minor
- *      by 0.1 (e.g. 1.6 → 1.7).
- *    - When minor reaches 9 (e.g. 1.9), the next increment
- *      is 0.01 instead of 0.1 (e.g. 1.9 → 1.91).
- *    - When minor reaches .99 (e.g. 1.99), the next increment
- *      is 0.001 (e.g. 1.99 → 1.991), and so on.
- *    - The ONLY time the major number increments (and minor
- *      resets to 0, e.g. 1.x → 2.0) is when a batch is
- *      completed AND bugLog is now completely empty (no
- *      pending updates remain).
- *    - APP_V_VERSION must be patched in the source string
- *      using bumpAndPatchAppSrc() on every save.
+ *    - Do NOT start implementing until user confirms.
  *
  * 7. UHLV (Update History and Log Version) RULES:
  *    - UHLV is a single integer, incremented by 1 any time
@@ -3152,9 +3181,16 @@ let bugHistory = [
  *    d. Read bugHistory to check if any update is already
  *       implemented — skip those.
  *    e. Present the batch list to the user and ask which
- *       batch to start with. Even if you have an order by
- *       impact, the user has final say on which batch goes
- *       first. Do NOT start implementing until user confirms.
+ *       batch to start with. Do NOT start implementing
+ *       until user confirms.
+ *
+ * 9. EXPORT FOR AI WORKFLOW:
+ *    - The user exports via "🤖 Export for AI" button in the
+ *      Update History page header.
+ *    - The exported HTML contains only bugLog + bugHistory
+ *      baked in. All other data (accounts, tasks, auditLog,
+ *      wordLibrary, globalSettings) is stripped/empty.
+ *    - No Drive upload. No version bump. Pure local download.
  * ============================================================
  */
 
@@ -5158,25 +5194,6 @@ window.deleteLink = function(taskId, index) {
   renderTasks();
   toast('Link removed');
 };
-const APP_V_VERSION = '4.0';
-
-function parseAppVersion(version) {
-  if (!version || typeof version !== 'string') return null;
-  return version.split('.').map(v => parseInt(v, 10) || 0);
-}
-
-function compareAppVersions(a, b) {
-  const aParts = parseAppVersion(String(a));
-  const bParts = parseAppVersion(String(b));
-  const len = Math.max(aParts.length, bParts.length);
-  for (let i = 0; i < len; i += 1) {
-    const na = aParts[i] || 0;
-    const nb = bParts[i] || 0;
-    if (na < nb) return -1;
-    if (na > nb) return 1;
-  }
-  return 0;
-}
 
 function parseDataFilename(name) {
   const match = name.match(/^JT_Manager_V([0-9]+(?:\.[0-9]+)?)\.(\d{4}\.\d{2}\.\d{2}\.\d{2}\.\d{2}\.\d{2})\.json$/i);
@@ -5209,12 +5226,11 @@ function buildSaveJSON() {
   const ss = String(now.getSeconds()).padStart(2, '0');
   const savedAt = `${y}.${m}.${d}.${hh}.${mm}.${ss}`;
   return {
-    appVersion: APP_V_VERSION,
     uhlv: UHLV,
     savedAt,
     accounts: JSON.parse(JSON.stringify(accounts)),
     tasks: JSON.parse(JSON.stringify(tasks)),
-    globalSettings: Object.assign({}, globalSettings, { appVersion: APP_V_VERSION }),
+    globalSettings: Object.assign({}, globalSettings),
     auditLog: JSON.parse(JSON.stringify(auditLog)),
     bugLog: JSON.parse(JSON.stringify(bugLog)),
     bugHistory: JSON.parse(JSON.stringify(bugHistory)),
@@ -5227,7 +5243,7 @@ function loadDataJson(payload) {
   if (Array.isArray(payload.accounts)) { accounts.length = 0; accounts.push(...payload.accounts); }
   if (Array.isArray(payload.tasks)) { tasks.length = 0; tasks.push(...payload.tasks); }
   if (payload.globalSettings && typeof payload.globalSettings === 'object') {
-    globalSettings = Object.assign({}, globalSettings, payload.globalSettings, { appVersion: APP_V_VERSION });
+    globalSettings = Object.assign({}, globalSettings, payload.globalSettings);
   }
   if (Array.isArray(payload.auditLog)) { auditLog.length = 0; auditLog.push(...payload.auditLog); }
   if (Array.isArray(payload.wordLibrary)) { wordLibrary.length = 0; wordLibrary.push(...payload.wordLibrary); }
@@ -5720,202 +5736,85 @@ async function checkDriveVersion() {
   }
 }
 
-// ── App Version: helpers ───────────────────────────────────────────────────
-function parseAppFilename(name) {
-  // Matches: JT_Manager_APP_V1.7.2026.06.03.08.37.26.html
-  const match = name.match(/^JT_Manager_APP_V([0-9]+\.[0-9]+)\.(\d{4}\.\d{2}\.\d{2}\.\d{2}\.\d{2}\.\d{2})\.html$/i);
-  if (!match) return null;
-  return { name, version: match[1], timestamp: match[2] };
-}
 
-function getTimestampParts() {
-  const d = new Date();
-  return {
-    y:   d.getFullYear(),
-    m:   String(d.getMonth() + 1).padStart(2, '0'),
-    day: String(d.getDate()).padStart(2, '0'),
-    hh:  String(d.getHours()).padStart(2, '0'),
-    mm:  String(d.getMinutes()).padStart(2, '0'),
-    ss:  String(d.getSeconds()).padStart(2, '0')
-  };
-}
-
-function bumpAndPatchAppSrc(src, currentVer, isFinal) {
-  // Parse MAJOR.MINOR from currentVer (e.g. '1.7', '1.91', '1.991')
-  const dotIdx = String(currentVer).indexOf('.');
-  const major = parseInt(String(currentVer).slice(0, dotIdx), 10) || 1;
-  const minorStr = dotIdx >= 0 ? String(currentVer).slice(dotIdx + 1) : '0';
-  // minorStr is e.g. '7', '91', '991' — number of digits determines increment tier
-  const minorDigits = minorStr.length; // 1→+0.1, 2→+0.01, 3→+0.001, etc.
-  const minorInt = parseInt(minorStr, 10) || 0;
-
-  let newVer;
-  if (isFinal) {
-    // bugLog empty → major bump, minor resets to 0
-    newVer = (major + 1) + '.0';
-  } else {
-    // Determine increment: if all digits are 9 (e.g. 9, 99, 999) → next tier
-    const allNines = /^9+$/.test(minorStr);
-    if (allNines) {
-      // Overflow: go one tier deeper (e.g. 1.9 → 1.91, 1.99 → 1.991)
-      const newMinorStr = minorStr + '1'; // e.g. '9' → '91', '99' → '991'
-      newVer = major + '.' + newMinorStr;
-    } else {
-      // Normal increment within current tier
-      const incremented = minorInt + 1;
-      // Pad to same digit length as current minor
-      const newMinorStr = String(incremented).padStart(minorDigits, '0');
-      newVer = major + '.' + newMinorStr;
-    }
-  }
-
-  // Strip hardcoded disabled="" from btnSaveAppVer — it must never be baked in disabled.
-  src = src.replace(
-    /(<button[^>]*id="btnSaveAppVer"[^>]*)\s+disabled(?:="[^"]*")?([^>]*>)/g,
-    '$1$2'
-  );
-
-  // Strip baked dynamic content from containers before saving — prevents file bloat.
-  // These are re-rendered from JS on load, so baking them into the HTML is pure dead weight.
-  src = src.replace(
-    /(<div[^>]*id="tasksList"[^>]*>)[\s\S]*?(<\/div>\s*<!-- Default Reward)/,
-    '$1\n    </div>\n    <!-- Default Reward'
-  );
-  // bugHistoryList: strip everything between the opening div and <!-- /app -->
-  src = src.replace(
-    /(<div[^>]*id="bugHistoryList"[^>]*>)[\s\S]*?(<!-- \/app -->)/,
-    '$1\n    </div>\n  </div>\n\n</div>\n\n$2'
-  );
-
-  // Update the APP_V_VERSION constant in source
-  src = src.replace(
-    /const APP_V_VERSION\s*=\s*'[^']+'/,
-    `const APP_V_VERSION = '${newVer}'`
-  );
-  // Also patch the AV badge text so the saved file displays the correct version
-  src = src.replace(
-    /(<div[^>]*id="avBadge"[^>]*>)AV: V[^<]+(<\/div>)/,
-    `$1AV: V${newVer}$2`
-  );
-  return { src, newVer };
-}
-
-async function uploadHtmlToDrive(filename, htmlContent) {
-  const folderId = await ensureDriveFolder();
-  return driveUploadFile(folderId, filename, htmlContent, 'text/html');
-}
-
-// ── Save App Version ───────────────────────────────────────────────────────
-window.saveAppVersion = async function saveAppVersion() {
-  const btn = document.getElementById('btnSaveAppVer');
-  if (btn) btn.disabled = true;
-  const pbar = document.getElementById('driveProgressBar');
-  if (pbar) pbar.className = 'drive-progress-bar indeterminate';
+// ── Export for AI ─────────────────────────────────────────────────────────
+window.exportForAI = function exportForAI() {
+  const btn = document.getElementById('btnExportForAI');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Exporting…'; }
   try {
-    if (!_gisAccessToken) { toast('⚠ Sign in to Google first'); return; }
-    let src = document.documentElement.outerHTML;
-    // isFinal = true if bugLog is now empty (last batch completed)
-    const isFinal = (bugLog.length === 0);
-    const { src: patchedSrc, newVer } = bumpAndPatchAppSrc(src, APP_V_VERSION, isFinal);
-    // Update live constant
-    window.APP_V_VERSION = newVer;
-    const { y, m, day, hh, mm, ss } = getTimestampParts();
-    const filename = `JT_Manager_APP_V${newVer}.${y}.${m}.${day}.${hh}.${mm}.${ss}.html`;
-    await uploadHtmlToDrive(filename, patchedSrc);
-    // Update live AV badge to match the saved version
-    const avEl = document.getElementById('avBadge');
-    if (avEl) avEl.textContent = `AV: V${newVer}`;
-    if (pbar) {
-      pbar.className = 'drive-progress-bar complete';
-      setTimeout(() => { pbar.className = 'drive-progress-bar'; }, 1400);
-    }
-    toastLong(`✅ App version saved → ${filename}`);
-    addAuditEntry('APP SAVED', filename);
-  } catch (e) {
-    console.error('saveAppVersion error:', e);
-    if (pbar) pbar.className = 'drive-progress-bar';
-    toast('✗ App save failed: ' + e.message);
-  } finally {
-    if (btn) btn.disabled = false;
-  }
-}
+    const bugLogJson     = JSON.stringify(bugLog, null, 2);
+    const bugHistoryJson = JSON.stringify(bugHistory, null, 2);
 
-// ── Check Latest App Version ───────────────────────────────────────────────
-window.checkLatestAppVersion = async function checkLatestAppVersion() {
-  const btn = document.getElementById('btnLoadAppVer');
-  if (btn) btn.disabled = true;
-  try {
-    if (!_gisAccessToken) { toast('⚠ Sign in to Google first'); return; }
-    const folderId = await ensureDriveFolder();
-    const files = await driveListFiles(folderId, 'text/html');
-    const appFiles = files
-      .map(f => Object.assign({}, f, parseAppFilename(f.name)))
-      .filter(f => f.version);
-    if (!appFiles.length) { toast('No app versions found in Drive'); return; }
-    appFiles.sort((a, b) => {
-      const vDiff = parseFloat(b.version) - parseFloat(a.version);
-      if (vDiff !== 0) return vDiff;
-      return a.timestamp < b.timestamp ? 1 : -1;
-    });
-    const latest = appFiles[0];
-    const currentVFloat = parseFloat(APP_V_VERSION) || 1.0;
-    if (parseFloat(latest.version) <= currentVFloat) {
-      toast('✓ You are on the latest app version');
-      return;
-    }
-    const downloadLink = `https://drive.google.com/uc?export=download&id=${latest.id}`;
-    const modal = document.getElementById('appVerModal');
-    document.getElementById('appVerModalBody').innerHTML =
-      `Newer version found in Drive:<br>` +
-      `<strong>${latest.name}</strong><br>` +
-      `Timestamp: ${latest.timestamp}<br>` +
-      `Current version: V${APP_V_VERSION} &nbsp;→&nbsp; Available: V${latest.version}`;
-    document.getElementById('btnDownloadLatestApp').onclick = () => {
-      if (downloadLink) window.open(downloadLink, '_blank');
-      else toast('⚠ Download link unavailable');
-    };
-    modal.style.display = 'flex';
-  } catch (e) {
-    console.error('checkLatestAppVersion error:', e);
-    toast('✗ Could not check app versions: ' + e.message);
-  } finally {
-    if (btn) btn.disabled = false;
-  }
-}
+    let src = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
 
-// ── Save Current as Latest ─────────────────────────────────────────────────
-window.saveCurrentAsLatest = async function saveCurrentAsLatest() {
-  const btn = document.getElementById('btnSaveCurrentLatest');
-  if (btn) btn.disabled = true;
-  const pbar = document.getElementById('driveProgressBar');
-  if (pbar) pbar.className = 'drive-progress-bar indeterminate';
-  try {
-    if (!_gisAccessToken) { toast('⚠ Sign in to Google first'); return; }
-    let src = document.documentElement.outerHTML;
-    const isFinal = (bugLog.length === 0);
-    const { src: patchedSrc, newVer } = bumpAndPatchAppSrc(src, APP_V_VERSION, isFinal);
-    window.APP_V_VERSION = newVer;
-    const { y, m, day, hh, mm, ss } = getTimestampParts();
-    const filename = `JT_Manager_APP_V${newVer}.${y}.${m}.${day}.${hh}.${mm}.${ss}.html`;
-    await uploadHtmlToDrive(filename, patchedSrc);
-    // Update live AV badge to match the saved version
-    const avEl2 = document.getElementById('avBadge');
-    if (avEl2) avEl2.textContent = `AV: V${newVer}`;
-    if (pbar) {
-      pbar.className = 'drive-progress-bar complete';
-      setTimeout(() => { pbar.className = 'drive-progress-bar'; }, 1400);
-    }
-    document.getElementById('appVerModal').style.display = 'none';
-    toastLong(`✅ App saved as latest → ${filename}`);
-    addAuditEntry('APP SAVED AS LATEST', filename);
+    src = src.replace(
+      /\/\*EMBEDDED_ACCOUNTS_START\*\/[\s\S]*?\/\*EMBEDDED_ACCOUNTS_END\*\//,
+      '/*EMBEDDED_ACCOUNTS_START*/\nlet accounts = [];\n/*EMBEDDED_ACCOUNTS_END*/'
+    );
+    src = src.replace(
+      /\/\*EMBEDDED_TASKS_START\*\/[\s\S]*?\/\*EMBEDDED_TASKS_END\*\//,
+      '/*EMBEDDED_TASKS_START*/\nlet tasks = [];\n/*EMBEDDED_TASKS_END*/'
+    );
+    src = src.replace(
+      /\/\*EMBEDDED_SETTINGS_START\*\/[\s\S]*?\/\*EMBEDDED_SETTINGS_END\*\//,
+      '/*EMBEDDED_SETTINGS_START*/\nlet globalSettings = { "jmptRate": 0, "defaultGoogleReward": 0.04, "defaultYoutubeReward": 0.02, "payoutThreshold": 0.5, "customDevices": [], "appVersion": "1.0" };\n/*EMBEDDED_SETTINGS_END*/'
+    );
+    src = src.replace(
+      /\/\*EMBEDDED_LOG_START\*\/[\s\S]*?\/\*EMBEDDED_LOG_END\*\//,
+      '/*EMBEDDED_LOG_START*/\nlet auditLog = [];\n/*EMBEDDED_LOG_END*/'
+    );
+    src = src.replace(
+      /\/\*EMBEDDED_WORDLIB_START\*\/[\s\S]*?\/\*EMBEDDED_WORDLIB_END\*\//,
+      '/*EMBEDDED_WORDLIB_START*/\nlet wordLibrary = [];\n/*EMBEDDED_WORDLIB_END*/'
+    );
+
+    src = src.replace(
+      /\/\*BUG_LOG_START\*\/[\s\S]*?\/\*BUG_LOG_END\*\//,
+      `/*BUG_LOG_START*/\nlet bugLog = ${bugLogJson};\n/*BUG_LOG_END*/`
+    );
+
+    src = src.replace(
+      /\/\*BUG_HISTORY_START\*\/[\s\S]*?\/\*BUG_HISTORY_END\*\//,
+      `/*BUG_HISTORY_START*/\nlet bugHistory = ${bugHistoryJson};\n/*BUG_HISTORY_END*/`
+    );
+
+    src = src.replace(
+      /let UHLV\s*=\s*\d+;/,
+      `let UHLV = ${UHLV};`
+    );
+
+    src = src.replace(
+      /(<div[^>]*id="tasksList"[^>]*>)[\s\S]*?(<\/div>\s*<!-- Default Reward)/,
+      '$1\n    </div>\n    <!-- Default Reward'
+    );
+    src = src.replace(
+      /(<div[^>]*id="bugHistoryList"[^>]*>)[\s\S]*?(<!-- \/app -->)/,
+      '$1\n    </div>\n  </div>\n\n</div>\n\n$2'
+    );
+
+    const d = new Date();
+    const y   = d.getFullYear();
+    const mo  = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const hh  = String(d.getHours()).padStart(2, '0');
+    const mm  = String(d.getMinutes()).padStart(2, '0');
+    const ss  = String(d.getSeconds()).padStart(2, '0');
+    const filename = `JT_Manager_ForAI.${y}.${mo}.${day}.${hh}.${mm}.${ss}.html`;
+
+    const blob = new Blob([src], { type: 'text/html' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url; a.download = filename; a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+
+    toast(`🤖 Exported for AI → ${filename}`);
   } catch (e) {
-    console.error('saveCurrentAsLatest error:', e);
-    if (pbar) pbar.className = 'drive-progress-bar';
-    toast('✗ Save failed: ' + e.message);
+    console.error('exportForAI error:', e);
+    toast('✗ Export failed: ' + e.message);
   } finally {
-    if (btn) btn.disabled = false;
+    if (btn) { btn.disabled = false; btn.textContent = '🤖 Export for AI'; }
   }
-}
+};
 
 // ── Get Latest from Drive ─────────────────────────────────────────────────
 window.driveGetLatest = async function() {
@@ -6792,6 +6691,30 @@ function renderWordLibrary() {
     body.innerHTML = `<div style="text-align:center;padding:32px 10px;font-family:var(--mono);font-size:12px;color:var(--ink3);">No word libraries yet.<br>Click + Add Website below.</div>`;
     return;
   }
+
+  // Snapshot open state before rebuild (Change 20)
+  const openBanners  = new Set();
+  const openVersions = new Set();
+  document.querySelectorAll('.wd-banner-body.open').forEach(el => {
+    const m = el.id.match(/^wdBannerBody_(.+)$/);
+    if (m) openBanners.add(m[1]);
+  });
+  document.querySelectorAll('.wd-version-cards.open').forEach(el => {
+    const m = el.id.match(/^wdVerCards_(.+)$/);
+    if (m) openVersions.add(m[1]);
+  });
+  const isFirstRender = openBanners.size === 0 && openVersions.size === 0;
+
+  // Helper for 2-color gradient backgrounds (Change 19c)
+  function makeBgStyle(color1, color2, fallback) {
+    const c1 = color1 && color1 !== '#ffffff' ? color1 : null;
+    const c2 = color2 && color2 !== '#ffffff' ? color2 : null;
+    if (c1 && c2) return `background: linear-gradient(to right, ${c1} 50%, ${c2} 50%);`;
+    if (c1)       return `background: ${c1};`;
+    if (c2)       return `background: ${c2};`;
+    return        `background: ${fallback};`;
+  }
+
   const WD_SITE_COLORS = [
     { bg: 'var(--jt-light)',    border: 'var(--jt-border)',    text: 'var(--jt)'    },
     { bg: 'var(--green-light)', border: 'var(--green-border)', text: 'var(--green)' },
@@ -6801,21 +6724,26 @@ function renderWordLibrary() {
   ];
   body.innerHTML = wordLibrary.map((site, siteIdx) => {
     const col = WD_SITE_COLORS[siteIdx % WD_SITE_COLORS.length];
+    const bannerOpen    = isFirstRender || openBanners.has(site.id);
     return `
     <div class="wd-banner" id="wdBanner_${site.id}" style="border-color: ${col.border};">
-      <div class="wd-banner-header" onclick="toggleWdBanner('${site.id}')" style="background: ${col.bg};">
+      <div class="wd-banner-header" onclick="toggleWdBanner('${site.id}')" style="${makeBgStyle(site.color1, site.color2, col.bg)}">
         <span class="wd-banner-name" style="color: ${col.text};">${site.siteName}</span>
-        <span class="wd-banner-chevron open" id="wdBannerChev_${site.id}" style="color: ${col.text};">▼</span>
+        <button class="wd-banner-edit-btn" title="Edit website"
+          onclick="event.stopPropagation(); openEditSiteModal('${site.id}')">✎</button>
+        <span class="wd-banner-chevron ${bannerOpen ? 'open' : ''}" id="wdBannerChev_${site.id}" style="color: ${col.text};">▼</span>
       </div>
-      <div class="wd-banner-body open" id="wdBannerBody_${site.id}">
-        ${(site.pageVersions||[]).map((ver, verIdx) => `
+      <div class="wd-banner-body ${bannerOpen ? 'open' : ''}" id="wdBannerBody_${site.id}">
+        ${(site.pageVersions||[]).map((ver, verIdx) => {
+          const verOpen = isFirstRender ? (verIdx === 0) : openVersions.has(ver.id);
+          return `
           <div>
             <div class="wd-version-row" style="border-left-color: ${col.border};">
               <span class="wd-version-name" onclick="toggleWdVersion('${ver.id}')" style="color: ${col.text};">${ver.name}</span>
-              <span class="wd-version-chevron ${verIdx === 0 ? 'open' : ''}" id="wdVerChev_${ver.id}" onclick="toggleWdVersion('${ver.id}')">▼</span>
+              <span class="wd-version-chevron ${verOpen ? 'open' : ''}" id="wdVerChev_${ver.id}" onclick="toggleWdVersion('${ver.id}')">▼</span>
               <button class="wd-add-word-btn" onclick="openAddWordModal('${site.id}','${ver.id}')" title="Add word card" style="color: ${col.text};">＋</button>
             </div>
-            <div class="wd-version-cards ${verIdx === 0 ? 'open' : ''}" id="wdVerCards_${ver.id}">
+            <div class="wd-version-cards ${verOpen ? 'open' : ''}" id="wdVerCards_${ver.id}">
               ${(ver.words||[]).map(w => `
                 <div class="wd-word-card"
                   draggable="true"
@@ -6824,12 +6752,14 @@ function renderWordLibrary() {
                   style="border-left-color: ${col.border};"
                   onmouseenter="this.style.borderColor='${col.border}'"
                   onmouseleave="this.style.borderColor=''; this.style.borderLeftColor='${col.border}'">
-                  <div class="wd-card-title" style="background: ${col.bg}; border-bottom-color: ${col.border}; color: ${col.text};">
+                  <div class="wd-card-title" style="${makeBgStyle(w.color1, w.color2, col.bg)} border-bottom-color: ${col.border}; color: ${col.text};">
                     <span class="wd-drag-handle" onclick="event.stopPropagation()">⠿</span>
                     <div class="wd-card-title-text">
                       <span style="font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;">${w.sectionName || w.title || ''}</span>
                       ${w.wordsCount ? `<span style="font-size:8.5px;font-weight:500;opacity:0.75;text-transform:none;letter-spacing:0.2px;">${w.wordsCount}</span>` : ''}
                     </div>
+                    <button class="wd-card-edit-btn" title="Edit word"
+                      onclick="event.stopPropagation(); openEditWordModal('${w.id}','${site.id}','${ver.id}')">✎</button>
                     <button class="wd-card-delete-btn" title="Delete word"
                       onclick="event.stopPropagation(); deleteWdWord('${w.id}','${site.id}','${ver.id}')">✕</button>
                   </div>
@@ -6839,7 +6769,7 @@ function renderWordLibrary() {
               ${!(ver.words||[]).length ? `<div style="font-family:var(--mono);font-size:10px;color:var(--ink3);padding:4px 4px 2px;">No words yet — click ＋</div>` : ''}
             </div>
           </div>
-        `).join('')}
+        `}).join('')}
         <button onclick="openAddVersionModal('${site.id}')" style="font-family:var(--mono);font-size:10px;color:${col.text};background:${col.bg};border:1px solid ${col.border};border-radius:6px;padding:3px 8px;cursor:pointer;margin:2px 0 4px;">+ Add Page Version</button>
       </div>
     </div>
@@ -6892,19 +6822,44 @@ window.copyWdWord = function(wordId, siteId, verId) {
 };
 
 window.openAddSiteModal = function() {
-  document.getElementById('wdAddSiteInput').value = '';
+  document.getElementById('wdAddSiteEditId').value  = '';
+  document.getElementById('wdAddSiteInput').value   = '';
+  document.getElementById('wdAddSiteColor1').value  = '#ffffff';
+  document.getElementById('wdAddSiteColor2').value  = '#ffffff';
+  document.getElementById('wdAddSiteModalTitle').textContent = '+ Add Website';
+  document.getElementById('wdAddSiteSubmitBtn').textContent  = 'Add Website';
   openModal('wdAddSiteModal');
   setTimeout(() => document.getElementById('wdAddSiteInput').focus(), 80);
 };
 
 window.confirmAddSite = function() {
-  const name = document.getElementById('wdAddSiteInput').value.trim();
+  const editId = document.getElementById('wdAddSiteEditId').value;
+  const name   = document.getElementById('wdAddSiteInput').value.trim();
+  const color1 = document.getElementById('wdAddSiteColor1').value;
+  const color2 = document.getElementById('wdAddSiteColor2').value;
   if (!name) { toast('Enter a website name'); return; }
-  wordLibrary.push({ id: uid(), siteName: name, pageVersions: [] });
+  if (editId) {
+    const site = wordLibrary.find(s => s.id === editId);
+    if (site) { site.siteName = name; site.color1 = color1; site.color2 = color2; }
+  } else {
+    wordLibrary.push({ id: uid(), siteName: name, color1, color2, pageVersions: [] });
+  }
   closeModal('wdAddSiteModal');
   renderWordLibrary();
   markUnsaved(true);
-  toast('Website added: ' + name);
+  toast(editId ? 'Website updated' : 'Website added: ' + name);
+};
+
+window.openEditSiteModal = function(siteId) {
+  const site = wordLibrary.find(s => s.id === siteId); if (!site) return;
+  document.getElementById('wdAddSiteEditId').value  = siteId;
+  document.getElementById('wdAddSiteInput').value   = site.siteName || '';
+  document.getElementById('wdAddSiteColor1').value  = site.color1 || '#ffffff';
+  document.getElementById('wdAddSiteColor2').value  = site.color2 || '#ffffff';
+  document.getElementById('wdAddSiteModalTitle').textContent = '✎ Edit Website';
+  document.getElementById('wdAddSiteSubmitBtn').textContent  = 'Save Changes';
+  openModal('wdAddSiteModal');
+  setTimeout(() => document.getElementById('wdAddSiteInput').focus(), 80);
 };
 
 window.openAddVersionModal = function(siteId) {
@@ -6932,6 +6887,7 @@ window.confirmAddVersion = function() {
 window.openAddWordModal = function(siteId, verId) {
   document.getElementById('wdAddWordSiteId').value = siteId;
   document.getElementById('wdAddWordVerId').value  = verId;
+  document.getElementById('wdAddWordEditId').value = '';
   document.getElementById('wdAddWordSectionName').value  = '';
   document.getElementById('wdAddWordWordsCount').value   = '';
   document.getElementById('wdAddWordText').value         = '';
@@ -6939,6 +6895,32 @@ window.openAddWordModal = function(siteId, verId) {
   document.getElementById('wdAddWordFontColorHex').value     = '';
   document.getElementById('wdAddWordHighlightColor').value   = '#ffffff';
   document.getElementById('wdAddWordHighlightColorHex').value = '';
+  document.getElementById('wdAddWordColor1').value = '#ffffff';
+  document.getElementById('wdAddWordColor2').value = '#ffffff';
+  document.getElementById('wdAddWordModalTitle').textContent = '+ Add Word Card';
+  document.getElementById('wdAddWordSubmitBtn').textContent  = 'Add Word';
+  openModal('wdAddWordModal');
+  setTimeout(() => document.getElementById('wdAddWordSectionName').focus(), 80);
+};
+
+window.openEditWordModal = function(wordId, siteId, verId) {
+  const site = wordLibrary.find(s => s.id === siteId); if (!site) return;
+  const ver  = (site.pageVersions||[]).find(v => v.id === verId); if (!ver) return;
+  const w    = (ver.words||[]).find(x => x.id === wordId); if (!w) return;
+  document.getElementById('wdAddWordSiteId').value = siteId;
+  document.getElementById('wdAddWordVerId').value  = verId;
+  document.getElementById('wdAddWordEditId').value = wordId;
+  document.getElementById('wdAddWordSectionName').value  = w.sectionName || '';
+  document.getElementById('wdAddWordWordsCount').value   = w.wordsCount || '';
+  document.getElementById('wdAddWordText').value         = w.word || '';
+  document.getElementById('wdAddWordFontColor').value        = w.fontColor || '#0d1b3e';
+  document.getElementById('wdAddWordFontColorHex').value     = w.fontColor || '';
+  document.getElementById('wdAddWordHighlightColor').value   = w.highlightColor || '#ffffff';
+  document.getElementById('wdAddWordHighlightColorHex').value = w.highlightColor || '';
+  document.getElementById('wdAddWordColor1').value = w.color1 || '#ffffff';
+  document.getElementById('wdAddWordColor2').value = w.color2 || '#ffffff';
+  document.getElementById('wdAddWordModalTitle').textContent = '✎ Edit Word Card';
+  document.getElementById('wdAddWordSubmitBtn').textContent  = 'Save Changes';
   openModal('wdAddWordModal');
   setTimeout(() => document.getElementById('wdAddWordSectionName').focus(), 80);
 };
@@ -6946,22 +6928,32 @@ window.openAddWordModal = function(siteId, verId) {
 window.confirmAddWord = function() {
   const siteId      = document.getElementById('wdAddWordSiteId').value;
   const verId       = document.getElementById('wdAddWordVerId').value;
+  const editId      = document.getElementById('wdAddWordEditId').value;
   const sectionName = document.getElementById('wdAddWordSectionName').value.trim();
   const wordsCount  = document.getElementById('wdAddWordWordsCount').value.trim();
   const word        = document.getElementById('wdAddWordText').value.trim();
-  const fontColor   = document.getElementById('wdAddWordFontColorHex').value.trim()
-                   || document.getElementById('wdAddWordFontColor').value || '';
+  const fontColor      = document.getElementById('wdAddWordFontColorHex').value.trim()
+                      || document.getElementById('wdAddWordFontColor').value || '';
   const highlightColor = document.getElementById('wdAddWordHighlightColorHex').value.trim()
                       || document.getElementById('wdAddWordHighlightColor').value || '';
+  const color1 = document.getElementById('wdAddWordColor1').value || '';
+  const color2 = document.getElementById('wdAddWordColor2').value || '';
   if (!sectionName || !word) { toast('Fill in Section Name and word'); return; }
   const site = wordLibrary.find(s => s.id === siteId); if (!site) return;
   const ver  = (site.pageVersions||[]).find(v => v.id === verId); if (!ver) return;
   if (!ver.words) ver.words = [];
-  ver.words.push({ id: uid(), sectionName, wordsCount, word, fontColor, highlightColor });
+  if (editId) {
+    const w = ver.words.find(x => x.id === editId);
+    if (w) { w.sectionName = sectionName; w.wordsCount = wordsCount; w.word = word;
+             w.fontColor = fontColor; w.highlightColor = highlightColor;
+             w.color1 = color1; w.color2 = color2; }
+  } else {
+    ver.words.push({ id: uid(), sectionName, wordsCount, word, fontColor, highlightColor, color1, color2 });
+  }
   closeModal('wdAddWordModal');
   renderWordLibrary();
   markUnsaved(true);
-  toast('Word added');
+  toast(editId ? 'Word updated' : 'Word added');
 };
 
 window.deleteWdWord = function(wordId, siteId, verId) {
@@ -7287,7 +7279,7 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
-// 15
+// 16
 <button id="taskScrollTopBtn"
   onclick="document.getElementById('pageContent') ? document.getElementById('pageContent').scrollTo({top:0,behavior:'smooth'}) : window.scrollTo({top:0,behavior:'smooth'})"
   title="Back to top"
