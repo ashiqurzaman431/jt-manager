@@ -1539,8 +1539,13 @@ body {
         </div>
         <div class="field">
           <label>Version (optional)</label>
-          <input type="text" id="wdAddWordVersion" placeholder="e.g. v1.0 or 2026.06.07" list="wdVersionSuggestions" style="background:#fafbff;border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:13px;padding:7px 10px;outline:none;width:100%;">
-          <datalist id="wdVersionSuggestions"></datalist>
+          <select id="wdAddWordVersionSelect"
+            onchange="wdHandleVersionSelectChange(this.value)"
+            style="background:#fafbff;border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:13px;padding:7px 10px;outline:none;width:100%;cursor:pointer;">
+            <option value="">(none)</option>
+          </select>
+          <input type="text" id="wdAddWordVersionNew" placeholder="e.g. v1.0 or 2026.06.07"
+            style="display:none;margin-top:6px;background:#fafbff;border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:13px;padding:7px 10px;outline:none;width:100%;">
         </div>
       </div>
       <input type="hidden" id="wdAddWordSiteId" value="">
@@ -2171,7 +2176,7 @@ TaskRec01: task assigned, timer started.</div>
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
         <button id="btnExportForAI" onclick="exportForAI()" style="font-family:var(--mono);font-size:11.5px;padding:6px 14px;border-radius:var(--radius-sm);border:1px solid var(--jt-border);background:var(--jt-light);color:var(--jt);cursor:pointer;white-space:nowrap;" disabled="">⏳ Exporting…</button>
         <span style="font-family:var(--mono);font-size:10px;color:var(--ink3);background:var(--surface2);border:1px solid var(--border);border-radius:99px;padding:4px 12px;">🔒 Read-only · Managed by AI</span>
-        <span id="uhlvBadge" style="font-family:var(--mono);font-size:10px;color:var(--jt);background:var(--jt-light);border:1px solid var(--jt-border);border-radius:99px;padding:4px 12px;" title="Update History and Log Version — higher number wins on data load">UHLV: 25</span>
+        <span id="uhlvBadge" style="font-family:var(--mono);font-size:10px;color:var(--jt);background:var(--jt-light);border:1px solid var(--jt-border);border-radius:99px;padding:4px 12px;" title="Update History and Log Version — higher number wins on data load">UHLV: 28</span>
       </div>
     </div>
     <div style="font-family:var(--mono);font-size:11.5px;color:var(--ink3);margin-bottom:18px;line-height:1.7;background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;box-shadow:var(--shadow);">
@@ -4104,7 +4109,7 @@ let wordLibrary = [];
 // Increment UHLV any time bugLog or bugHistory is modified by AI
 // loadDataJson compares this vs JSON uhlv and keeps whichever is higher
 // ─────────────────────────────────────────
-let UHLV = 25;
+let UHLV = 28;
 /*BUG_LOG_START*/
 let bugLog = [];
 /*BUG_LOG_END*/
@@ -6743,9 +6748,9 @@ window.deleteLink = function(taskId, index) {
 };
 
 function parseDataFilename(name) {
-  const match = name.match(/^JT_Manager_V([0-9]+(?:\.[0-9]+)?)\.(\d{4}\.\d{2}\.\d{2}\.\d{2}\.\d{2}\.\d{2})\.json$/i);
+  const match = name.match(/^JT_Manager_(?:V[0-9]+(?:\.[0-9]+)?\.)?(\d{4}\.\d{2}\.\d{2}\.\d{2}\.\d{2}\.\d{2})\.json$/i);
   if (!match) return null;
-  return { name, version: match[1], timestamp: match[2] };
+  return { name, timestamp: match[1] };
 }
 
 function selectLatestDataFile(files) {
@@ -6922,7 +6927,6 @@ window.togglePanel = function(panelId) {
 // ─────────────────────────────────────────
 // GOOGLE DRIVE INTEGRATION — OAuth via GIS
 // ─────────────────────────────────────────
-const APP_V_VERSION = '3.4';
 const DRIVE_CLIENT_ID = '122560609463-vvejkpk1phego89icu12410bq0bmeha7.apps.googleusercontent.com';
 const DRIVE_REDIRECT_ORIGIN = 'https://realershad67-ship-it.github.io';
 const DRIVE_APP_FOLDER_NAME = 'JT MANAGER APP DATA';
@@ -7480,7 +7484,7 @@ document.getElementById('btnSave').addEventListener('click', async () => {
   const hh = String(d.getHours()).padStart(2, '0');
   const mm = String(d.getMinutes()).padStart(2, '0');
   const ss = String(d.getSeconds()).padStart(2, '0');
-  const suffix = `V${APP_V_VERSION}.${y}.${m}.${day}.${hh}.${mm}.${ss}`;
+  const suffix = `${y}.${m}.${day}.${hh}.${mm}.${ss}`;
   const filename = `JT_Manager_${suffix}.json`;
   const payload = buildSaveJSON();
   const content = JSON.stringify(payload, null, 2);
@@ -8369,8 +8373,8 @@ function renderWordLibrary() {
                     <div class="wd-card-title-text">
                       <span style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.9px;line-height:1.3;display:block;">${w.sectionName || w.title || ''}</span>
                       ${w.wordsCount ? `<span style="font-size:9.5px;font-weight:600;opacity:0.85;text-transform:none;letter-spacing:0.2px;display:block;margin-top:2px;">${w.wordsCount}</span>` : ''}
-                      ${w.version ? `<span style="font-size:8px;font-weight:700;text-transform:none;letter-spacing:0;margin-left:4px;padding:1px 5px;border-radius:3px;background:${col.border};color:#fff;flex-shrink:0;line-height:1.4;">${w.version}</span>` : ''}
                     </div>
+                    ${w.version ? `<span style="font-size:9px;font-weight:700;font-family:var(--mono);text-transform:uppercase;letter-spacing:0.4px;padding:2px 7px;border-radius:99px;background:#1a1a2e;color:#e8d5ff;flex-shrink:0;line-height:1.5;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,0.35);">${w.version}</span>` : ''}
                     <button class="wd-card-edit-btn" title="Edit word"
                       onclick="event.stopPropagation(); openEditWordModal('${w.id}','${site.id}','${ver.id}')">✎</button>
                   </div>
@@ -8425,6 +8429,53 @@ window.wdSelectVersion = function(siteId, verId, version) {
   _wdSelectedVersion[siteId + ':' + verId] = version;
   renderWordLibrary();
 };
+
+window.wdHandleVersionSelectChange = function(val) {
+  const newInput = document.getElementById('wdAddWordVersionNew');
+  if (!newInput) return;
+  if (val === '__new__') {
+    newInput.style.display = 'block';
+    newInput.value = '';
+    newInput.focus();
+  } else {
+    newInput.style.display = 'none';
+    newInput.value = '';
+  }
+};
+
+function wdPopulateVersionSelect(siteId, verId, currentVersion) {
+  const sel      = document.getElementById('wdAddWordVersionSelect');
+  const newInput = document.getElementById('wdAddWordVersionNew');
+  if (!sel) return;
+
+  const site     = wordLibrary.find(s => s.id === siteId);
+  const ver      = site && (site.pageVersions || []).find(v => v.id === verId);
+  const existing = [...new Set(((ver && ver.words) || []).map(w => w.version).filter(Boolean))];
+
+  sel.innerHTML = '<option value="">(none)</option>';
+  existing.forEach(v => {
+    const opt = document.createElement('option');
+    opt.value = v; opt.textContent = v;
+    sel.appendChild(opt);
+  });
+  const newOpt = document.createElement('option');
+  newOpt.value = '__new__'; newOpt.textContent = '+ Enter new version';
+  sel.appendChild(newOpt);
+
+  if (currentVersion && existing.includes(currentVersion)) {
+    sel.value = currentVersion;
+    if (newInput) newInput.style.display = 'none';
+  } else if (currentVersion) {
+    const opt = document.createElement('option');
+    opt.value = currentVersion; opt.textContent = currentVersion;
+    sel.insertBefore(opt, newOpt);
+    sel.value = currentVersion;
+    if (newInput) newInput.style.display = 'none';
+  } else {
+    sel.value = '';
+    if (newInput) { newInput.style.display = 'none'; newInput.value = ''; }
+  }
+}
 
 window.openEditPageModal = function(siteId, verId) {
   const site = wordLibrary.find(s => s.id === siteId); if (!site) return;
@@ -8536,18 +8587,7 @@ window.openAddWordModal = function(siteId, verId) {
   document.getElementById('wdAddWordColor1').value = '#ffffff';
   document.getElementById('wdAddWordColor2').value = '#ffffff';
   document.getElementById('wdAddWordColorRatio').value = 50;
-  document.getElementById('wdAddWordVersion').value = '';
-  // Populate version datalist from existing word cards in this page
-  const datalist = document.getElementById('wdVersionSuggestions');
-  if (datalist) {
-    datalist.innerHTML = '';
-    const site = wordLibrary.find(s => s.id === siteId);
-    const ver = site && (site.pageVersions||[]).find(v => v.id === verId);
-    if (ver) {
-      const versions = [...new Set((ver.words||[]).map(w => w.version).filter(Boolean))];
-      versions.forEach(v => { const opt = document.createElement('option'); opt.value = v; datalist.appendChild(opt); });
-    }
-  }
+  wdPopulateVersionSelect(siteId, verId, '');
   document.getElementById('wdAddWordModalTitle').textContent = '+ Add Word Card';
   document.getElementById('wdAddWordSubmitBtn').textContent  = 'Add Word';
   openModal('wdAddWordModal');
@@ -8571,14 +8611,7 @@ window.openEditWordModal = function(wordId, siteId, verId) {
   document.getElementById('wdAddWordColor1').value = w.color1 || '#ffffff';
   document.getElementById('wdAddWordColor2').value = w.color2 || '#ffffff';
   document.getElementById('wdAddWordColorRatio').value = w.colorRatio ?? 50;
-  document.getElementById('wdAddWordVersion').value = w.version || '';
-  // Populate version datalist
-  const datalist = document.getElementById('wdVersionSuggestions');
-  if (datalist) {
-    datalist.innerHTML = '';
-    const versions = [...new Set((ver.words||[]).map(x => x.version).filter(Boolean))];
-    versions.forEach(v => { const opt = document.createElement('option'); opt.value = v; datalist.appendChild(opt); });
-  }
+  wdPopulateVersionSelect(siteId, verId, w.version || '');
   document.getElementById('wdAddWordModalTitle').textContent = '✎ Edit Word Card';
   document.getElementById('wdAddWordSubmitBtn').textContent  = 'Save Changes';
   openModal('wdAddWordModal');
@@ -8599,7 +8632,12 @@ window.confirmAddWord = function() {
   const color1 = document.getElementById('wdAddWordColor1').value || '';
   const color2 = document.getElementById('wdAddWordColor2').value || '';
   const colorRatio = parseInt(document.getElementById('wdAddWordColorRatio').value) || 50;
-  const version = (document.getElementById('wdAddWordVersion').value || '').trim();
+  const _vSel = document.getElementById('wdAddWordVersionSelect');
+  const _vSelVal = _vSel ? _vSel.value : '';
+  const version = (_vSelVal === '__new__'
+    ? (document.getElementById('wdAddWordVersionNew').value || '').trim()
+    : _vSelVal
+  );
   if (!sectionName || !word) { toast('Fill in Section Name and word'); return; }
   const site = wordLibrary.find(s => s.id === siteId); if (!site) return;
   const ver  = (site.pageVersions||[]).find(v => v.id === verId); if (!ver) return;
@@ -8774,16 +8812,16 @@ document.addEventListener('dragover', function(e) {
     return;
   }
   if (_wdBannerDrag) {
-    const targetBanner = e.target.closest('.wd-banner');
-    if (!targetBanner) return;
-    if (targetBanner.dataset.siteId === _wdBannerDrag.siteId) return;
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
+    const targetBanner = e.target.closest('.wd-banner');
     document.querySelectorAll('.wd-banner').forEach(b => {
       b.classList.remove('banner-drag-over-top', 'banner-drag-over-bottom');
     });
-    const rect = targetBanner.getBoundingClientRect();
-    targetBanner.classList.add(e.clientY < rect.top + rect.height / 2 ? 'banner-drag-over-top' : 'banner-drag-over-bottom');
+    if (targetBanner && targetBanner.dataset.siteId !== _wdBannerDrag.siteId) {
+      const rect = targetBanner.getBoundingClientRect();
+      targetBanner.classList.add(e.clientY < rect.top + rect.height / 2 ? 'banner-drag-over-top' : 'banner-drag-over-bottom');
+    }
   }
   if (_wdVersionDrag) {
     const targetRow = e.target.closest('.wd-version-row');
@@ -8803,8 +8841,7 @@ document.addEventListener('dragover', function(e) {
 document.addEventListener('dragleave', function(e) {
   const card = e.target.closest('.wd-word-card');
   if (card) card.classList.remove('drag-over-top', 'drag-over-bottom');
-  const banner = e.target.closest('.wd-banner');
-  if (banner) banner.classList.remove('banner-drag-over-top', 'banner-drag-over-bottom');
+  // banner highlight cleanup handled by dragover — not removed here
   const verRow = e.target.closest('.wd-version-row');
   if (verRow) verRow.classList.remove('ver-drag-over-top', 'ver-drag-over-bottom');
 });
