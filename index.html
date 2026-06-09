@@ -689,6 +689,13 @@ body {
 .wd-banner.banner-drag-over-top    { border-top: 2.5px solid var(--jt); }
 .wd-banner.banner-drag-over-bottom { border-bottom: 2.5px solid var(--jt); }
 .wd-banner.banner-dragging         { opacity: 0.5; }
+.wd-banner-drag-handle {
+  cursor: grab; flex-shrink: 0; font-size: 14px; line-height: 1;
+  opacity: 0; color: var(--ink3); padding: 0 2px; margin-top: 1px;
+  transition: opacity 0.15s; user-select: none;
+}
+.wd-banner-header:hover .wd-banner-drag-handle { opacity: 0.45; }
+.wd-banner-drag-handle:hover { opacity: 0.8 !important; }
 .wd-version-row.ver-drag-over-top    { border-top: 2.5px solid var(--jt); }
 .wd-version-row.ver-drag-over-bottom { border-bottom: 2.5px solid var(--jt); }
 .wd-version-row.ver-dragging         { opacity: 0.45; }
@@ -2176,7 +2183,7 @@ TaskRec01: task assigned, timer started.</div>
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
         <button id="btnExportForAI" onclick="exportForAI()" style="font-family:var(--mono);font-size:11.5px;padding:6px 14px;border-radius:var(--radius-sm);border:1px solid var(--jt-border);background:var(--jt-light);color:var(--jt);cursor:pointer;white-space:nowrap;" disabled="">⏳ Exporting…</button>
         <span style="font-family:var(--mono);font-size:10px;color:var(--ink3);background:var(--surface2);border:1px solid var(--border);border-radius:99px;padding:4px 12px;">🔒 Read-only · Managed by AI</span>
-        <span id="uhlvBadge" style="font-family:var(--mono);font-size:10px;color:var(--jt);background:var(--jt-light);border:1px solid var(--jt-border);border-radius:99px;padding:4px 12px;" title="Update History and Log Version — higher number wins on data load">UHLV: 28</span>
+        <span id="uhlvBadge" style="font-family:var(--mono);font-size:10px;color:var(--jt);background:var(--jt-light);border:1px solid var(--jt-border);border-radius:99px;padding:4px 12px;" title="Update History and Log Version — higher number wins on data load">UHLV: 29</span>
       </div>
     </div>
     <div style="font-family:var(--mono);font-size:11.5px;color:var(--ink3);margin-bottom:18px;line-height:1.7;background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;box-shadow:var(--shadow);">
@@ -4109,7 +4116,7 @@ let wordLibrary = [];
 // Increment UHLV any time bugLog or bugHistory is modified by AI
 // loadDataJson compares this vs JSON uhlv and keeps whichever is higher
 // ─────────────────────────────────────────
-let UHLV = 28;
+let UHLV = 29;
 /*BUG_LOG_START*/
 let bugLog = [];
 /*BUG_LOG_END*/
@@ -4758,6 +4765,8 @@ let taskAccountFilter = 'all'; // 'all' or an account id
 let taskAccountFilterExcept = false;
 let activeTagFilters = new Set(); // values: 'fresh' | 'today' | 'quicky'
 let taskTodayOnly = false;
+const TASKS_PER_PAGE = 21;
+let taskPage = 0; // current page index (0-based)
 // taskSecondSort removed — merged into taskSort
 
 // ── Task Search State ──
@@ -4811,6 +4820,7 @@ window.undoLast = function() {
   updateUndoBtn();
   renderDashboard();
   renderAccList();
+  taskPage = 0;
   renderTasks();
   if (selectedAccId) renderAccDetail(selectedAccId);
   toast(`Undone: ${snap.label}`);
@@ -4846,7 +4856,7 @@ function showPage(id) {
   const navEl = document.getElementById(NAV_IDS[id]);
   if (navEl) navEl.classList.add('active');
   if (id === 'dashboard') renderDashboard();
-  if (id === 'tasks') { renderTasks(); populateDefaultRewardFields(); }
+  if (id === 'tasks') { taskPage = 0; renderTasks(); populateDefaultRewardFields(); }
   if (id === 'accounts') {
     renderAccList();
     populateGlobalJmptRateField();
@@ -4996,10 +5006,12 @@ function isTagQuicky(task) {
 function toggleTagFilter(tag) {
   if (activeTagFilters.has(tag)) activeTagFilters.delete(tag);
   else activeTagFilters.add(tag);
+  taskPage = 0;
   renderTasks();
 }
 function clearTagFilters() {
   activeTagFilters.clear();
+  taskPage = 0;
   renderTasks();
 }
 function weekStart() {
@@ -5202,6 +5214,7 @@ window.switchTaskTab = function(tab) {
   activeTaskTab = tab;
   document.getElementById('tabRunning').classList.toggle('active', tab==='running');
   document.getElementById('tabArchive').classList.toggle('active', tab==='archive');
+  taskPage = 0;
   renderTasks();
 };
 
@@ -5209,6 +5222,7 @@ window.setTaskSort = function(btn, s) {
   taskSort = s;
   const sel = document.getElementById('taskSortSelect');
   if (sel) sel.value = s;
+  taskPage = 0;
   renderTasks();
 };
 
@@ -5216,6 +5230,7 @@ window.setTaskSortDir = function(btn, dir) {
   taskSortDir = dir;
   const sel = document.getElementById('taskSortDirSelect');
   if (sel) sel.value = dir;
+  taskPage = 0;
   renderTasks();
 };
 
@@ -5227,10 +5242,12 @@ window.setTaskAccountFilter = function(accId) {
   const lbl = document.getElementById('taskAccExceptLabel');
   if (lbl) lbl.style.display = (accId !== 'all') ? 'flex' : 'none';
   renderTaskAccountFilterBar();
+  taskPage = 0;
   renderTasks();
 };
 window.setTaskAccountExcept = function(val) {
   taskAccountFilterExcept = val;
+  taskPage = 0;
   renderTasks();
 };
 
@@ -5249,21 +5266,25 @@ window.setTaskTypeFilterDropdown = function(f) {
   const todayCb = document.getElementById('typeBtnToday');
   if (todayCb) todayCb.checked = false;
   taskTypeFilter = f;
+  taskPage = 0;
   renderTasks();
 };
 
 window.setTaskTodayFilter = function(checked) {
   taskTodayOnly = checked;
+  taskPage = 0;
   renderTasks();
 };
 
 window.setTaskSortDropdown = function(s) {
   taskSort = s;
+  taskPage = 0;
   renderTasks();
 };
 
 window.setTaskSortDirDropdown = function(dir) {
   taskSortDir = dir;
+  taskPage = 0;
   renderTasks();
 };
 
@@ -5277,6 +5298,7 @@ window.applyTaskSearch = function() {
   // Range search only active when BOTH fields are filled
   window._taskRangeFrom = (fromVal !== null && toVal !== null) ? fromVal : null;
   window._taskRangeTo   = (fromVal !== null && toVal !== null) ? toVal   : null;
+  taskPage = 0;
   renderTasks();
 };
 
@@ -5290,6 +5312,7 @@ window.clearTaskSearch = function() {
   window._taskTitleSearch = '';
   window._taskRangeFrom = null;
   window._taskRangeTo   = null;
+  taskPage = 0;
   renderTasks();
 };
 
@@ -5299,6 +5322,7 @@ window.setTaskTypeFilter = function(btn, f) {
     taskTodayOnly = !taskTodayOnly;
     const todayCb = document.getElementById('typeBtnToday');
     if (todayCb) todayCb.checked = taskTodayOnly;
+    taskPage = 0;
     renderTasks();
     return;
   }
@@ -5306,6 +5330,7 @@ window.setTaskTypeFilter = function(btn, f) {
   taskTypeFilter = f;
   const sel = document.getElementById('taskTypeFilterBar');
   if (sel) sel.value = f;
+  taskPage = 0;
   renderTasks();
 };
 
@@ -5464,8 +5489,27 @@ function renderTasks() {
     return;
   }
 
-  document.getElementById('tasksList').innerHTML = list.map(task => renderTaskCard(task)).join('');
+  document.getElementById('tasksList').innerHTML = (() => {
+    const totalPages = Math.max(1, Math.ceil(list.length / TASKS_PER_PAGE));
+    if (taskPage >= totalPages) taskPage = totalPages - 1;
+    const pagedList = list.slice(taskPage * TASKS_PER_PAGE, (taskPage + 1) * TASKS_PER_PAGE);
+    const cards = pagedList.map(task => renderTaskCard(task)).join('');
+    const paginationHtml = totalPages <= 1 ? '' : `
+      <div style="display:flex;align-items:center;justify-content:center;gap:10px;padding:14px 0 6px;font-family:var(--mono);font-size:11px;color:var(--ink2);">
+        <button onclick="setTaskPage(${taskPage - 1})" ${taskPage === 0 ? 'disabled style="opacity:0.35;cursor:not-allowed;"' : 'style="cursor:pointer;"'}
+          style="padding:4px 12px;border-radius:6px;border:1px solid var(--border2);background:var(--jt-light);color:var(--jt);font-family:var(--mono);font-size:11px;font-weight:700;">◀</button>
+        <span style="font-weight:600;">Page ${taskPage + 1} of ${totalPages} &nbsp;·&nbsp; ${list.length} tasks</span>
+        <button onclick="setTaskPage(${taskPage + 1})" ${taskPage >= totalPages - 1 ? 'disabled style="opacity:0.35;cursor:not-allowed;"' : 'style="cursor:pointer;"'}
+          style="padding:4px 12px;border-radius:6px;border:1px solid var(--border2);background:var(--jt-light);color:var(--jt);font-family:var(--mono);font-size:11px;font-weight:700;">▶</button>
+      </div>`;
+    return cards + paginationHtml;
+  })();
 }
+
+window.setTaskPage = function(page) {
+  taskPage = Math.max(0, page);
+  renderTasks();
+};
 
 // ─────────────────────────────────────────
 // TASK ERROR SYSTEM
@@ -5517,6 +5561,7 @@ window.removeTaskError = function(taskId, idx) {
   if (!t || !t.errors) return;
   t.errors.splice(idx, 1);
   renderErrorModalEntries(taskId);
+  taskPage = 0;
   renderTasks();
   markUnsaved(true);
 };
@@ -5544,6 +5589,7 @@ window.addTaskError = function() {
   t.errors.push({ id: uid(), type, errorType, accountId: accId||null, permanent, note: note||null, createdAt: now() });
   document.getElementById('errorModalNote').value = '';
   renderErrorModalEntries(taskId);
+  taskPage = 0;
   renderTasks();
   markUnsaved(true);
   toast('Error logged');
@@ -5713,6 +5759,7 @@ window.removeTaskImage = function(taskId) {
   const t = tasks.find(t => t.id === taskId); if (!t) return;
   pushUndo('Remove image from ' + t.title);
   t.thumbnail = null;
+  taskPage = 0;
   renderTasks();
   toast('Image removed — save file to reduce size');
 };
@@ -5816,6 +5863,7 @@ window.saveThumbModal = function() {
     t.thumbnail = thumbModalBase64;
     thumbModalBase64 = null;
     closeModal('thumbModal');
+    taskPage = 0;
     renderTasks();
     toast('Thumbnail updated');
   } else {
@@ -5830,6 +5878,7 @@ window.removeThumbModal = function() {
   t.thumbnail = null;
   thumbModalBase64 = null;
   closeModal('thumbModal');
+  taskPage = 0;
   renderTasks();
   toast('Thumbnail removed');
 };
@@ -5919,6 +5968,7 @@ window.addTask = function() {
   };
   tasks.push(task);
   clearTaskForm();
+  taskPage = 0;
   renderTasks();
   toast('Task added');
 };
@@ -5998,6 +6048,7 @@ window.bulkAddTasks = function() {
     added++;
   }
 
+  taskPage = 0;
   renderTasks();
   markUnsaved(true);
   el.style.color = 'var(--ink3)';
@@ -6016,7 +6067,7 @@ window.bulkTaskTypeChanged = function() {
 window.archiveTask = function(id) {
   openConfirm('Archive this task? It will move to the archive tab.', () => {
     const t = tasks.find(t => t.id===id); if(t) { t.archived=true; t.archivedAt=now(); }
-    renderTasks(); toast('Task archived');
+    taskPage = 0; renderTasks(); toast('Task archived');
   });
 };
 
@@ -6026,6 +6077,7 @@ window.deleteTask = function(id) {
     pushUndo('Delete task ' + t.title);
     const idx = tasks.findIndex(x => x.id === id);
     if (idx !== -1) tasks.splice(idx, 1);
+    taskPage = 0;
     renderTasks();
     markUnsaved(true);
     toast('Task deleted');
@@ -6033,7 +6085,7 @@ window.deleteTask = function(id) {
 };
 window.unarchiveTask = function(id) {
   const t = tasks.find(t => t.id===id); if(t) t.archived=false;
-  renderTasks(); toast('Task restored');
+  taskPage = 0; renderTasks(); toast('Task restored');
 };
 
 window.assignToAllActive = function(taskId) {
@@ -6052,6 +6104,7 @@ window.assignToAllActive = function(taskId) {
       acDescription: 'TaskRec01: task assigned, timer started.'
     });
   });
+  taskPage = 0;
   renderTasks();
   if (selectedAccId) renderAccDetail(selectedAccId);
   renderActionCenter();
@@ -6080,6 +6133,7 @@ window.saveEditTask = function() {
   t.type = document.getElementById('editTaskModalType').value;
   t.defaultReward = parseFloat(document.getElementById('editTaskModalReward').value)||0;
   closeModal('editTaskModal');
+  taskPage = 0;
   renderTasks();
   if (selectedAccId) renderAccDetail(selectedAccId);
   toast('Task updated');
@@ -6095,7 +6149,7 @@ window.saveTaskReward = function() {
   const taskId = document.getElementById('rewardModalTaskId').value;
   const val = parseFloat(document.getElementById('rewardModalVal').value)||0;
   const t = tasks.find(t => t.id===taskId); if(t) t.defaultReward=val;
-  closeModal('rewardModal'); renderTasks(); toast('Reward updated');
+  closeModal('rewardModal'); taskPage = 0; renderTasks(); toast('Reward updated');
 };
 
 window.openAssignModal = function(taskId) {
@@ -6149,6 +6203,7 @@ window.confirmAssign = function() {
   t.assignments.push(asgn);
   closeModal('assignModal');
   assigningTaskId = null;
+  taskPage = 0;
   renderTasks();
   if (selectedAccId) renderAccDetail(selectedAccId);
   renderActionCenter();
@@ -6470,6 +6525,7 @@ window.confirmStatusNoteModal = function() {
     checkPayoutReadyAll();
   }
   if (selectedAccId) renderAccDetail(selectedAccId);
+  taskPage = 0;
   renderTasks();
   renderDashboard();
   renderActionCenter();
@@ -6488,6 +6544,7 @@ window.markActionComplete = function(taskId, asgnId) {
   asgn.status = 'completed';
   asgn.completedAt = now();
   if (selectedAccId) renderAccDetail(selectedAccId);
+  taskPage = 0;
   renderTasks();
   renderDashboard();
   renderActionCenter();
@@ -6503,6 +6560,7 @@ window.removeTaskFromAccount = function(taskId, asgnId) {
   delete acFlowStep[asgnId];
   delete acStepTimes[asgnId];
   renderAccDetail(selectedAccId);
+  taskPage = 0;
   renderTasks();
   renderActionCenter();
   markUnsaved(true);
@@ -6553,6 +6611,7 @@ window.bulkUpdateStatus = function(accId, newStatus) {
   });
   checkPayoutReadyAll();
   renderAccDetail(accId);
+  taskPage = 0;
   renderTasks();
   renderDashboard();
   toast(`${selected.length} task${selected.length>1?'s':''} → ${newStatus}`);
@@ -6580,6 +6639,7 @@ window.bulkRemove = function(accId) {
         if (task.assignments.length < before) removedCount++;
       });
       renderAccDetail(accId);
+      taskPage = 0;
       renderTasks();
       toast(`${removedCount} task${removedCount>1?'s':''} removed`);
     }
@@ -6735,6 +6795,7 @@ window.addLink = function() {
   document.getElementById('newLinkLabel').value = '';
   document.getElementById('newLinkUrl').value = '';
   renderLinksModalList(taskId);
+  taskPage = 0;
   renderTasks();
   toast('Link added');
 };
@@ -6743,6 +6804,7 @@ window.deleteLink = function(taskId, index) {
   const t = tasks.find(t => t.id===taskId); if(!t||!t.links) return;
   t.links.splice(index, 1);
   renderLinksModalList(taskId);
+  taskPage = 0;
   renderTasks();
   toast('Link removed');
 };
@@ -6820,6 +6882,7 @@ function loadDataJson(payload) {
   renderBugLogEntries();
   renderDashboard();
   renderAccList();
+  taskPage = 0;
   renderTasks();
   renderAuditLog();
   renderWordLibrary();
@@ -8207,6 +8270,7 @@ window.acStepComplete = function(taskId, asgnId) {
   asgn.completedAt = now();
 
   if (selectedAccId) renderAccDetail(selectedAccId);
+  taskPage = 0;
   renderTasks();
   renderDashboard();
   renderActionCenter();
@@ -8318,8 +8382,9 @@ function renderWordLibrary() {
     const visiblePages = selPage === 'all' ? pages : pages.filter(p => p.id === selPage);
 
     return `
-    <div class="wd-banner${_wdDeleteMode && _wdSelectedItems.has('banner:'+site.id) ? ' wd-selected' : ''}" id="wdBanner_${site.id}" draggable="${_wdDeleteMode ? 'false' : 'true'}" data-site-id="${site.id}" style="border-color: ${col.border};${_wdDeleteMode ? 'transition:outline 0.1s;' : ''}">
+    <div class="wd-banner${_wdDeleteMode && _wdSelectedItems.has('banner:'+site.id) ? ' wd-selected' : ''}" id="wdBanner_${site.id}" data-site-id="${site.id}" style="border-color: ${col.border};${_wdDeleteMode ? 'transition:outline 0.1s;' : ''}">
       <div class="wd-banner-header" onclick="${_wdDeleteMode ? `wdToggleSelect('banner:${site.id}')` : `toggleWdBanner('${site.id}')`}" style="${makeBgStyle(site.color1, site.color2, col.bg, site.colorRatio)}${_wdDeleteMode ? 'cursor:pointer;' : ''}">
+        ${!_wdDeleteMode ? `<span class="wd-banner-drag-handle" title="Drag to reorder">⠿</span>` : ''}
         <span class="wd-banner-name" style="color: ${site.titleColor && site.titleColor !== '#1565C0' ? site.titleColor : col.text};">${site.siteName}</span>
         ${pageDropdownHtml}
         <button class="wd-banner-edit-btn" title="Edit website"
@@ -8756,16 +8821,20 @@ document.addEventListener('dragstart', function(e) {
     e.dataTransfer.effectAllowed = 'move';
     return;
   }
-  const banner = e.target.closest('.wd-banner[draggable="true"]');
-  if (banner && !e.target.closest('.wd-word-card')) {
-    const siteId = banner.dataset.siteId;
-    const fromIdx = wordLibrary.findIndex(s => s.id === siteId);
-    _wdBannerDrag = { siteId, fromIdx };
-    banner.classList.add('banner-dragging');
-    e.dataTransfer.effectAllowed = 'move';
+  const handle = e.target.closest('.wd-banner-drag-handle');
+  if (handle) {
+    const banner = handle.closest('.wd-banner');
+    if (banner) {
+      const siteId = banner.dataset.siteId;
+      const fromIdx = wordLibrary.findIndex(s => s.id === siteId);
+      _wdBannerDrag = { siteId, fromIdx };
+      banner.classList.add('banner-dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    }
+    return;
   }
   const verRow = e.target.closest('.wd-version-row[draggable="true"]');
-  if (verRow && !e.target.closest('.wd-word-card') && !e.target.closest('.wd-banner[draggable="true"]')) {
+  if (verRow && !e.target.closest('.wd-word-card') && !e.target.closest('.wd-banner-drag-handle')) {
     const siteId = verRow.dataset.siteId;
     const verId  = verRow.dataset.verId;
     const site   = wordLibrary.find(s => s.id === siteId);
