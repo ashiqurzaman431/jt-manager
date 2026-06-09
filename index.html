@@ -5780,6 +5780,7 @@ window.openThumbModal = function(taskId) {
 let _driveThumbnailCache = null;
 let _driveThumbnailCacheTime = 0;
 const DRIVE_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+const THUMB_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx4oO5T4DNFyD-jkRlvw4Lhg_7EFhafpRaIJZ9Jakt0ErbhE1Su_ZzCKWhyQF_z_e2y/exec';
 
 window.openTaskMediaModal = async function(taskId) {
   const t = tasks.find(x => x.id === taskId);
@@ -5792,43 +5793,22 @@ window.openTaskMediaModal = async function(taskId) {
     return;
   }
 
-  if (!_gisAccessToken) {
-    toast('Sign in to Google Drive first to load Drive thumbnails.');
-    return;
-  }
-
-  // Open a blank tab right away (inside the click handler, before any await)
-  // so browsers don't block it as a popup
+  // Open a blank tab immediately (must be inside click handler to avoid popup block)
   const newTab = window.open('', '_blank');
   if (newTab) newTab.document.write(`<html><head><title>${t.title}</title></head><body style="background:#111;color:#aaa;font-family:monospace;padding:40px;font-size:14px;">Loading thumbnail for <b style="color:#fff;">${t.title}</b>…</body></html>`);
 
   try {
-    const now = Date.now();
-    // Use cached file list if fresh — thumbnail folder is a subfolder of the app data folder
-    if (!_driveThumbnailCache || (now - _driveThumbnailCacheTime) > DRIVE_CACHE_TTL) {
-      if (!_gisFolderIdCache) { await ensureDriveFolder(); }
-      // List all images in the app folder (thumbnails stored alongside data)
-      const imgFiles = await driveListFiles(_gisFolderIdCache, 'image/jpeg');
-      const imgFiles2 = await driveListFiles(_gisFolderIdCache, 'image/png');
-      _driveThumbnailCache = [...imgFiles, ...imgFiles2];
-      _driveThumbnailCacheTime = now;
-    }
+    const url = `${THUMB_SCRIPT_URL}?action=findImage&title=${encodeURIComponent(t.title)}`;
+    const res = await fetch(url);
+    const data = await res.json();
 
-    const match = _driveThumbnailCache.find(f => {
-      const n = (f.name || '').trim().toLowerCase();
-      return n === titleText
-        || n === `${titleText}.png`
-        || n === `${titleText}.jpg`
-        || n === `${titleText}.jpeg`;
-    });
-
-    if (!match) {
+    if (!data.ok) {
       if (newTab) newTab.close();
-      toast('No matching image found in thumbnail folder for this task title.');
+      toast(data.error || 'No matching image found for this task.');
       return;
     }
 
-    const previewUrl = `https://drive.google.com/file/d/${match.id}/preview`;
+    const previewUrl = `https://drive.google.com/file/d/${data.fileId}/preview`;
     if (newTab) {
       newTab.document.write(`<!DOCTYPE html><html><head><title>${t.title}</title><style>*{margin:0;padding:0;box-sizing:border-box;}body{background:#111;display:flex;flex-direction:column;height:100vh;}#bar{background:#1a1a1a;border-bottom:1px solid #333;padding:8px 14px;font-family:monospace;font-size:13px;color:#ccc;flex-shrink:0;}#bar b{color:#fff;}iframe{flex:1;border:none;width:100%;}</style></head><body><div id="bar">📋 Task: <b>${t.title}</b></div><iframe src="${previewUrl}" allowfullscreen></iframe></body></html>`);
       newTab.document.close();
@@ -5838,7 +5818,7 @@ window.openTaskMediaModal = async function(taskId) {
   } catch (err) {
     console.error(err);
     if (newTab) newTab.close();
-    toast('Error opening image: ' + (err.message || err));
+    toast('Error loading thumbnail: ' + (err.message || err));
   }
 };
 
@@ -8359,9 +8339,27 @@ function renderWordLibrary() {
     { bg: 'var(--red-light)',   border: 'var(--red-border)',   text: 'var(--red)'   },
   ];
 
-  body.innerHTML = wordLibrary.map((site, siteIdx) => {
+  // When searching, filter sites with no matching content and force banners open
+  const sitesToRender = _wdSearch
+    ? wordLibrary.filter(site => {
+        const pages = site.pageVersions || [];
+        const q = _wdSearch;
+        if (site.siteName && site.siteName.toLowerCase().includes(q)) return true;
+        return pages.some(ver =>
+          (ver.name && ver.name.toLowerCase().includes(q)) ||
+          (ver.words || []).some(w => w.sectionName && w.sectionName.toLowerCase().includes(q))
+        );
+      })
+    : wordLibrary;
+
+  if (!sitesToRender.length && _wdSearch) {
+    body.innerHTML = `<div style="text-align:center;padding:32px 10px;font-family:var(--mono);font-size:12px;color:var(--ink3);">No sections match "<strong>${_wdSearch}</strong>".</div>`;
+    return;
+  }
+
+  body.innerHTML = sitesToRender.map((site, siteIdx) => {
     const col = WD_SITE_COLORS[siteIdx % WD_SITE_COLORS.length];
-    const bannerOpen = isFirstRender || openBanners.has(site.id);
+    const bannerOpen = isFirstRender || openBanners.has(site.id) || !!_wdSearch;
     const pages = site.pageVersions || [];
 
     // Init page selection state for this site
@@ -8379,7 +8377,20 @@ function renderWordLibrary() {
       </select>` : '';
 
     // Which pages to render
-    const visiblePages = selPage === 'all' ? pages : pages.filter(p => p.id === selPage);
+    let visiblePages = selPage === 'all' ? pages : pages.filter(p => p.id === selPage);
+
+    // Apply search filter — match site name, page name, or section (card title) name
+    if (_wdSearch) {
+      const q = _wdSearch;
+      const siteMatch = site.siteName && site.siteName.toLowerCase().includes(q);
+      visiblePages = visiblePages.map(ver => {
+        const pageMatch = siteMatch || (ver.name && ver.name.toLowerCase().includes(q));
+        const filteredWords = pageMatch
+          ? (ver.words || [])
+          : (ver.words || []).filter(w => w.sectionName && w.sectionName.toLowerCase().includes(q));
+        return { ...ver, words: filteredWords, _searchFiltered: !pageMatch };
+      }).filter(ver => ver.words.length > 0 || !ver._searchFiltered);
+    }
 
     return `
     <div class="wd-banner${_wdDeleteMode && _wdSelectedItems.has('banner:'+site.id) ? ' wd-selected' : ''}" id="wdBanner_${site.id}" data-site-id="${site.id}" style="border-color: ${col.border};${_wdDeleteMode ? 'transition:outline 0.1s;' : ''}">
@@ -8490,6 +8501,10 @@ window.wdSelectPage = function(siteId, pageId) {
   renderWordLibrary();
 };
 
+window.wdSetSearch = function(val) {
+  _wdSearch = val.trim().toLowerCase();
+  renderWordLibrary();
+};
 window.wdSelectVersion = function(siteId, verId, version) {
   _wdSelectedVersion[siteId + ':' + verId] = version;
   renderWordLibrary();
@@ -8807,6 +8822,7 @@ window.wdConfirmDelete = function() {
 // ── WORD CARD DRAG-AND-DROP ────────────────────────────────────────────────
 let _wdDrag = null; // { wordId, siteId, verId }
 let _wdBannerDrag = null; // { siteId, fromIdx }
+let _wdSearch = '';
 let _wdVersionDrag = null; // { verId, siteId, fromIdx }
 
 document.addEventListener('dragstart', function(e) {
@@ -9149,6 +9165,14 @@ function setAcPanelVisibility(visible) {
       <span>📖</span> Word Display
     </div>
     <button id="wdCollapseBtn" onclick="toggleWordDisplay()" title="Collapse">‹</button>
+  </div>
+  <div style="padding:8px 10px 4px;flex-shrink:0;border-bottom:1px solid var(--border);">
+    <input id="wdSearchInput" type="text" placeholder="Search sections…"
+      oninput="wdSetSearch(this.value)"
+      style="width:100%;box-sizing:border-box;font-family:var(--mono);font-size:12px;
+             padding:6px 10px;border-radius:7px;border:1.5px solid var(--border2);
+             background:var(--jt-light);color:var(--ink);outline:none;transition:border-color 0.15s;"
+      onfocus="this.style.borderColor='var(--jt)'" onblur="this.style.borderColor='var(--border2)'">
   </div>
   <div id="wdPanelBody">
   </div>
