@@ -464,7 +464,7 @@ body {
   position: fixed;
   left: 0;
   top: 50%;
-  z-index: 801;
+  z-index: 799;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -488,6 +488,7 @@ body {
 }
 #wdTab:hover { background: linear-gradient(135deg,#1976D2,#1565C0); }
 #wdTab.wd-hidden { display: none; }
+#wdTab.wd-panel-open { pointer-events: none; }
 
 #wdPanelHeader {
   display: flex;
@@ -522,6 +523,8 @@ body {
   flex-direction: column;
   gap: 6px;
   min-height: 0;
+  touch-action: pan-y;
+  overscroll-behavior: contain;
 }
 #wdPanelBody::-webkit-scrollbar { width: 4px; }
 #wdPanelBody::-webkit-scrollbar-thumb { background: var(--jt-border); border-radius: 4px; }
@@ -1010,7 +1013,7 @@ body {
 /* ── MODAL ── */
 .modal-overlay {
   position:fixed; inset:0; background:rgba(13,27,62,0.45);
-  backdrop-filter:blur(4px); z-index:500;
+  backdrop-filter:blur(4px); z-index:900;
   display:none; align-items:center; justify-content:center; padding:20px;
 }
 .modal-overlay.open { display:flex; }
@@ -1235,7 +1238,7 @@ body {
 <canvas id="rain-canvas" width="1366" height="657"></canvas>
 
 <!-- ── GOOGLE LOGIN OVERLAY ── -->
-<div id="loginOverlay">
+<div id="loginOverlay" class="hidden">
   <div class="login-card">
     <div class="login-logo">JT</div>
     <div class="login-title">JT Manager</div>
@@ -7324,9 +7327,11 @@ window.toggleWordDisplay = function() {
   if (_wdOpen) {
     panel.classList.add('wd-open');
     tab.style.display = 'none';
+    tab.classList.add('wd-panel-open');
   } else {
     panel.classList.remove('wd-open');
     tab.style.display = '';
+    tab.classList.remove('wd-panel-open');
   }
 };
 
