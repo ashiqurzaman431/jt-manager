@@ -517,7 +517,7 @@ body {
 
 #wdPanelBody {
   flex: 1;
-  overflow-y: auto;
+  overflow-y: scroll;
   padding: 10px;
   display: flex;
   flex-direction: column;
@@ -525,6 +525,7 @@ body {
   min-height: 0;
   touch-action: pan-y;
   overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }
 #wdPanelBody::-webkit-scrollbar { width: 4px; }
 #wdPanelBody::-webkit-scrollbar-thumb { background: var(--jt-border); border-radius: 4px; }
@@ -1449,18 +1450,18 @@ body {
   <div class="modal-overlay" id="wdAddVersionModal">
     <div class="modal" style="max-width:360px;">
       <div class="modal-title">
-        <span>+ Add Page Version</span>
+        <span>+ Add Page</span>
         <button class="modal-close" onclick="closeModal('wdAddVersionModal')">✕</button>
       </div>
       <div class="modal-fields">
         <div class="field">
-          <label>Page Version Name</label>
+          <label>Page Name</label>
           <input type="text" id="wdAddVersionInput" placeholder="e.g. Remotasks.2026.06.07" onkeydown="if(event.key==='Enter')confirmAddVersion()">
         </div>
       </div>
       <input type="hidden" id="wdAddVersionSiteId">
       <div class="modal-actions">
-        <button class="btn-primary" onclick="confirmAddVersion()">Add Version</button>
+        <button class="btn-primary" onclick="confirmAddVersion()">Add Page</button>
         <button class="btn-secondary" onclick="closeModal('wdAddVersionModal')">Cancel</button>
       </div>
     </div>
@@ -1533,6 +1534,13 @@ body {
           <label>Title Bar Color Split % — how much is Color 1 (1–99, default 50)</label>
           <input type="number" id="wdAddWordColorRatio" value="50" min="1" max="99"
             style="background:#fafbff;border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:13px;padding:7px 10px;outline:none;width:100%;">
+        </div>
+        <div class="field">
+          <label>Version (optional)</label>
+          <input type="text" id="wdAddWordVersion" placeholder="e.g. v1.0 or 2026.06.07"
+            list="wdVersionSuggestions"
+            style="background:#fafbff;border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:13px;padding:7px 10px;outline:none;width:100%;">
+          <datalist id="wdVersionSuggestions"></datalist>
         </div>
       </div>
       <input type="hidden" id="wdAddWordSiteId">
@@ -2203,7 +2211,7 @@ TaskRec01: task assigned, timer started.</div>
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
         <button id="btnExportForAI" onclick="exportForAI()" style="font-family:var(--mono);font-size:11.5px;padding:6px 14px;border-radius:var(--radius-sm);border:1px solid var(--jt-border);background:var(--jt-light);color:var(--jt);cursor:pointer;white-space:nowrap;">🤖 Export for AI</button>
         <span style="font-family:var(--mono);font-size:10px;color:var(--ink3);background:var(--surface2);border:1px solid var(--border);border-radius:99px;padding:4px 12px;">🔒 Read-only · Managed by AI</span>
-        <span id="uhlvBadge" style="font-family:var(--mono);font-size:10px;color:var(--jt);background:var(--jt-light);border:1px solid var(--jt-border);border-radius:99px;padding:4px 12px;" title="Update History and Log Version — higher number wins on data load">UHLV: 23</span>
+        <span id="uhlvBadge" style="font-family:var(--mono);font-size:10px;color:var(--jt);background:var(--jt-light);border:1px solid var(--jt-border);border-radius:99px;padding:4px 12px;" title="Update History and Log Version — higher number wins on data load">UHLV: 25</span>
       </div>
     </div>
     <div style="font-family:var(--mono);font-size:11.5px;color:var(--ink3);margin-bottom:18px;line-height:1.7;background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;box-shadow:var(--shadow);">
@@ -2587,12 +2595,30 @@ let wordLibrary = [];
 // Increment UHLV any time bugLog or bugHistory is modified by AI
 // loadDataJson compares this vs JSON uhlv and keeps whichever is higher
 // ─────────────────────────────────────────
-let UHLV = 23;
+let UHLV = 25;
 /*BUG_LOG_START*/
 let bugLog = [];
 /*BUG_LOG_END*/
 /*BUG_HISTORY_START*/
 let bugHistory = [
+  {
+    "id": "UPDATE-060",
+    "title": "WD restructure — Website banner → page selector dropdown → version dropdown per page → version field on word cards",
+    "date": "2026.06.09",
+    "status": "resolved",
+    "report": "Requested architectural change: Website banner contains a container of pages (selector dropdown — All or specific page). Each page banner has its own version dropdown, auto-populated from word card version values. Version field added to word cards (set when adding/editing). If 'All' selected in page dropdown, all pages display. If 'All' selected in version dropdown, all words in that page display.",
+    "cause": "Feature request — previous structure had pages listed statically with no selector. No per-page version filtering existed. No version field on word cards.",
+    "fix": "Added _wdSelectedPage and _wdSelectedVersion state objects. Added version text input + datalist to wdAddWordModal (auto-populates suggestions from existing versions in selected page). openAddWordModal() and openEditWordModal() now clear/populate version field and datalist. confirmAddWord() reads and stores version on word object. renderWordLibrary() fully rewritten: site banner header now includes a page selector dropdown (hidden when only one page, hidden in delete mode); each page row now includes a version dropdown (shown only when versioned cards exist, hidden in delete mode); word cards filtered by selected version; version badge shown on card title bar when set; 'No words for this version' empty state when version filtered. Added wdSelectPage() and wdSelectVersion() window functions. Add Page Version modal renamed to Add Page. Trailing counter bumped 20→21. UHLV bumped 23→25."
+  },
+  {
+    "id": "UPDATE-059",
+    "title": "WD panel scroll broken + panel not reopening after JSON load",
+    "date": "2026.06.09",
+    "status": "resolved",
+    "report": "Mouse scrolling not working on Word Display panel. After loading JSON data from Drive, the WD panel opens once then stops opening.",
+    "cause": "Two bugs: (1) #wdPanelBody used overflow-y:auto which on some browsers doesn't capture mouse wheel without explicit scroll content — changing to scroll fixes it. Missing -webkit-overflow-scrolling:touch for mobile. (2) toggleWordDisplay() had no guard against the mousedown click-outside handler firing simultaneously with the tab onclick — _wdOpen could desync from CSS state. mousedown collapse block also failed to remove wd-panel-open class from the tab, leaving pointer-events:none on the tab after collapse-by-outside-click, making subsequent clicks do nothing.",
+    "fix": "CSS: #wdPanelBody overflow-y changed auto→scroll, added -webkit-overflow-scrolling:touch. JS: Added _wdToggling flag and 50ms setTimeout guard in toggleWordDisplay() to prevent double-firing. mousedown collapse block updated to check !_wdToggling, and now also removes wd-panel-open class from wdTab on outside-click collapse. Added wheel event stopPropagation listener on #wdPanelBody via IIFE. UHLV bumped 23→25 (combined with change 5 bump)."
+  },
   {
     "id": "UPDATE-058",
     "title": "Earnings history payout view — per-account amounts by time range (final entry, bugLog cleared)",
@@ -6724,20 +6750,20 @@ function renderWordLibrary() {
     return;
   }
 
-  // Snapshot open state before rebuild (Change 20)
-  const openBanners  = new Set();
-  const openVersions = new Set();
+  // Snapshot open banner state before rebuild
+  const openBanners = new Set();
   document.querySelectorAll('.wd-banner-body.open').forEach(el => {
     const m = el.id.match(/^wdBannerBody_(.+)$/);
     if (m) openBanners.add(m[1]);
   });
+  const openVersions = new Set();
   document.querySelectorAll('.wd-version-cards.open').forEach(el => {
     const m = el.id.match(/^wdVerCards_(.+)$/);
     if (m) openVersions.add(m[1]);
   });
   const isFirstRender = openBanners.size === 0 && openVersions.size === 0;
 
-  // Helper for 2-color gradient backgrounds (Change 19c)
+  // 2-color gradient background helper
   function makeBgStyle(color1, color2, fallback, ratio) {
     const c1 = color1 && color1 !== '#ffffff' ? color1 : null;
     const c2 = color2 && color2 !== '#ffffff' ? color2 : null;
@@ -6755,29 +6781,72 @@ function renderWordLibrary() {
     { bg: 'var(--purple-light)',border: 'var(--purple-border)',text: 'var(--purple)' },
     { bg: 'var(--red-light)',   border: 'var(--red-border)',   text: 'var(--red)'   },
   ];
+
   body.innerHTML = wordLibrary.map((site, siteIdx) => {
     const col = WD_SITE_COLORS[siteIdx % WD_SITE_COLORS.length];
-    const bannerOpen    = isFirstRender || openBanners.has(site.id);
+    const bannerOpen = isFirstRender || openBanners.has(site.id);
+    const pages = site.pageVersions || [];
+
+    // Init page selection state for this site
+    if (!_wdSelectedPage[site.id]) _wdSelectedPage[site.id] = 'all';
+    const selPage = _wdSelectedPage[site.id];
+
+    // Page selector dropdown (only shown when not in delete mode)
+    const pageDropdownHtml = (!_wdDeleteMode && pages.length > 1) ? `
+      <select onchange="wdSelectPage('${site.id}', this.value)" onclick="event.stopPropagation()"
+        style="font-family:var(--mono);font-size:10px;padding:3px 5px;border-radius:6px;
+               border:1px solid ${col.border};background:rgba(255,255,255,0.85);
+               color:${col.text};cursor:pointer;max-width:130px;flex-shrink:0;">
+        <option value="all" ${selPage==='all'?'selected':''}>All Pages</option>
+        ${pages.map(p => `<option value="${p.id}" ${selPage===p.id?'selected':''}>${p.name}</option>`).join('')}
+      </select>` : '';
+
+    // Which pages to render
+    const visiblePages = selPage === 'all' ? pages : pages.filter(p => p.id === selPage);
+
     return `
     <div class="wd-banner${_wdDeleteMode && _wdSelectedItems.has('banner:'+site.id) ? ' wd-selected' : ''}" id="wdBanner_${site.id}" style="border-color: ${col.border};${_wdDeleteMode ? 'transition:outline 0.1s;' : ''}">
       <div class="wd-banner-header" onclick="${_wdDeleteMode ? `wdToggleSelect('banner:${site.id}')` : `toggleWdBanner('${site.id}')`}" style="${makeBgStyle(site.color1, site.color2, col.bg, site.colorRatio)}${_wdDeleteMode ? 'cursor:pointer;' : ''}">
         <span class="wd-banner-name" style="color: ${col.text};">${site.siteName}</span>
+        ${pageDropdownHtml}
         <button class="wd-banner-edit-btn" title="Edit website"
           onclick="event.stopPropagation(); openEditSiteModal('${site.id}')">✎</button>
         <span class="wd-banner-chevron ${bannerOpen ? 'open' : ''}" id="wdBannerChev_${site.id}" style="color: ${col.text};">▼</span>
       </div>
       <div class="wd-banner-body ${bannerOpen ? 'open' : ''}" id="wdBannerBody_${site.id}">
-        ${(site.pageVersions||[]).map((ver, verIdx) => {
+        ${visiblePages.map((ver, verIdx) => {
           const verOpen = isFirstRender ? (verIdx === 0) : openVersions.has(ver.id);
+
+          // Collect unique versions from word cards in this page
+          const wordVersions = [...new Set((ver.words||[]).map(w => w.version).filter(Boolean))];
+          const vKey = site.id + ':' + ver.id;
+          if (!_wdSelectedVersion[vKey]) _wdSelectedVersion[vKey] = 'all';
+          const selVer = _wdSelectedVersion[vKey];
+
+          // Version dropdown inside page banner (only when there are versioned cards and not delete mode)
+          const versionDropdownHtml = (!_wdDeleteMode && wordVersions.length) ? `
+            <select onchange="wdSelectVersion('${site.id}','${ver.id}',this.value)" onclick="event.stopPropagation()"
+              style="font-family:var(--mono);font-size:9.5px;padding:2px 5px;border-radius:5px;
+                     border:1px solid ${col.border};background:rgba(255,255,255,0.85);
+                     color:${col.text};cursor:pointer;max-width:110px;flex-shrink:0;">
+              <option value="all" ${selVer==='all'?'selected':''}>All Versions</option>
+              ${wordVersions.map(v => `<option value="${v}" ${selVer===v?'selected':''}>${v}</option>`).join('')}
+            </select>` : '';
+
+          // Filter words by selected version
+          const allWords = ver.words || [];
+          const visibleWords = (selVer === 'all') ? allWords : allWords.filter(w => w.version === selVer);
+
           return `
           <div>
             <div class="wd-version-row${_wdDeleteMode && _wdSelectedItems.has('version:'+site.id+':'+ver.id) ? ' wd-selected' : ''}" style="border-left-color: ${col.border};${_wdDeleteMode ? 'cursor:pointer;' : ''}" ${_wdDeleteMode ? `onclick="wdToggleSelect('version:${site.id}:${ver.id}')"` : ''}>
               <span class="wd-version-name" onclick="toggleWdVersion('${ver.id}')" style="color: ${col.text};">${ver.name}</span>
+              ${versionDropdownHtml}
               <span class="wd-version-chevron ${verOpen ? 'open' : ''}" id="wdVerChev_${ver.id}" onclick="toggleWdVersion('${ver.id}')">▼</span>
               <button class="wd-add-word-btn" onclick="openAddWordModal('${site.id}','${ver.id}')" title="Add word card" style="color: ${col.text};">＋</button>
             </div>
             <div class="wd-version-cards ${verOpen ? 'open' : ''}" id="wdVerCards_${ver.id}">
-              ${(ver.words||[]).map(w => `
+              ${visibleWords.map(w => `
                 <div class="wd-word-card${_wdDeleteMode && _wdSelectedItems.has('word:'+site.id+':'+ver.id+':'+w.id) ? ' wd-selected' : ''}"
                   draggable="${_wdDeleteMode ? 'false' : 'true'}"
                   data-word-id="${w.id}" data-site-id="${site.id}" data-ver-id="${ver.id}"
@@ -6790,6 +6859,7 @@ function renderWordLibrary() {
                     <div class="wd-card-title-text">
                       <span style="font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;">${w.sectionName || w.title || ''}</span>
                       ${w.wordsCount ? `<span style="font-size:8.5px;font-weight:500;opacity:0.75;text-transform:none;letter-spacing:0.2px;">${w.wordsCount}</span>` : ''}
+                      ${w.version ? `<span style="font-size:8px;font-weight:600;opacity:0.6;text-transform:none;letter-spacing:0;margin-left:4px;padding:0 4px;border-radius:3px;background:rgba(0,0,0,0.08);">${w.version}</span>` : ''}
                     </div>
                     <button class="wd-card-edit-btn" title="Edit word"
                       onclick="event.stopPropagation(); openEditWordModal('${w.id}','${site.id}','${ver.id}')">✎</button>
@@ -6797,11 +6867,11 @@ function renderWordLibrary() {
                   <div class="wd-card-word" style="${w.highlightColor && w.highlightColor !== '#ffffff' ? 'background:'+w.highlightColor+';' : ''}${w.fontColor && w.fontColor !== '#0d1b3e' ? 'color:'+w.fontColor+';' : ''}">${w.word}</div>
                 </div>
               `).join('')}
-              ${!(ver.words||[]).length ? `<div style="font-family:var(--mono);font-size:10px;color:var(--ink3);padding:4px 4px 2px;">No words yet — click ＋</div>` : ''}
+              ${!visibleWords.length ? `<div style="font-family:var(--mono);font-size:10px;color:var(--ink3);padding:4px 4px 2px;">${selVer !== 'all' ? 'No words for this version — click ＋' : 'No words yet — click ＋'}</div>` : ''}
             </div>
           </div>
         `}).join('')}
-        <button onclick="openAddVersionModal('${site.id}')" style="font-family:var(--mono);font-size:10px;color:${col.text};background:${col.bg};border:1px solid ${col.border};border-radius:6px;padding:3px 8px;cursor:pointer;margin:2px 0 4px;">+ Add Page Version</button>
+        ${!_wdDeleteMode ? `<button onclick="openAddVersionModal('${site.id}')" style="font-family:var(--mono);font-size:10px;color:${col.text};background:${col.bg};border:1px solid ${col.border};border-radius:6px;padding:3px 8px;cursor:pointer;margin:2px 0 4px;">+ Add Page</button>` : ''}
       </div>
     </div>
   `;
@@ -6834,6 +6904,16 @@ window.toggleWdVersion = function(verId) {
   if (!cards) return;
   const open = cards.classList.toggle('open');
   if (chev) chev.classList.toggle('open', open);
+};
+
+window.wdSelectPage = function(siteId, pageId) {
+  _wdSelectedPage[siteId] = pageId;
+  renderWordLibrary();
+};
+
+window.wdSelectVersion = function(siteId, verId, version) {
+  _wdSelectedVersion[siteId + ':' + verId] = version;
+  renderWordLibrary();
 };
 
 window.copyWdWord = function(wordId, siteId, verId) {
@@ -6932,6 +7012,18 @@ window.openAddWordModal = function(siteId, verId) {
   document.getElementById('wdAddWordColor1').value = '#ffffff';
   document.getElementById('wdAddWordColor2').value = '#ffffff';
   document.getElementById('wdAddWordColorRatio').value = 50;
+  document.getElementById('wdAddWordVersion').value = '';
+  // Populate version datalist from existing word cards in this page
+  const datalist = document.getElementById('wdVersionSuggestions');
+  if (datalist) {
+    datalist.innerHTML = '';
+    const site = wordLibrary.find(s => s.id === siteId);
+    const ver = site && (site.pageVersions||[]).find(v => v.id === verId);
+    if (ver) {
+      const versions = [...new Set((ver.words||[]).map(w => w.version).filter(Boolean))];
+      versions.forEach(v => { const opt = document.createElement('option'); opt.value = v; datalist.appendChild(opt); });
+    }
+  }
   document.getElementById('wdAddWordModalTitle').textContent = '+ Add Word Card';
   document.getElementById('wdAddWordSubmitBtn').textContent  = 'Add Word';
   openModal('wdAddWordModal');
@@ -6955,6 +7047,14 @@ window.openEditWordModal = function(wordId, siteId, verId) {
   document.getElementById('wdAddWordColor1').value = w.color1 || '#ffffff';
   document.getElementById('wdAddWordColor2').value = w.color2 || '#ffffff';
   document.getElementById('wdAddWordColorRatio').value = w.colorRatio ?? 50;
+  document.getElementById('wdAddWordVersion').value = w.version || '';
+  // Populate version datalist
+  const datalist = document.getElementById('wdVersionSuggestions');
+  if (datalist) {
+    datalist.innerHTML = '';
+    const versions = [...new Set((ver.words||[]).map(x => x.version).filter(Boolean))];
+    versions.forEach(v => { const opt = document.createElement('option'); opt.value = v; datalist.appendChild(opt); });
+  }
   document.getElementById('wdAddWordModalTitle').textContent = '✎ Edit Word Card';
   document.getElementById('wdAddWordSubmitBtn').textContent  = 'Save Changes';
   openModal('wdAddWordModal');
@@ -6975,6 +7075,7 @@ window.confirmAddWord = function() {
   const color1 = document.getElementById('wdAddWordColor1').value || '';
   const color2 = document.getElementById('wdAddWordColor2').value || '';
   const colorRatio = parseInt(document.getElementById('wdAddWordColorRatio').value) || 50;
+  const version = (document.getElementById('wdAddWordVersion').value || '').trim();
   if (!sectionName || !word) { toast('Fill in Section Name and word'); return; }
   const site = wordLibrary.find(s => s.id === siteId); if (!site) return;
   const ver  = (site.pageVersions||[]).find(v => v.id === verId); if (!ver) return;
@@ -6983,9 +7084,10 @@ window.confirmAddWord = function() {
     const w = ver.words.find(x => x.id === editId);
     if (w) { w.sectionName = sectionName; w.wordsCount = wordsCount; w.word = word;
              w.fontColor = fontColor; w.highlightColor = highlightColor;
-             w.color1 = color1; w.color2 = color2; w.colorRatio = colorRatio; }
+             w.color1 = color1; w.color2 = color2; w.colorRatio = colorRatio;
+             w.version = version; }
   } else {
-    ver.words.push({ id: uid(), sectionName, wordsCount, word, fontColor, highlightColor, color1, color2, colorRatio });
+    ver.words.push({ id: uid(), sectionName, wordsCount, word, fontColor, highlightColor, color1, color2, colorRatio, version });
   }
   closeModal('wdAddWordModal');
   renderWordLibrary();
@@ -7007,6 +7109,8 @@ window.deleteWdWord = function(wordId, siteId, verId) {
 // ── WORD DISPLAY DELETE MODE ───────────────────────────────────────────────
 let _wdDeleteMode = false;
 let _wdSelectedItems = new Set(); // "banner:siteId" | "version:siteId:verId" | "word:siteId:verId:wordId"
+let _wdSelectedPage = {};    // { [siteId]: pageVersionId | 'all' }
+let _wdSelectedVersion = {}; // { [siteId+':'+verId]: versionString | 'all' }
 
 window.toggleWdDeleteMode = function() {
   _wdDeleteMode = !_wdDeleteMode;
@@ -7329,8 +7433,11 @@ function setAcPanelVisibility(visible) {
 <script>
 // ── WORD DISPLAY PANEL LOGIC ───────────────────────────────────────────────
 let _wdOpen = false;
+let _wdToggling = false;
 
 window.toggleWordDisplay = function() {
+  if (_wdToggling) return;
+  _wdToggling = true;
   _wdOpen = !_wdOpen;
   const panel = document.getElementById('wdPanel');
   const tab   = document.getElementById('wdTab');
@@ -7343,6 +7450,7 @@ window.toggleWordDisplay = function() {
     tab.style.display = '';
     tab.classList.remove('wd-panel-open');
   }
+  setTimeout(() => { _wdToggling = false; }, 50);
 };
 
 function setWdPanelVisibility(visible) {
@@ -7362,6 +7470,21 @@ function setWdPanelVisibility(visible) {
   }
 }
 
+// Capture mouse wheel on WD panel body so it scrolls without bubbling
+(function() {
+  function attachWdWheel() {
+    const wdBody = document.getElementById('wdPanelBody');
+    if (wdBody) {
+      wdBody.addEventListener('wheel', function(e) { e.stopPropagation(); }, { passive: true });
+    }
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', attachWdWheel);
+  } else {
+    attachWdWheel();
+  }
+})();
+
 // ── Click-outside: dock both panels ───────────────────────────────────────
 document.addEventListener('mousedown', function(e) {
   // Never collapse panels when interacting with an open modal
@@ -7379,11 +7502,12 @@ document.addEventListener('mousedown', function(e) {
     acTab.style.display = '';
   }
 
-  if (_wdOpen && wdPanel && !wdPanel.classList.contains('wd-hidden') &&
+  if (_wdOpen && !_wdToggling && wdPanel && !wdPanel.classList.contains('wd-hidden') &&
       wdTab && !wdPanel.contains(e.target) && !wdTab.contains(e.target)) {
     _wdOpen = false;
     wdPanel.classList.remove('wd-open');
     wdTab.style.display = '';
+    wdTab.classList.remove('wd-panel-open');
   }
 });
 </script>
@@ -7406,5 +7530,5 @@ if ('serviceWorker' in navigator) {
          font-size:18px;cursor:pointer;
          box-shadow:0 2px 12px rgba(13,27,62,0.22);
          align-items:center;justify-content:center;">↑</button>
-<script>// 20</script>
+<script>// 21</script>
 </body></html>
