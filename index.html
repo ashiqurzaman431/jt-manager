@@ -622,14 +622,14 @@ body {
   color: var(--jt);
   text-transform: uppercase;
   letter-spacing: 0.8px;
-  padding: 4px 10px;
+  padding: 7px 10px;
 }
 .wd-card-word {
   font-family: var(--mono);
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--ink);
-  padding: 9px 10px;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--ink3);
+  padding: 6px 10px;
   line-height: 1.45;
   word-break: break-word;
   background: #fff;
@@ -689,6 +689,9 @@ body {
 .wd-banner.banner-drag-over-top    { border-top: 2.5px solid var(--jt); }
 .wd-banner.banner-drag-over-bottom { border-bottom: 2.5px solid var(--jt); }
 .wd-banner.banner-dragging         { opacity: 0.5; }
+.wd-version-row.ver-drag-over-top    { border-top: 2.5px solid var(--jt); }
+.wd-version-row.ver-drag-over-bottom { border-bottom: 2.5px solid var(--jt); }
+.wd-version-row.ver-dragging         { opacity: 0.45; }
 .wd-selected {
   outline: 2.5px solid var(--red) !important;
   background: var(--red-light) !important;
@@ -1445,8 +1448,15 @@ body {
           <label>Color Split % — how much is Color 1 (1–99, default 50)</label>
           <input type="number" id="wdAddSiteColorRatio" value="50" min="1" max="99" style="background:#fafbff;border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:13px;padding:7px 10px;outline:none;width:100%;">
         </div>
+        <div class="field">
+          <label>Title Text Color (optional — overrides auto color)</label>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <input type="color" id="wdAddSiteTitleColor" value="#1565C0" style="width:38px;height:34px;border:1px solid var(--border2);border-radius:6px;cursor:pointer;padding:2px;flex-shrink:0;">
+            <button type="button" onclick="document.getElementById('wdAddSiteTitleColor').value='#1565C0';" style="font-family:var(--mono);font-size:10px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:#fff;color:var(--ink3);cursor:pointer;">Reset</button>
+          </div>
+        </div>
       </div>
-      <input type="hidden" id="wdAddSiteEditId" value="f5kloc7cqtfmq6656s6">
+      <input type="hidden" id="wdAddSiteEditId" value="">
       <div class="modal-actions">
         <button class="btn-primary" id="wdAddSiteSubmitBtn" onclick="confirmAddSite()">Save Changes</button>
         <button class="btn-secondary" onclick="closeModal('wdAddSiteModal')">Cancel</button>
@@ -1466,7 +1476,7 @@ body {
           <input type="text" id="wdAddVersionInput" placeholder="e.g. Remotasks.2026.06.07" onkeydown="if(event.key==='Enter')confirmAddVersion()">
         </div>
       </div>
-      <input type="hidden" id="wdAddVersionSiteId" value="f5kloc7cqtfmq6656s6">
+      <input type="hidden" id="wdAddVersionSiteId" value="">
       <div class="modal-actions">
         <button class="btn-primary" onclick="confirmAddVersion()">Add Page</button>
         <button class="btn-secondary" onclick="closeModal('wdAddVersionModal')">Cancel</button>
@@ -1530,12 +1540,12 @@ body {
         <div class="field">
           <label>Version (optional)</label>
           <input type="text" id="wdAddWordVersion" placeholder="e.g. v1.0 or 2026.06.07" list="wdVersionSuggestions" style="background:#fafbff;border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:13px;padding:7px 10px;outline:none;width:100%;">
-          <datalist id="wdVersionSuggestions"><option value="2026.06.08"></option></datalist>
+          <datalist id="wdVersionSuggestions"></datalist>
         </div>
       </div>
-      <input type="hidden" id="wdAddWordSiteId" value="f5kloc7cqtfmq6656s6">
-      <input type="hidden" id="wdAddWordVerId" value="qphb2jn5fumq665yei">
-      <input type="hidden" id="wdAddWordEditId" value="0msx0iinsfxmq667jy7">
+      <input type="hidden" id="wdAddWordSiteId" value="">
+      <input type="hidden" id="wdAddWordVerId" value="">
+      <input type="hidden" id="wdAddWordEditId" value="">
       <div class="modal-actions">
         <button class="btn-primary" id="wdAddWordSubmitBtn" onclick="confirmAddWord()">Save Changes</button>
         <button class="btn-secondary" onclick="closeModal('wdAddWordModal')">Cancel</button>
@@ -8306,11 +8316,11 @@ function renderWordLibrary() {
     return `
     <div class="wd-banner${_wdDeleteMode && _wdSelectedItems.has('banner:'+site.id) ? ' wd-selected' : ''}" id="wdBanner_${site.id}" draggable="${_wdDeleteMode ? 'false' : 'true'}" data-site-id="${site.id}" style="border-color: ${col.border};${_wdDeleteMode ? 'transition:outline 0.1s;' : ''}">
       <div class="wd-banner-header" onclick="${_wdDeleteMode ? `wdToggleSelect('banner:${site.id}')` : `toggleWdBanner('${site.id}')`}" style="${makeBgStyle(site.color1, site.color2, col.bg, site.colorRatio)}${_wdDeleteMode ? 'cursor:pointer;' : ''}">
-        <span class="wd-banner-name" style="color: ${col.text};">${site.siteName}</span>
+        <span class="wd-banner-name" style="color: ${site.titleColor && site.titleColor !== '#1565C0' ? site.titleColor : col.text};">${site.siteName}</span>
         ${pageDropdownHtml}
         <button class="wd-banner-edit-btn" title="Edit website"
           onclick="event.stopPropagation(); openEditSiteModal('${site.id}')">✎</button>
-        <span class="wd-banner-chevron ${bannerOpen ? 'open' : ''}" id="wdBannerChev_${site.id}" style="color: ${col.text};">▼</span>
+        <span class="wd-banner-chevron ${bannerOpen ? 'open' : ''}" id="wdBannerChev_${site.id}" style="color: ${site.titleColor && site.titleColor !== '#1565C0' ? site.titleColor : col.text};">▼</span>
       </div>
       <div class="wd-banner-body ${bannerOpen ? 'open' : ''}" id="wdBannerBody_${site.id}">
         ${visiblePages.map((ver, verIdx) => {
@@ -8338,7 +8348,7 @@ function renderWordLibrary() {
 
           return `
           <div>
-            <div class="wd-version-row${_wdDeleteMode && _wdSelectedItems.has('version:'+site.id+':'+ver.id) ? ' wd-selected' : ''}" style="border-left-color: ${col.border};${_wdDeleteMode ? 'cursor:pointer;' : ''}" ${_wdDeleteMode ? `onclick="wdToggleSelect('version:${site.id}:${ver.id}')"` : ''}>
+            <div class="wd-version-row${_wdDeleteMode && _wdSelectedItems.has('version:'+site.id+':'+ver.id) ? ' wd-selected' : ''}" draggable="${_wdDeleteMode ? 'false' : 'true'}" data-ver-id="${ver.id}" data-site-id="${site.id}" style="border-left-color: ${col.border};${_wdDeleteMode ? 'cursor:pointer;' : ''}" ${_wdDeleteMode ? `onclick="wdToggleSelect('version:${site.id}:${ver.id}')"` : ''}>
               <span class="wd-version-name" onclick="toggleWdVersion('${ver.id}')" style="color: ${col.text};">${ver.name}</span>
               ${versionDropdownHtml}
               ${!_wdDeleteMode ? `<button class="wd-page-edit-btn" title="Rename page" onclick="event.stopPropagation(); openEditPageModal('${site.id}','${ver.id}')">✎</button>` : ''}
@@ -8357,8 +8367,8 @@ function renderWordLibrary() {
                   <div class="wd-card-title" style="${makeBgStyle(w.color1, w.color2, col.bg, w.colorRatio)} border-bottom-color: ${col.border}; color: ${col.text};">
                     <span class="wd-drag-handle" onclick="event.stopPropagation()">⠿</span>
                     <div class="wd-card-title-text">
-                      <span style="font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;">${w.sectionName || w.title || ''}</span>
-                      ${w.wordsCount ? `<span style="font-size:8.5px;font-weight:500;opacity:0.75;text-transform:none;letter-spacing:0.2px;">${w.wordsCount}</span>` : ''}
+                      <span style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.9px;line-height:1.3;display:block;">${w.sectionName || w.title || ''}</span>
+                      ${w.wordsCount ? `<span style="font-size:9.5px;font-weight:600;opacity:0.85;text-transform:none;letter-spacing:0.2px;display:block;margin-top:2px;">${w.wordsCount}</span>` : ''}
                       ${w.version ? `<span style="font-size:8px;font-weight:700;text-transform:none;letter-spacing:0;margin-left:4px;padding:1px 5px;border-radius:3px;background:${col.border};color:#fff;flex-shrink:0;line-height:1.4;">${w.version}</span>` : ''}
                     </div>
                     <button class="wd-card-edit-btn" title="Edit word"
@@ -8449,6 +8459,7 @@ window.openAddSiteModal = function() {
   document.getElementById('wdAddSiteColor1').value  = '#ffffff';
   document.getElementById('wdAddSiteColor2').value  = '#ffffff';
   document.getElementById('wdAddSiteColorRatio').value = 50;
+  document.getElementById('wdAddSiteTitleColor').value = '#1565C0';
   document.getElementById('wdAddSiteModalTitle').textContent = '+ Add Website';
   document.getElementById('wdAddSiteSubmitBtn').textContent  = 'Add Website';
   openModal('wdAddSiteModal');
@@ -8461,12 +8472,13 @@ window.confirmAddSite = function() {
   const color1 = document.getElementById('wdAddSiteColor1').value;
   const color2 = document.getElementById('wdAddSiteColor2').value;
   const colorRatio = parseInt(document.getElementById('wdAddSiteColorRatio').value) || 50;
+  const titleColor = document.getElementById('wdAddSiteTitleColor').value;
   if (!name) { toast('Enter a website name'); return; }
   if (editId) {
     const site = wordLibrary.find(s => s.id === editId);
-    if (site) { site.siteName = name; site.color1 = color1; site.color2 = color2; site.colorRatio = colorRatio; }
+    if (site) { site.siteName = name; site.color1 = color1; site.color2 = color2; site.colorRatio = colorRatio; site.titleColor = titleColor; }
   } else {
-    wordLibrary.push({ id: uid(), siteName: name, color1, color2, colorRatio, pageVersions: [] });
+    wordLibrary.push({ id: uid(), siteName: name, color1, color2, colorRatio, titleColor, pageVersions: [] });
   }
   closeModal('wdAddSiteModal');
   renderWordLibrary();
@@ -8481,6 +8493,7 @@ window.openEditSiteModal = function(siteId) {
   document.getElementById('wdAddSiteColor1').value  = site.color1 || '#ffffff';
   document.getElementById('wdAddSiteColor2').value  = site.color2 || '#ffffff';
   document.getElementById('wdAddSiteColorRatio').value = site.colorRatio ?? 50;
+  document.getElementById('wdAddSiteTitleColor').value = site.titleColor || '#1565C0';
   document.getElementById('wdAddSiteModalTitle').textContent = '✎ Edit Website';
   document.getElementById('wdAddSiteSubmitBtn').textContent  = 'Save Changes';
   openModal('wdAddSiteModal');
@@ -8691,6 +8704,7 @@ window.wdConfirmDelete = function() {
 // ── WORD CARD DRAG-AND-DROP ────────────────────────────────────────────────
 let _wdDrag = null; // { wordId, siteId, verId }
 let _wdBannerDrag = null; // { siteId, fromIdx }
+let _wdVersionDrag = null; // { verId, siteId, fromIdx }
 
 document.addEventListener('dragstart', function(e) {
   const card = e.target.closest('.wd-word-card[draggable="true"]');
@@ -8712,6 +8726,16 @@ document.addEventListener('dragstart', function(e) {
     banner.classList.add('banner-dragging');
     e.dataTransfer.effectAllowed = 'move';
   }
+  const verRow = e.target.closest('.wd-version-row[draggable="true"]');
+  if (verRow && !e.target.closest('.wd-word-card') && !e.target.closest('.wd-banner[draggable="true"]')) {
+    const siteId = verRow.dataset.siteId;
+    const verId  = verRow.dataset.verId;
+    const site   = wordLibrary.find(s => s.id === siteId);
+    const fromIdx = site ? (site.pageVersions || []).findIndex(v => v.id === verId) : -1;
+    _wdVersionDrag = { verId, siteId, fromIdx };
+    verRow.classList.add('ver-dragging');
+    e.dataTransfer.effectAllowed = 'move';
+  }
 });
 
 document.addEventListener('dragend', function(e) {
@@ -8725,8 +8749,14 @@ document.addEventListener('dragend', function(e) {
   document.querySelectorAll('.wd-banner').forEach(b => {
     b.classList.remove('banner-drag-over-top', 'banner-drag-over-bottom');
   });
+  const verRow = e.target.closest('.wd-version-row');
+  if (verRow) verRow.classList.remove('ver-dragging');
+  document.querySelectorAll('.wd-version-row').forEach(r => {
+    r.classList.remove('ver-drag-over-top', 'ver-drag-over-bottom');
+  });
   _wdDrag = null;
   _wdBannerDrag = null;
+  _wdVersionDrag = null;
 });
 
 document.addEventListener('dragover', function(e) {
@@ -8755,6 +8785,19 @@ document.addEventListener('dragover', function(e) {
     const rect = targetBanner.getBoundingClientRect();
     targetBanner.classList.add(e.clientY < rect.top + rect.height / 2 ? 'banner-drag-over-top' : 'banner-drag-over-bottom');
   }
+  if (_wdVersionDrag) {
+    const targetRow = e.target.closest('.wd-version-row');
+    if (!targetRow) return;
+    if (targetRow.dataset.siteId !== _wdVersionDrag.siteId) return;
+    if (targetRow.dataset.verId === _wdVersionDrag.verId) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    document.querySelectorAll('.wd-version-row').forEach(r => {
+      r.classList.remove('ver-drag-over-top', 'ver-drag-over-bottom');
+    });
+    const rect = targetRow.getBoundingClientRect();
+    targetRow.classList.add(e.clientY < rect.top + rect.height / 2 ? 'ver-drag-over-top' : 'ver-drag-over-bottom');
+  }
 });
 
 document.addEventListener('dragleave', function(e) {
@@ -8762,9 +8805,37 @@ document.addEventListener('dragleave', function(e) {
   if (card) card.classList.remove('drag-over-top', 'drag-over-bottom');
   const banner = e.target.closest('.wd-banner');
   if (banner) banner.classList.remove('banner-drag-over-top', 'banner-drag-over-bottom');
+  const verRow = e.target.closest('.wd-version-row');
+  if (verRow) verRow.classList.remove('ver-drag-over-top', 'ver-drag-over-bottom');
 });
 
 document.addEventListener('drop', function(e) {
+  if (_wdVersionDrag) {
+    const targetRow = e.target.closest('.wd-version-row');
+    if (targetRow && targetRow.dataset.siteId === _wdVersionDrag.siteId && targetRow.dataset.verId !== _wdVersionDrag.verId) {
+      e.preventDefault();
+      const site = wordLibrary.find(s => s.id === _wdVersionDrag.siteId);
+      if (site && site.pageVersions) {
+        const toVerId = targetRow.dataset.verId;
+        let toIdx = site.pageVersions.findIndex(v => v.id === toVerId);
+        const fromIdx = _wdVersionDrag.fromIdx;
+        if (fromIdx !== -1 && toIdx !== -1) {
+          const rect = targetRow.getBoundingClientRect();
+          const dropAfter = e.clientY >= rect.top + rect.height / 2;
+          const [moved] = site.pageVersions.splice(fromIdx, 1);
+          toIdx = site.pageVersions.findIndex(v => v.id === toVerId);
+          site.pageVersions.splice(dropAfter ? toIdx + 1 : toIdx, 0, moved);
+          markUnsaved(true);
+          renderWordLibrary();
+        }
+      }
+    }
+    document.querySelectorAll('.wd-version-row').forEach(r => {
+      r.classList.remove('ver-drag-over-top', 'ver-drag-over-bottom', 'ver-dragging');
+    });
+    _wdVersionDrag = null;
+    return;
+  }
   if (_wdBannerDrag) {
     const targetBanner = e.target.closest('.wd-banner');
     if (targetBanner && targetBanner.dataset.siteId !== _wdBannerDrag.siteId) {
@@ -8974,108 +9045,6 @@ function setAcPanelVisibility(visible) {
     <button id="wdCollapseBtn" onclick="toggleWordDisplay()" title="Collapse">‹</button>
   </div>
   <div id="wdPanelBody">
-    <div class="wd-banner" id="wdBanner_f5kloc7cqtfmq6656s6" style="border-color: var(--jt-border);">
-      <div class="wd-banner-header" onclick="toggleWdBanner('f5kloc7cqtfmq6656s6')" style="background: var(--jt-light);">
-        <span class="wd-banner-name" style="color: var(--jt);">SmartBettingGuie</span>
-        
-      <select onchange="wdSelectPage('f5kloc7cqtfmq6656s6', this.value)" onclick="event.stopPropagation()" style="font-family:var(--mono);font-size:10px;padding:3px 5px;border-radius:6px;
-               border:1px solid var(--jt-border);background:rgba(255,255,255,0.85);
-               color:var(--jt);cursor:pointer;max-width:130px;flex-shrink:0;">
-        <option value="all" selected="">All Pages</option>
-        <option value="0r6mowfrtyrdmq66m7un">Best Online Betting Sites</option><option value="gvzkjq8vzzmmq66h91r">Best Crypto &amp; Bitcoin Betting Sites 2026</option><option value="ff07y1gnuvmq66evvz">Career</option><option value="cd9firm7iagmq66dz27">About us</option><option value="qphb2jn5fumq665yei">Home Page</option>
-      </select>
-        <button class="wd-banner-edit-btn" title="Edit website" onclick="event.stopPropagation(); openEditSiteModal('f5kloc7cqtfmq6656s6')">✎</button>
-        <span class="wd-banner-chevron open" id="wdBannerChev_f5kloc7cqtfmq6656s6" style="color: var(--jt);">▼</span>
-      </div>
-      <div class="wd-banner-body open" id="wdBannerBody_f5kloc7cqtfmq6656s6">
-        
-          <div>
-            <div class="wd-version-row" style="border-left-color: var(--jt-border);">
-              <span class="wd-version-name" onclick="toggleWdVersion('0r6mowfrtyrdmq66m7un')" style="color: var(--jt);">Best Online Betting Sites</span>
-              
-              <span class="wd-version-chevron " id="wdVerChev_0r6mowfrtyrdmq66m7un" onclick="toggleWdVersion('0r6mowfrtyrdmq66m7un')">▼</span>
-              <button class="wd-add-word-btn" onclick="openAddWordModal('f5kloc7cqtfmq6656s6','0r6mowfrtyrdmq66m7un')" title="Add word card" style="color: var(--jt);">＋</button>
-            </div>
-            <div class="wd-version-cards " id="wdVerCards_0r6mowfrtyrdmq66m7un">
-              
-              <div style="font-family:var(--mono);font-size:10px;color:var(--ink3);padding:4px 4px 2px;">No words yet — click ＋</div>
-            </div>
-          </div>
-        
-          <div>
-            <div class="wd-version-row" style="border-left-color: var(--jt-border);">
-              <span class="wd-version-name" onclick="toggleWdVersion('gvzkjq8vzzmmq66h91r')" style="color: var(--jt);">Best Crypto &amp; Bitcoin Betting Sites 2026</span>
-              
-              <span class="wd-version-chevron " id="wdVerChev_gvzkjq8vzzmmq66h91r" onclick="toggleWdVersion('gvzkjq8vzzmmq66h91r')">▼</span>
-              <button class="wd-add-word-btn" onclick="openAddWordModal('f5kloc7cqtfmq6656s6','gvzkjq8vzzmmq66h91r')" title="Add word card" style="color: var(--jt);">＋</button>
-            </div>
-            <div class="wd-version-cards " id="wdVerCards_gvzkjq8vzzmmq66h91r">
-              
-              <div style="font-family:var(--mono);font-size:10px;color:var(--ink3);padding:4px 4px 2px;">No words yet — click ＋</div>
-            </div>
-          </div>
-        
-          <div>
-            <div class="wd-version-row" style="border-left-color: var(--jt-border);">
-              <span class="wd-version-name" onclick="toggleWdVersion('ff07y1gnuvmq66evvz')" style="color: var(--jt);">Career</span>
-              
-              <span class="wd-version-chevron " id="wdVerChev_ff07y1gnuvmq66evvz" onclick="toggleWdVersion('ff07y1gnuvmq66evvz')">▼</span>
-              <button class="wd-add-word-btn" onclick="openAddWordModal('f5kloc7cqtfmq6656s6','ff07y1gnuvmq66evvz')" title="Add word card" style="color: var(--jt);">＋</button>
-            </div>
-            <div class="wd-version-cards " id="wdVerCards_ff07y1gnuvmq66evvz">
-              
-              <div style="font-family:var(--mono);font-size:10px;color:var(--ink3);padding:4px 4px 2px;">No words yet — click ＋</div>
-            </div>
-          </div>
-        
-          <div>
-            <div class="wd-version-row" style="border-left-color: var(--jt-border);">
-              <span class="wd-version-name" onclick="toggleWdVersion('cd9firm7iagmq66dz27')" style="color: var(--jt);">About us</span>
-              
-              <span class="wd-version-chevron " id="wdVerChev_cd9firm7iagmq66dz27" onclick="toggleWdVersion('cd9firm7iagmq66dz27')">▼</span>
-              <button class="wd-add-word-btn" onclick="openAddWordModal('f5kloc7cqtfmq6656s6','cd9firm7iagmq66dz27')" title="Add word card" style="color: var(--jt);">＋</button>
-            </div>
-            <div class="wd-version-cards " id="wdVerCards_cd9firm7iagmq66dz27">
-              
-              <div style="font-family:var(--mono);font-size:10px;color:var(--ink3);padding:4px 4px 2px;">No words yet — click ＋</div>
-            </div>
-          </div>
-        
-          <div>
-            <div class="wd-version-row" style="border-left-color: var(--jt-border);">
-              <span class="wd-version-name" onclick="toggleWdVersion('qphb2jn5fumq665yei')" style="color: var(--jt);">Home Page</span>
-              
-            <select onchange="wdSelectVersion('f5kloc7cqtfmq6656s6','qphb2jn5fumq665yei',this.value)" onclick="event.stopPropagation()" style="font-family:var(--mono);font-size:9.5px;padding:2px 5px;border-radius:5px;
-                     border:1px solid var(--jt-border);background:rgba(255,255,255,0.85);
-                     color:var(--jt);cursor:pointer;max-width:110px;flex-shrink:0;">
-              <option value="all" selected="">All Versions</option>
-              <option value="2026.06.08">2026.06.08</option>
-            </select>
-              <span class="wd-version-chevron" id="wdVerChev_qphb2jn5fumq665yei" onclick="toggleWdVersion('qphb2jn5fumq665yei')">▼</span>
-              <button class="wd-add-word-btn" onclick="openAddWordModal('f5kloc7cqtfmq6656s6','qphb2jn5fumq665yei')" title="Add word card" style="color: var(--jt);">＋</button>
-            </div>
-            <div class="wd-version-cards" id="wdVerCards_qphb2jn5fumq665yei">
-              
-                <div class="wd-word-card" draggable="true" data-word-id="0msx0iinsfxmq667jy7" data-site-id="f5kloc7cqtfmq6656s6" data-ver-id="qphb2jn5fumq665yei" onclick="copyWdWord('0msx0iinsfxmq667jy7','f5kloc7cqtfmq6656s6','qphb2jn5fumq665yei')" style="border-left-color: var(--jt-border);" onmouseenter="this.style.borderColor='var(--jt-border)'" onmouseleave="this.style.borderColor=''; this.style.borderLeftColor='var(--jt-border)'">
-                  <div class="wd-card-title" style="background: var(--jt-light); border-bottom-color: var(--jt-border); color: var(--jt);">
-                    <span class="wd-drag-handle" onclick="event.stopPropagation()">⠿</span>
-                    <div class="wd-card-title-text">
-                      <span style="font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;">Written Articles</span>
-                      <span style="font-size:8.5px;font-weight:500;opacity:0.75;text-transform:none;letter-spacing:0.2px;">Last 2 words</span>
-                      <span style="font-size:8px;font-weight:600;opacity:0.6;text-transform:none;letter-spacing:0;margin-left:4px;padding:0 4px;border-radius:3px;background:rgba(0,0,0,0.08);">2026.06.08</span>
-                    </div>
-                    <button class="wd-card-edit-btn" title="Edit word" onclick="event.stopPropagation(); openEditWordModal('0msx0iinsfxmq667jy7','f5kloc7cqtfmq6656s6','qphb2jn5fumq665yei')">✎</button>
-                  </div>
-                  <div class="wd-card-word" style="">and engaged</div>
-                </div>
-              
-              
-            </div>
-          </div>
-        
-        <button onclick="openAddVersionModal('f5kloc7cqtfmq6656s6')" style="font-family:var(--mono);font-size:10px;color:var(--jt);background:var(--jt-light);border:1px solid var(--jt-border);border-radius:6px;padding:3px 8px;cursor:pointer;margin:2px 0 4px;">+ Add Page</button>
-      </div>
-    </div>
   </div>
   <div style="padding:8px;display:flex;flex-direction:column;gap:6px;">
     <div id="wdDeleteBar" style="display:none;background:var(--red-light);border:1px solid var(--red-border);border-radius:var(--radius-sm);padding:8px 10px;flex-direction:row;align-items:center;justify-content:space-between;gap:8px;">
