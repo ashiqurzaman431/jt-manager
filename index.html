@@ -2203,7 +2203,7 @@ TaskRec01: task assigned, timer started.</div>
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
         <button id="btnExportForAI" onclick="exportForAI()" style="font-family:var(--mono);font-size:11.5px;padding:6px 14px;border-radius:var(--radius-sm);border:1px solid var(--jt-border);background:var(--jt-light);color:var(--jt);cursor:pointer;white-space:nowrap;">🤖 Export for AI</button>
         <span style="font-family:var(--mono);font-size:10px;color:var(--ink3);background:var(--surface2);border:1px solid var(--border);border-radius:99px;padding:4px 12px;">🔒 Read-only · Managed by AI</span>
-        <span id="uhlvBadge" style="font-family:var(--mono);font-size:10px;color:var(--jt);background:var(--jt-light);border:1px solid var(--jt-border);border-radius:99px;padding:4px 12px;" title="Update History and Log Version — higher number wins on data load">UHLV: 22</span>
+        <span id="uhlvBadge" style="font-family:var(--mono);font-size:10px;color:var(--jt);background:var(--jt-light);border:1px solid var(--jt-border);border-radius:99px;padding:4px 12px;" title="Update History and Log Version — higher number wins on data load">UHLV: 23</span>
       </div>
     </div>
     <div style="font-family:var(--mono);font-size:11.5px;color:var(--ink3);margin-bottom:18px;line-height:1.7;background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;box-shadow:var(--shadow);">
@@ -2587,7 +2587,7 @@ let wordLibrary = [];
 // Increment UHLV any time bugLog or bugHistory is modified by AI
 // loadDataJson compares this vs JSON uhlv and keeps whichever is higher
 // ─────────────────────────────────────────
-let UHLV = 22;
+let UHLV = 23;
 /*BUG_LOG_START*/
 let bugLog = [];
 /*BUG_LOG_END*/
@@ -2776,6 +2776,15 @@ let bugHistory = [
     "report": "Show file size and download/upload speed during Get Latest and Save to Drive operations.",
     "cause": "User decided to skip this feature.",
     "fix": "Skipped and cleared from bugLog."
+  },
+  {
+    "id": "UPDATE-038",
+    "title": "Save to Drive broken — APP_V_VERSION undefined ReferenceError",
+    "date": "2026.06.09",
+    "status": "resolved",
+    "report": "Clicking Save to Drive caused a silent crash. The save handler referenced APP_V_VERSION (used to build the filename suffix on line 5938) but the constant was never declared in the file — it had been removed in a prior refactor without replacing its usage.",
+    "cause": "APP_V_VERSION constant was missing from the JS runtime. The variable is referenced in the btnSave click handler: `const suffix = V${APP_V_VERSION}...` — this threw a ReferenceError before the Drive upload logic was ever reached. The catch block then triggered a local download fallback, masking the root cause.",
+    "fix": "Added `const APP_V_VERSION = '3.4';` directly above the DRIVE_CLIENT_ID constant declaration (line 5381 area). No other code changes required — the save handler, filename builder, and dvBadge updater all already reference this constant correctly."
   },
   {
     "id": "UPDATE-037",
@@ -5378,6 +5387,7 @@ window.togglePanel = function(panelId) {
 // ─────────────────────────────────────────
 // GOOGLE DRIVE INTEGRATION — OAuth via GIS
 // ─────────────────────────────────────────
+const APP_V_VERSION = '3.4';
 const DRIVE_CLIENT_ID = '122560609463-vvejkpk1phego89icu12410bq0bmeha7.apps.googleusercontent.com';
 const DRIVE_REDIRECT_ORIGIN = 'https://realershad67-ship-it.github.io';
 const DRIVE_APP_FOLDER_NAME = 'JT MANAGER APP DATA';
@@ -7396,5 +7406,5 @@ if ('serviceWorker' in navigator) {
          font-size:18px;cursor:pointer;
          box-shadow:0 2px 12px rgba(13,27,62,0.22);
          align-items:center;justify-content:center;">↑</button>
-<script>// 19</script>
+<script>// 20</script>
 </body></html>
