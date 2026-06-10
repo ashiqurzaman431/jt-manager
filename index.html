@@ -1486,15 +1486,19 @@ body {
         <div class="field">
           <label>Banner Color 1 (optional)</label>
           <div style="display:flex;align-items:center;gap:8px;">
-            <input type="color" id="wdAddSiteColor1" value="#ffffff" style="width:38px;height:34px;border:1px solid var(--border2);border-radius:6px;cursor:pointer;padding:2px;flex-shrink:0;">
-            <button type="button" onclick="document.getElementById('wdAddSiteColor1').value='#ffffff';" style="font-family:var(--mono);font-size:10px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:#fff;color:var(--ink3);cursor:pointer;">Clear</button>
+            <input type="color" id="wdAddSiteColor1" value="#ffffff" oninput="document.getElementById('wdAddSiteColor1Hex').value=this.value" style="width:38px;height:34px;border:1px solid var(--border2);border-radius:6px;cursor:pointer;padding:2px;flex-shrink:0;">
+            <input type="text" id="wdAddSiteColor1Hex" placeholder="#hex" oninput="if(this.value.match(/^#[0-9a-fA-F]{6}$/))document.getElementById('wdAddSiteColor1').value=this.value" style="flex:1;background:#fafbff;border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:13px;padding:7px 10px;outline:none;">
+            <button type="button" onclick="wdEyeDrop('wdAddSiteColor1','wdAddSiteColor1Hex')" title="Pick color from screen" style="font-family:var(--mono);font-size:14px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:#fff;color:var(--ink3);cursor:pointer;">🎨</button>
+            <button type="button" onclick="document.getElementById('wdAddSiteColor1').value='#ffffff';document.getElementById('wdAddSiteColor1Hex').value='';" style="font-family:var(--mono);font-size:10px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:#fff;color:var(--ink3);cursor:pointer;">✕</button>
           </div>
         </div>
         <div class="field">
           <label>Banner Color 2 (optional)</label>
           <div style="display:flex;align-items:center;gap:8px;">
-            <input type="color" id="wdAddSiteColor2" value="#ffffff" style="width:38px;height:34px;border:1px solid var(--border2);border-radius:6px;cursor:pointer;padding:2px;flex-shrink:0;">
-            <button type="button" onclick="document.getElementById('wdAddSiteColor2').value='#ffffff';" style="font-family:var(--mono);font-size:10px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:#fff;color:var(--ink3);cursor:pointer;">Clear</button>
+            <input type="color" id="wdAddSiteColor2" value="#ffffff" oninput="document.getElementById('wdAddSiteColor2Hex').value=this.value" style="width:38px;height:34px;border:1px solid var(--border2);border-radius:6px;cursor:pointer;padding:2px;flex-shrink:0;">
+            <input type="text" id="wdAddSiteColor2Hex" placeholder="#hex" oninput="if(this.value.match(/^#[0-9a-fA-F]{6}$/))document.getElementById('wdAddSiteColor2').value=this.value" style="flex:1;background:#fafbff;border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:13px;padding:7px 10px;outline:none;">
+            <button type="button" onclick="wdEyeDrop('wdAddSiteColor2','wdAddSiteColor2Hex')" title="Pick color from screen" style="font-family:var(--mono);font-size:14px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:#fff;color:var(--ink3);cursor:pointer;">🎨</button>
+            <button type="button" onclick="document.getElementById('wdAddSiteColor2').value='#ffffff';document.getElementById('wdAddSiteColor2Hex').value='';" style="font-family:var(--mono);font-size:10px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:#fff;color:var(--ink3);cursor:pointer;">✕</button>
           </div>
         </div>
         <div class="field">
@@ -1504,8 +1508,10 @@ body {
         <div class="field">
           <label>Title Text Color (optional — overrides auto color)</label>
           <div style="display:flex;align-items:center;gap:8px;">
-            <input type="color" id="wdAddSiteTitleColor" value="#1565C0" style="width:38px;height:34px;border:1px solid var(--border2);border-radius:6px;cursor:pointer;padding:2px;flex-shrink:0;">
-            <button type="button" onclick="document.getElementById('wdAddSiteTitleColor').value='#1565C0';" style="font-family:var(--mono);font-size:10px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:#fff;color:var(--ink3);cursor:pointer;">Reset</button>
+            <input type="color" id="wdAddSiteTitleColor" value="#1565C0" oninput="document.getElementById('wdAddSiteTitleColorHex').value=this.value" style="width:38px;height:34px;border:1px solid var(--border2);border-radius:6px;cursor:pointer;padding:2px;flex-shrink:0;">
+            <input type="text" id="wdAddSiteTitleColorHex" placeholder="#hex" oninput="if(this.value.match(/^#[0-9a-fA-F]{6}$/))document.getElementById('wdAddSiteTitleColor').value=this.value" style="flex:1;background:#fafbff;border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:13px;padding:7px 10px;outline:none;">
+            <button type="button" onclick="wdEyeDrop('wdAddSiteTitleColor','wdAddSiteTitleColorHex')" title="Pick color from screen" style="font-family:var(--mono);font-size:14px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:#fff;color:var(--ink3);cursor:pointer;">🎨</button>
+            <button type="button" onclick="document.getElementById('wdAddSiteTitleColor').value='#1565C0';document.getElementById('wdAddSiteTitleColorHex').value='';" style="font-family:var(--mono);font-size:10px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:#fff;color:var(--ink3);cursor:pointer;">↺</button>
           </div>
         </div>
       </div>
@@ -1531,15 +1537,19 @@ body {
         <div class="field">
           <label>Banner Color 1 (optional)</label>
           <div style="display:flex;align-items:center;gap:8px;">
-            <input type="color" id="wdAddVerColor1" value="#ffffff" style="width:38px;height:34px;border:1px solid var(--border2);border-radius:6px;cursor:pointer;padding:2px;flex-shrink:0;">
-            <button type="button" onclick="document.getElementById('wdAddVerColor1').value='#ffffff';" style="font-family:var(--mono);font-size:10px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:#fff;color:var(--ink3);cursor:pointer;">Clear</button>
+            <input type="color" id="wdAddVerColor1" value="#ffffff" oninput="document.getElementById('wdAddVerColor1Hex').value=this.value" style="width:38px;height:34px;border:1px solid var(--border2);border-radius:6px;cursor:pointer;padding:2px;flex-shrink:0;">
+            <input type="text" id="wdAddVerColor1Hex" placeholder="#hex" oninput="if(this.value.match(/^#[0-9a-fA-F]{6}$/))document.getElementById('wdAddVerColor1').value=this.value" style="flex:1;background:#fafbff;border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:13px;padding:7px 10px;outline:none;">
+            <button type="button" onclick="wdEyeDrop('wdAddVerColor1','wdAddVerColor1Hex')" title="Pick color from screen" style="font-family:var(--mono);font-size:14px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:#fff;color:var(--ink3);cursor:pointer;">🎨</button>
+            <button type="button" onclick="document.getElementById('wdAddVerColor1').value='#ffffff';document.getElementById('wdAddVerColor1Hex').value='';" style="font-family:var(--mono);font-size:10px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:#fff;color:var(--ink3);cursor:pointer;">✕</button>
           </div>
         </div>
         <div class="field">
           <label>Banner Color 2 (optional)</label>
           <div style="display:flex;align-items:center;gap:8px;">
-            <input type="color" id="wdAddVerColor2" value="#ffffff" style="width:38px;height:34px;border:1px solid var(--border2);border-radius:6px;cursor:pointer;padding:2px;flex-shrink:0;">
-            <button type="button" onclick="document.getElementById('wdAddVerColor2').value='#ffffff';" style="font-family:var(--mono);font-size:10px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:#fff;color:var(--ink3);cursor:pointer;">Clear</button>
+            <input type="color" id="wdAddVerColor2" value="#ffffff" oninput="document.getElementById('wdAddVerColor2Hex').value=this.value" style="width:38px;height:34px;border:1px solid var(--border2);border-radius:6px;cursor:pointer;padding:2px;flex-shrink:0;">
+            <input type="text" id="wdAddVerColor2Hex" placeholder="#hex" oninput="if(this.value.match(/^#[0-9a-fA-F]{6}$/))document.getElementById('wdAddVerColor2').value=this.value" style="flex:1;background:#fafbff;border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:13px;padding:7px 10px;outline:none;">
+            <button type="button" onclick="wdEyeDrop('wdAddVerColor2','wdAddVerColor2Hex')" title="Pick color from screen" style="font-family:var(--mono);font-size:14px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:#fff;color:var(--ink3);cursor:pointer;">🎨</button>
+            <button type="button" onclick="document.getElementById('wdAddVerColor2').value='#ffffff';document.getElementById('wdAddVerColor2Hex').value='';" style="font-family:var(--mono);font-size:10px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:#fff;color:var(--ink3);cursor:pointer;">✕</button>
           </div>
         </div>
         <div class="field">
@@ -1549,8 +1559,10 @@ body {
         <div class="field">
           <label>Title Text Color (optional — overrides auto color)</label>
           <div style="display:flex;align-items:center;gap:8px;">
-            <input type="color" id="wdAddVerTitleColor" value="#1565C0" style="width:38px;height:34px;border:1px solid var(--border2);border-radius:6px;cursor:pointer;padding:2px;flex-shrink:0;">
-            <button type="button" onclick="document.getElementById('wdAddVerTitleColor').value='#1565C0';" style="font-family:var(--mono);font-size:10px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:#fff;color:var(--ink3);cursor:pointer;">Reset</button>
+            <input type="color" id="wdAddVerTitleColor" value="#1565C0" oninput="document.getElementById('wdAddVerTitleColorHex').value=this.value" style="width:38px;height:34px;border:1px solid var(--border2);border-radius:6px;cursor:pointer;padding:2px;flex-shrink:0;">
+            <input type="text" id="wdAddVerTitleColorHex" placeholder="#hex" oninput="if(this.value.match(/^#[0-9a-fA-F]{6}$/))document.getElementById('wdAddVerTitleColor').value=this.value" style="flex:1;background:#fafbff;border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:13px;padding:7px 10px;outline:none;">
+            <button type="button" onclick="wdEyeDrop('wdAddVerTitleColor','wdAddVerTitleColorHex')" title="Pick color from screen" style="font-family:var(--mono);font-size:14px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:#fff;color:var(--ink3);cursor:pointer;">🎨</button>
+            <button type="button" onclick="document.getElementById('wdAddVerTitleColor').value='#1565C0';document.getElementById('wdAddVerTitleColorHex').value='';" style="font-family:var(--mono);font-size:10px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:#fff;color:var(--ink3);cursor:pointer;">↺</button>
           </div>
         </div>
       </div>
@@ -8435,17 +8447,41 @@ function renderWordLibrary() {
     { bg: 'var(--red-light)',   border: 'var(--red-border)',   text: 'var(--red)'   },
   ];
 
-  const MONTH_NAMES = ['january','february','march','april','may','june',
-                       'july','august','september','october','november','december'];
+  // EyeDropper helper — pick a color from anywhere on screen
+  window.wdEyeDrop = function(colorInputId, hexInputId) {
+    if (!window.EyeDropper) { toast('EyeDropper not supported in this browser'); return; }
+    const ed = new EyeDropper();
+    ed.open().then(r => {
+      const hex = r.sRGBHex;
+      document.getElementById(colorInputId).value = hex;
+      document.getElementById(hexInputId).value   = hex;
+    }).catch(() => {});
+  };
+
+  // Auto-color by date: supports "YYYY.MM" (dots) and "YYYY MonthName" (space + word)
+  const _WD_MONTH_NAMES = ['january','february','march','april','may','june',
+                            'july','august','september','october','november','december'];
   function wdPageColorFromName(name) {
     if (!name) return null;
-    const m = name.match(/(\d{4})\s+([a-zA-Z]+)/);
-    if (!m) return null;
-    const year  = parseInt(m[1]);
-    const month = MONTH_NAMES.findIndex(mn => mn.startsWith(m[2].toLowerCase().slice(0, 3)));
-    if (month === -1) return null;
-    const slot = (year * 12 + month) % WD_SITE_COLORS.length;
-    return WD_SITE_COLORS[slot];
+    // Format 1: YYYY.MM anywhere in name (e.g. "Remotasks.2026.06.07")
+    const m1 = name.match(/(\d{4})\.(\d{2})\b/);
+    if (m1) {
+      const month = parseInt(m1[2], 10) - 1; // 0-based
+      if (month >= 0 && month <= 11) {
+        const slot = (parseInt(m1[1]) * 12 + month) % WD_SITE_COLORS.length;
+        return WD_SITE_COLORS[slot];
+      }
+    }
+    // Format 2: YYYY MonthName (e.g. "2026 June", "2026 Jun", "Remotasks 2026 June")
+    const m2 = name.match(/(\d{4})\s+([a-zA-Z]+)/);
+    if (m2) {
+      const month = _WD_MONTH_NAMES.findIndex(mn => mn.startsWith(m2[2].toLowerCase().slice(0, 3)));
+      if (month !== -1) {
+        const slot = (parseInt(m2[1]) * 12 + month) % WD_SITE_COLORS.length;
+        return WD_SITE_COLORS[slot];
+      }
+    }
+    return null;
   }
 
   // When searching, filter sites with no matching content and force banners open
@@ -8671,10 +8707,13 @@ window.openEditPageModal = function(siteId, verId) {
   document.getElementById('wdAddVersionSiteId').value  = siteId;
   document.getElementById('wdAddVersionEditId').value  = verId;
   document.getElementById('wdAddVersionInput').value   = ver.name;
-  document.getElementById('wdAddVerColor1').value      = ver.color1 || '#ffffff';
-  document.getElementById('wdAddVerColor2').value      = ver.color2 || '#ffffff';
-  document.getElementById('wdAddVerColorRatio').value  = ver.colorRatio ?? 50;
-  document.getElementById('wdAddVerTitleColor').value  = ver.titleColor || '#1565C0';
+  document.getElementById('wdAddVerColor1').value       = ver.color1 || '#ffffff';
+  document.getElementById('wdAddVerColor1Hex').value    = ver.color1 || '';
+  document.getElementById('wdAddVerColor2').value       = ver.color2 || '#ffffff';
+  document.getElementById('wdAddVerColor2Hex').value    = ver.color2 || '';
+  document.getElementById('wdAddVerColorRatio').value   = ver.colorRatio ?? 50;
+  document.getElementById('wdAddVerTitleColor').value   = ver.titleColor || '#1565C0';
+  document.getElementById('wdAddVerTitleColorHex').value = ver.titleColor || '';
   document.getElementById('wdAddVersionModalTitle').textContent = '✎ Edit Page';
   document.getElementById('wdAddVersionSubmitBtn').textContent  = 'Save Changes';
   openModal('wdAddVersionModal');
@@ -8729,9 +8768,12 @@ window.openAddSiteModal = function() {
   document.getElementById('wdAddSiteEditId').value  = '';
   document.getElementById('wdAddSiteInput').value   = '';
   document.getElementById('wdAddSiteColor1').value  = '#ffffff';
+  document.getElementById('wdAddSiteColor1Hex').value = '';
   document.getElementById('wdAddSiteColor2').value  = '#ffffff';
+  document.getElementById('wdAddSiteColor2Hex').value = '';
   document.getElementById('wdAddSiteColorRatio').value = 50;
   document.getElementById('wdAddSiteTitleColor').value = '#1565C0';
+  document.getElementById('wdAddSiteTitleColorHex').value = '';
   document.getElementById('wdAddSiteModalTitle').textContent = '+ New Library';
   document.getElementById('wdAddSiteSubmitBtn').textContent  = 'Add Library';
   openModal('wdAddSiteModal');
@@ -8741,10 +8783,10 @@ window.openAddSiteModal = function() {
 window.confirmAddSite = function() {
   const editId = document.getElementById('wdAddSiteEditId').value;
   const name   = document.getElementById('wdAddSiteInput').value.trim();
-  const color1 = document.getElementById('wdAddSiteColor1').value;
-  const color2 = document.getElementById('wdAddSiteColor2').value;
+  const color1 = document.getElementById('wdAddSiteColor1Hex').value.trim() || document.getElementById('wdAddSiteColor1').value;
+  const color2 = document.getElementById('wdAddSiteColor2Hex').value.trim() || document.getElementById('wdAddSiteColor2').value;
   const colorRatio = parseInt(document.getElementById('wdAddSiteColorRatio').value) || 50;
-  const titleColor = document.getElementById('wdAddSiteTitleColor').value;
+  const titleColor = document.getElementById('wdAddSiteTitleColorHex').value.trim() || document.getElementById('wdAddSiteTitleColor').value;
   if (!name) { toast('Enter a website name'); return; }
   if (editId) {
     const site = wordLibrary.find(s => s.id === editId);
@@ -8763,9 +8805,12 @@ window.openEditSiteModal = function(siteId) {
   document.getElementById('wdAddSiteEditId').value  = siteId;
   document.getElementById('wdAddSiteInput').value   = site.siteName || '';
   document.getElementById('wdAddSiteColor1').value  = site.color1 || '#ffffff';
+  document.getElementById('wdAddSiteColor1Hex').value = site.color1 || '';
   document.getElementById('wdAddSiteColor2').value  = site.color2 || '#ffffff';
+  document.getElementById('wdAddSiteColor2Hex').value = site.color2 || '';
   document.getElementById('wdAddSiteColorRatio').value = site.colorRatio ?? 50;
   document.getElementById('wdAddSiteTitleColor').value = site.titleColor || '#1565C0';
+  document.getElementById('wdAddSiteTitleColorHex').value = site.titleColor || '';
   document.getElementById('wdAddSiteModalTitle').textContent = '✎ Edit Library';
   document.getElementById('wdAddSiteSubmitBtn').textContent  = 'Save Changes';
   openModal('wdAddSiteModal');
@@ -8781,10 +8826,13 @@ window.openAddVersionModal = function(siteId) {
   const d = new Date();
   const dateSuffix = d.getFullYear() + '.' + String(d.getMonth()+1).padStart(2,'0') + '.' + String(d.getDate()).padStart(2,'0');
   document.getElementById('wdAddVersionInput').value = site.siteName + '.' + dateSuffix;
-  document.getElementById('wdAddVerColor1').value      = '#ffffff';
-  document.getElementById('wdAddVerColor2').value      = '#ffffff';
-  document.getElementById('wdAddVerColorRatio').value  = 50;
-  document.getElementById('wdAddVerTitleColor').value  = '#1565C0';
+  document.getElementById('wdAddVerColor1').value       = '#ffffff';
+  document.getElementById('wdAddVerColor1Hex').value    = '';
+  document.getElementById('wdAddVerColor2').value       = '#ffffff';
+  document.getElementById('wdAddVerColor2Hex').value    = '';
+  document.getElementById('wdAddVerColorRatio').value   = 50;
+  document.getElementById('wdAddVerTitleColor').value   = '#1565C0';
+  document.getElementById('wdAddVerTitleColorHex').value = '';
   openModal('wdAddVersionModal');
   setTimeout(() => { const el = document.getElementById('wdAddVersionInput'); if(el){el.focus();el.select();} }, 80);
 };
@@ -8794,10 +8842,10 @@ window.confirmAddVersion = function() {
   const editId = document.getElementById('wdAddVersionEditId').value;
   const name   = document.getElementById('wdAddVersionInput').value.trim();
   if (!name) { toast('Enter a page name'); return; }
-  const color1     = document.getElementById('wdAddVerColor1').value;
-  const color2     = document.getElementById('wdAddVerColor2').value;
+  const color1     = document.getElementById('wdAddVerColor1Hex').value.trim() || document.getElementById('wdAddVerColor1').value;
+  const color2     = document.getElementById('wdAddVerColor2Hex').value.trim() || document.getElementById('wdAddVerColor2').value;
   const colorRatio = parseInt(document.getElementById('wdAddVerColorRatio').value) || 50;
-  const titleColor = document.getElementById('wdAddVerTitleColor').value;
+  const titleColor = document.getElementById('wdAddVerTitleColorHex').value.trim() || document.getElementById('wdAddVerTitleColor').value;
   const site = wordLibrary.find(s => s.id === siteId); if (!site) return;
   if (editId) {
     const ver = (site.pageVersions||[]).find(v => v.id === editId);
