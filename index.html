@@ -531,17 +531,18 @@ body {
 #wdPanelBody::-webkit-scrollbar { width: 4px; }
 #wdPanelBody::-webkit-scrollbar-thumb { background: var(--jt-border); border-radius: 4px; }
 
-.wd-banner {
+/* Page banner (promoted top-level, was .wd-version-row) */
+.wd-page-banner {
   background: #fff;
   border: 1.5px solid var(--border2);
   border-radius: 10px;
   overflow: hidden;
   box-shadow: 0 2px 10px rgba(21,101,192,0.10);
-  margin-bottom: 2px;
+  margin-bottom: 4px;
 }
-.wd-banner-header {
+.wd-page-banner-header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 6px;
   padding: 13px 14px;
   background: var(--jt-light);
@@ -549,57 +550,53 @@ body {
   user-select: none;
   border-bottom: 2px solid var(--jt-border);
 }
-.wd-banner-name {
+.wd-page-banner-name {
   font-family: var(--mono);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
   color: var(--jt);
   flex: 1;
   min-width: 0;
   white-space: normal;
   word-break: break-word;
-  overflow-wrap: break-word;
-  letter-spacing: 0.2px;
-}
-.wd-banner-chevron { font-size: 10px; color: var(--jt); transition: transform 0.18s; flex-shrink: 0; margin-top: 3px; }
-.wd-banner-chevron.open { transform: rotate(180deg); }
-.wd-banner-body { display: none; flex-direction: column; gap: 4px; padding: 8px 10px 10px; }
-.wd-banner-body.open { display: flex; }
-
-.wd-version-row {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  padding: 6px 8px 3px 10px;
-  border-left: 3px solid var(--border2);
-  margin-left: 2px;
-  margin-top: 4px;
-}
-.wd-version-name {
-  font-family: var(--mono);
-  font-size: 11.5px;
-  color: var(--ink3);
-  font-weight: 700;
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  cursor: pointer;
+  letter-spacing: 0.3px;
   text-transform: uppercase;
-  letter-spacing: 0.4px;
 }
-.wd-version-chevron { font-size: 9px; color: var(--ink3); transition: transform 0.15s; flex-shrink: 0; cursor: pointer; }
-.wd-version-chevron.open { transform: rotate(180deg); }
+.wd-page-banner-chevron { font-size: 10px; color: var(--jt); transition: transform 0.18s; flex-shrink: 0; }
+.wd-page-banner-chevron.open { transform: rotate(180deg); }
+.wd-page-banner-body { display: none; flex-direction: column; gap: 6px; padding: 8px 10px 10px; }
+.wd-page-banner-body.open { display: flex; }
+.wd-page-banner.banner-drag-over-top    { border-top: 2.5px solid var(--jt); }
+.wd-page-banner.banner-drag-over-bottom { border-bottom: 2.5px solid var(--jt); }
+.wd-page-banner.banner-dragging         { opacity: 0.5; }
+.wd-page-banner-drag-handle {
+  cursor: grab; flex-shrink: 0; font-size: 14px; line-height: 1;
+  opacity: 0; color: var(--ink3); padding: 0 2px;
+  transition: opacity 0.15s; user-select: none;
+}
+.wd-page-banner-header:hover .wd-page-banner-drag-handle { opacity: 0.45; }
+.wd-page-banner-drag-handle:hover { opacity: 0.8 !important; }
+
 .wd-add-word-btn {
   background: none; border: none; cursor: pointer;
   color: var(--jt); font-size: 15px; line-height: 1;
   flex-shrink: 0; padding: 0 2px;
 }
-.wd-version-cards { display: none; flex-direction: column; gap: 6px; padding: 0 4px 8px 14px; }
+.wd-version-cards { display: none; flex-direction: column; gap: 6px; padding: 0 0 4px 0; }
 .wd-version-cards.open { display: flex; }
 
-.wd-word-card {
+/* Page edit button */
+.wd-page-edit-btn {
+  background: none; border: none; cursor: pointer;
+  color: var(--ink3); font-size: 11px; line-height: 1;
+  padding: 0 3px; flex-shrink: 0; opacity: 0;
+  transition: opacity 0.15s, color 0.15s; border-radius: 4px;
+}
+.wd-page-banner-header:hover .wd-page-edit-btn { opacity: 0.55; }
+.wd-page-edit-btn:hover { opacity: 1 !important; color: var(--jt); }
+
+/* Section card (was .wd-word-card) */
+.wd-section-card {
   background: #fff;
   border: 1.5px solid var(--border2);
   border-left: 3px solid var(--jt-border);
@@ -609,35 +606,49 @@ body {
   transition: border-color 0.12s, box-shadow 0.12s;
   box-shadow: 0 1px 4px rgba(21,101,192,0.06);
 }
-.wd-word-card:hover {
+.wd-section-card:hover {
   border-color: var(--jt);
   box-shadow: 0 2px 10px rgba(21,101,192,0.18);
 }
-.wd-card-title {
+.wd-section-card.drag-over-top    { border-top: 2.5px solid var(--jt); }
+.wd-section-card.drag-over-bottom { border-bottom: 2.5px solid var(--jt); }
+.wd-section-card[draggable="true"] { cursor: grab; }
+.wd-section-card.dragging          { opacity: 0.38; }
+.wd-section-card-title {
   background: var(--jt-light);
   border-bottom: 1px solid var(--jt-border);
   font-family: var(--mono);
-  font-size: 9.5px;
+  font-size: 10px;
   font-weight: 700;
   color: var(--jt);
   text-transform: uppercase;
   letter-spacing: 0.8px;
   padding: 7px 10px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
 }
-.wd-card-word {
+.wd-section-card-title-text {
+  flex: 1;
+  min-width: 0;
+  white-space: normal;
+  word-break: break-word;
+  line-height: 1.35;
+}
+.wd-section-card-body {
   font-family: var(--mono);
   font-size: 11.5px;
   font-weight: 500;
   color: var(--ink3);
   padding: 6px 10px;
-  line-height: 1.45;
+  line-height: 1.5;
   word-break: break-word;
   background: #fff;
-}
-.wd-card-title {
-  display: flex;
-  align-items: center;
-  gap: 5px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  max-height: 5.5em;
 }
 .wd-drag-handle {
   cursor: grab;
@@ -649,56 +660,87 @@ body {
   padding: 0 1px;
   transition: opacity 0.15s;
 }
-.wd-word-card:hover .wd-drag-handle { opacity: 0.75; }
+.wd-section-card:hover .wd-drag-handle { opacity: 0.75; }
 .wd-drag-handle:active { cursor: grabbing; }
-.wd-card-title-text {
-  flex: 1;
-  min-width: 0;
-  white-space: normal;
-  word-break: break-word;
-  line-height: 1.35;
-}
 .wd-card-edit-btn {
   background: none; border: none; cursor: pointer;
   color: var(--ink3); font-size: 13px; line-height: 1;
   padding: 0 3px; flex-shrink: 0; opacity: 0;
   transition: opacity 0.15s, color 0.15s; border-radius: 4px;
 }
-.wd-word-card:hover .wd-card-edit-btn { opacity: 0.55; }
+.wd-section-card:hover .wd-card-edit-btn { opacity: 0.55; }
 .wd-card-edit-btn:hover { opacity: 1 !important; color: var(--jt); }
-.wd-banner-edit-btn {
+
+/* Full text popup modal */
+.wd-section-popup-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.38);
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.wd-section-popup {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 8px 40px rgba(21,101,192,0.18);
+  width: 480px;
+  max-width: 95vw;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.wd-section-popup-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px 12px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.wd-section-popup-title {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--jt);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.wd-section-popup-close {
   background: none; border: none; cursor: pointer;
-  color: var(--ink3); font-size: 13px; line-height: 1;
-  padding: 0 3px; flex-shrink: 0; opacity: 0; margin-top: 1px;
-  transition: opacity 0.15s, color 0.15s; border-radius: 4px;
+  color: var(--ink3); font-size: 16px; line-height: 1;
+  padding: 2px 4px; border-radius: 6px;
 }
-.wd-banner-header:hover .wd-banner-edit-btn { opacity: 0.55; }
-.wd-banner-edit-btn:hover { opacity: 1 !important; color: var(--jt); }
-.wd-page-edit-btn {
-  background: none; border: none; cursor: pointer;
-  color: var(--ink3); font-size: 11px; line-height: 1;
-  padding: 0 3px; flex-shrink: 0; opacity: 0;
-  transition: opacity 0.15s, color 0.15s; border-radius: 4px;
+.wd-section-popup-close:hover { background: var(--border); color: var(--ink); }
+.wd-section-popup-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px 16px;
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--ink);
+  line-height: 1.65;
+  white-space: pre-wrap;
+  word-break: break-word;
+  user-select: text;
+  cursor: text;
 }
-.wd-version-row:hover .wd-page-edit-btn { opacity: 0.55; }
-.wd-page-edit-btn:hover { opacity: 1 !important; color: var(--jt); }
-.wd-word-card.drag-over-top { border-top: 2.5px solid var(--jt); }
-.wd-word-card.drag-over-bottom { border-bottom: 2.5px solid var(--jt); }
-.wd-word-card[draggable="true"] { cursor: grab; }
-.wd-word-card.dragging { opacity: 0.38; }
-.wd-banner.banner-drag-over-top    { border-top: 2.5px solid var(--jt); }
-.wd-banner.banner-drag-over-bottom { border-bottom: 2.5px solid var(--jt); }
-.wd-banner.banner-dragging         { opacity: 0.5; }
-.wd-banner-drag-handle {
-  cursor: grab; flex-shrink: 0; font-size: 14px; line-height: 1;
-  opacity: 0; color: var(--ink3); padding: 0 2px; margin-top: 1px;
-  transition: opacity 0.15s; user-select: none;
+.wd-section-popup-hint {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--ink3);
+  padding: 8px 16px 12px;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+  background: var(--jt-light);
 }
-.wd-banner-header:hover .wd-banner-drag-handle { opacity: 0.45; }
-.wd-banner-drag-handle:hover { opacity: 0.8 !important; }
-.wd-version-row.ver-drag-over-top    { border-top: 2.5px solid var(--jt); }
-.wd-version-row.ver-drag-over-bottom { border-bottom: 2.5px solid var(--jt); }
-.wd-version-row.ver-dragging         { opacity: 0.45; }
+.wd-section-popup-body::selection,
+.wd-section-popup-body *::selection {
+  background: var(--jt-border);
+  color: var(--ink);
+}
 .wd-selected {
   outline: 2.5px solid var(--red) !important;
   background: var(--red-light) !important;
@@ -1494,7 +1536,7 @@ body {
   <div class="modal-overlay" id="wdAddWordModal">
     <div class="modal" style="max-width:400px;">
       <div class="modal-title">
-        <span id="wdAddWordModalTitle">✎ Edit Word Card</span>
+        <span id="wdAddWordModalTitle">✎ Edit Section Card</span>
         <button class="modal-close" onclick="closeModal('wdAddWordModal')">✕</button>
       </div>
       <div class="modal-fields" data-protonpass-form="">
@@ -1503,12 +1545,8 @@ body {
           <input type="text" id="wdAddWordSectionName" placeholder="e.g. Brand Name">
         </div>
         <div class="field">
-          <label>Words Count / Instruction</label>
-          <input type="text" id="wdAddWordWordsCount" placeholder="e.g. Find 2 of these">
-        </div>
-        <div class="field">
-          <label>Word / Text to Copy</label>
-          <input type="text" id="wdAddWordText" placeholder="e.g. Coca-Cola" onkeydown="if(event.key==='Enter')confirmAddWord()">
+          <label>Section Text</label>
+          <textarea id="wdAddSectionText" placeholder="Enter section content — can be long. Click the section title in the panel to view full text and copy." style="min-height:120px;resize:vertical;background:#fafbff;border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:13px;padding:7px 10px;outline:none;width:100%;box-sizing:border-box;"></textarea>
         </div>
         <div class="field">
           <label>Font Color (optional)</label>
@@ -1562,6 +1600,18 @@ body {
         <button class="btn-primary" id="wdAddWordSubmitBtn" onclick="confirmAddWord()">Save Changes</button>
         <button class="btn-secondary" onclick="closeModal('wdAddWordModal')">Cancel</button>
       </div>
+    </div>
+  </div>
+
+  <!-- SECTION FULL TEXT POPUP -->
+  <div class="wd-section-popup-overlay" id="wdSectionPopup" style="display:none;" onclick="if(event.target===this)closeWdSectionPopup()">
+    <div class="wd-section-popup">
+      <div class="wd-section-popup-header">
+        <span class="wd-section-popup-title" id="wdSectionPopupTitle"></span>
+        <button class="wd-section-popup-close" onclick="closeWdSectionPopup()">✕</button>
+      </div>
+      <div class="wd-section-popup-body" id="wdSectionPopupBody"></div>
+      <div class="wd-section-popup-hint">Select any text above to copy the selection.</div>
     </div>
   </div>
 
@@ -2183,7 +2233,7 @@ TaskRec01: task assigned, timer started.</div>
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
         <button id="btnExportForAI" onclick="exportForAI()" style="font-family:var(--mono);font-size:11.5px;padding:6px 14px;border-radius:var(--radius-sm);border:1px solid var(--jt-border);background:var(--jt-light);color:var(--jt);cursor:pointer;white-space:nowrap;" disabled="">⏳ Exporting…</button>
         <span style="font-family:var(--mono);font-size:10px;color:var(--ink3);background:var(--surface2);border:1px solid var(--border);border-radius:99px;padding:4px 12px;">🔒 Read-only · Managed by AI</span>
-        <span id="uhlvBadge" style="font-family:var(--mono);font-size:10px;color:var(--jt);background:var(--jt-light);border:1px solid var(--jt-border);border-radius:99px;padding:4px 12px;" title="Update History and Log Version — higher number wins on data load">UHLV: 29</span>
+        <span id="uhlvBadge" style="font-family:var(--mono);font-size:10px;color:var(--jt);background:var(--jt-light);border:1px solid var(--jt-border);border-radius:99px;padding:4px 12px;" title="Update History and Log Version — higher number wins on data load">UHLV: 30</span>
       </div>
     </div>
     <div style="font-family:var(--mono);font-size:11.5px;color:var(--ink3);margin-bottom:18px;line-height:1.7;background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;box-shadow:var(--shadow);">
@@ -4116,7 +4166,7 @@ let wordLibrary = [];
 // Increment UHLV any time bugLog or bugHistory is modified by AI
 // loadDataJson compares this vs JSON uhlv and keeps whichever is higher
 // ─────────────────────────────────────────
-let UHLV = 29;
+let UHLV = 30;
 /*BUG_LOG_START*/
 let bugLog = [];
 /*BUG_LOG_END*/
@@ -6970,6 +7020,7 @@ window.togglePanel = function(panelId) {
 // ─────────────────────────────────────────
 // GOOGLE DRIVE INTEGRATION — OAuth via GIS
 // ─────────────────────────────────────────
+const APP_V_VERSION = '3.5';
 const DRIVE_CLIENT_ID = '122560609463-vvejkpk1phego89icu12410bq0bmeha7.apps.googleusercontent.com';
 const DRIVE_REDIRECT_ORIGIN = 'https://realershad67-ship-it.github.io';
 const DRIVE_APP_FOLDER_NAME = 'JT MANAGER APP DATA';
@@ -8303,22 +8354,17 @@ function renderWordLibrary() {
   const body = document.getElementById('wdPanelBody');
   if (!body) return;
   if (!wordLibrary.length) {
-    body.innerHTML = `<div style="text-align:center;padding:32px 10px;font-family:var(--mono);font-size:12px;color:var(--ink3);">No word libraries yet.<br>Click + Add Website below.</div>`;
+    body.innerHTML = `<div style="text-align:center;padding:32px 10px;font-family:var(--mono);font-size:12px;color:var(--ink3);">No libraries yet.<br>Click + Add Library below.</div>`;
     return;
   }
 
-  // Snapshot open banner state before rebuild
-  const openBanners = new Set();
-  document.querySelectorAll('.wd-banner-body.open').forEach(el => {
-    const m = el.id.match(/^wdBannerBody_(.+)$/);
-    if (m) openBanners.add(m[1]);
-  });
+  // Snapshot open page banner state before rebuild
   const openVersions = new Set();
-  document.querySelectorAll('.wd-version-cards.open').forEach(el => {
-    const m = el.id.match(/^wdVerCards_(.+)$/);
+  document.querySelectorAll('.wd-page-banner-body.open').forEach(el => {
+    const m = el.id.match(/^wdPageBannerBody_(.+)$/);
     if (m) openVersions.add(m[1]);
   });
-  const isFirstRender = openBanners.size === 0 && openVersions.size === 0;
+  const isFirstRender = openVersions.size === 0;
 
   // 2-color gradient background helper
   function makeBgStyle(color1, color2, fallback, ratio) {
@@ -8339,161 +8385,116 @@ function renderWordLibrary() {
     { bg: 'var(--red-light)',   border: 'var(--red-border)',   text: 'var(--red)'   },
   ];
 
-  // When searching, filter sites with no matching content and force banners open
-  const sitesToRender = _wdSearch
-    ? wordLibrary.filter(site => {
-        const pages = site.pageVersions || [];
-        const q = _wdSearch;
-        if (site.siteName && site.siteName.toLowerCase().includes(q)) return true;
-        return pages.some(ver =>
-          (ver.name && ver.name.toLowerCase().includes(q)) ||
-          (ver.words || []).some(w => w.sectionName && w.sectionName.toLowerCase().includes(q))
-        );
-      })
-    : wordLibrary;
+  // Collect all (site, ver) pairs to render as top-level page banners
+  let allPageBanners = [];
+  wordLibrary.forEach((site, siteIdx) => {
+    const col = WD_SITE_COLORS[siteIdx % WD_SITE_COLORS.length];
+    (site.pageVersions || []).forEach(ver => {
+      allPageBanners.push({ site, ver, col });
+    });
+  });
 
-  if (!sitesToRender.length && _wdSearch) {
+  // Apply search filter — filter page banners and their words
+  if (_wdSearch) {
+    const q = _wdSearch;
+    allPageBanners = allPageBanners.map(({ site, ver, col }) => {
+      const pageMatch = ver.name && ver.name.toLowerCase().includes(q);
+      const filteredWords = pageMatch
+        ? (ver.words || [])
+        : (ver.words || []).filter(w =>
+            (w.sectionName && w.sectionName.toLowerCase().includes(q)) ||
+            (w.word && w.word.toLowerCase().includes(q))
+          );
+      return { site, ver: { ...ver, words: filteredWords }, col, _searchFiltered: !pageMatch };
+    }).filter(({ ver, _searchFiltered }) => ver.words.length > 0 || !_searchFiltered);
+  }
+
+  if (!allPageBanners.length && _wdSearch) {
     body.innerHTML = `<div style="text-align:center;padding:32px 10px;font-family:var(--mono);font-size:12px;color:var(--ink3);">No sections match "<strong>${_wdSearch}</strong>".</div>`;
     return;
   }
 
-  body.innerHTML = sitesToRender.map((site, siteIdx) => {
-    const col = WD_SITE_COLORS[siteIdx % WD_SITE_COLORS.length];
-    const bannerOpen = isFirstRender || openBanners.has(site.id) || !!_wdSearch;
-    const pages = site.pageVersions || [];
+  body.innerHTML = allPageBanners.map(({ site, ver, col }) => {
+    const bannerOpen = isFirstRender || openVersions.has(ver.id) || !!_wdSearch;
 
-    // Init page selection state for this site
-    if (!_wdSelectedPage[site.id]) _wdSelectedPage[site.id] = 'all';
-    const selPage = _wdSelectedPage[site.id];
+    // Collect unique versions from word cards in this page
+    const wordVersions = [...new Set((ver.words||[]).map(w => w.version).filter(Boolean))];
+    const vKey = site.id + ':' + ver.id;
+    if (!_wdSelectedVersion[vKey]) _wdSelectedVersion[vKey] = 'all';
+    const selVer = _wdSelectedVersion[vKey];
 
-    // Page selector dropdown (only shown when not in delete mode)
-    const pageDropdownHtml = (!_wdDeleteMode && pages.length > 1) ? `
-      <select onchange="wdSelectPage('${site.id}', this.value)" onclick="event.stopPropagation()"
-        style="font-family:var(--mono);font-size:10px;padding:3px 5px;border-radius:6px;
+    // Version dropdown inside page banner (only when there are versioned cards and not delete mode)
+    const versionDropdownHtml = (!_wdDeleteMode && wordVersions.length) ? `
+      <select onchange="wdSelectVersion('${site.id}','${ver.id}',this.value)" onclick="event.stopPropagation()"
+        style="font-family:var(--mono);font-size:9.5px;padding:2px 5px;border-radius:5px;
                border:1px solid ${col.border};background:rgba(255,255,255,0.85);
-               color:${col.text};cursor:pointer;max-width:130px;flex-shrink:0;">
-        <option value="all" ${selPage==='all'?'selected':''}>All Pages</option>
-        ${pages.map(p => `<option value="${p.id}" ${selPage===p.id?'selected':''}>${p.name}</option>`).join('')}
+               color:${col.text};cursor:pointer;max-width:110px;flex-shrink:0;">
+        <option value="all" ${selVer==='all'?'selected':''}>All Versions</option>
+        ${wordVersions.map(v => `<option value="${v}" ${selVer===v?'selected':''}>${v}</option>`).join('')}
       </select>` : '';
 
-    // Which pages to render
-    let visiblePages = selPage === 'all' ? pages : pages.filter(p => p.id === selPage);
-
-    // Apply search filter — match site name, page name, or section (card title) name
-    if (_wdSearch) {
-      const q = _wdSearch;
-      const siteMatch = site.siteName && site.siteName.toLowerCase().includes(q);
-      visiblePages = visiblePages.map(ver => {
-        const pageMatch = siteMatch || (ver.name && ver.name.toLowerCase().includes(q));
-        const filteredWords = pageMatch
-          ? (ver.words || [])
-          : (ver.words || []).filter(w => w.sectionName && w.sectionName.toLowerCase().includes(q));
-        return { ...ver, words: filteredWords, _searchFiltered: !pageMatch };
-      }).filter(ver => ver.words.length > 0 || !ver._searchFiltered);
-    }
+    // Filter words by selected version
+    const allWords = ver.words || [];
+    const visibleWords = (selVer === 'all') ? allWords : allWords.filter(w => w.version === selVer);
 
     return `
-    <div class="wd-banner${_wdDeleteMode && _wdSelectedItems.has('banner:'+site.id) ? ' wd-selected' : ''}" id="wdBanner_${site.id}" data-site-id="${site.id}" style="border-color: ${col.border};${_wdDeleteMode ? 'transition:outline 0.1s;' : ''}">
-      <div class="wd-banner-header" onclick="${_wdDeleteMode ? `wdToggleSelect('banner:${site.id}')` : `toggleWdBanner('${site.id}')`}" style="${makeBgStyle(site.color1, site.color2, col.bg, site.colorRatio)}${_wdDeleteMode ? 'cursor:pointer;' : ''}">
-        ${!_wdDeleteMode ? `<span class="wd-banner-drag-handle" title="Drag to reorder">⠿</span>` : ''}
-        <span class="wd-banner-name" style="color: ${site.titleColor && site.titleColor !== '#1565C0' ? site.titleColor : col.text};">${site.siteName}</span>
-        ${pageDropdownHtml}
-        <button class="wd-banner-edit-btn" title="Edit website"
-          onclick="event.stopPropagation(); openEditSiteModal('${site.id}')">✎</button>
-        <span class="wd-banner-chevron ${bannerOpen ? 'open' : ''}" id="wdBannerChev_${site.id}" style="color: ${site.titleColor && site.titleColor !== '#1565C0' ? site.titleColor : col.text};">▼</span>
+    <div class="wd-page-banner${_wdDeleteMode && _wdSelectedItems.has('version:'+site.id+':'+ver.id) ? ' wd-selected' : ''}"
+      id="wdPageBanner_${ver.id}" data-site-id="${site.id}" data-ver-id="${ver.id}"
+      style="border-color: ${col.border};">
+      <div class="wd-page-banner-header"
+        onclick="${_wdDeleteMode ? `wdToggleSelect('version:${site.id}:${ver.id}')` : `toggleWdPageBanner('${ver.id}')`}"
+        style="${makeBgStyle(site.color1, site.color2, col.bg, site.colorRatio)}${_wdDeleteMode ? 'cursor:pointer;' : ''}">
+        ${!_wdDeleteMode ? `<span class="wd-page-banner-drag-handle" title="Drag to reorder">⠿</span>` : ''}
+        <span class="wd-page-banner-name" style="color: ${site.titleColor && site.titleColor !== '#1565C0' ? site.titleColor : col.text};">${ver.name}</span>
+        ${versionDropdownHtml}
+        ${!_wdDeleteMode ? `<button class="wd-page-edit-btn" title="Rename page" onclick="event.stopPropagation(); openEditPageModal('${site.id}','${ver.id}')">✎</button>` : ''}
+        <span class="wd-page-banner-chevron ${bannerOpen ? 'open' : ''}" id="wdPageBannerChev_${ver.id}" style="color: ${site.titleColor && site.titleColor !== '#1565C0' ? site.titleColor : col.text};">▼</span>
+        <button class="wd-add-word-btn" onclick="event.stopPropagation(); openAddWordModal('${site.id}','${ver.id}')" title="Add section" style="color: ${col.text};">＋</button>
       </div>
-      <div class="wd-banner-body ${bannerOpen ? 'open' : ''}" id="wdBannerBody_${site.id}">
-        ${visiblePages.map((ver, verIdx) => {
-          const verOpen = isFirstRender ? (verIdx === 0) : openVersions.has(ver.id);
-
-          // Collect unique versions from word cards in this page
-          const wordVersions = [...new Set((ver.words||[]).map(w => w.version).filter(Boolean))];
-          const vKey = site.id + ':' + ver.id;
-          if (!_wdSelectedVersion[vKey]) _wdSelectedVersion[vKey] = 'all';
-          const selVer = _wdSelectedVersion[vKey];
-
-          // Version dropdown inside page banner (only when there are versioned cards and not delete mode)
-          const versionDropdownHtml = (!_wdDeleteMode && wordVersions.length) ? `
-            <select onchange="wdSelectVersion('${site.id}','${ver.id}',this.value)" onclick="event.stopPropagation()"
-              style="font-family:var(--mono);font-size:9.5px;padding:2px 5px;border-radius:5px;
-                     border:1px solid ${col.border};background:rgba(255,255,255,0.85);
-                     color:${col.text};cursor:pointer;max-width:110px;flex-shrink:0;">
-              <option value="all" ${selVer==='all'?'selected':''}>All Versions</option>
-              ${wordVersions.map(v => `<option value="${v}" ${selVer===v?'selected':''}>${v}</option>`).join('')}
-            </select>` : '';
-
-          // Filter words by selected version
-          const allWords = ver.words || [];
-          const visibleWords = (selVer === 'all') ? allWords : allWords.filter(w => w.version === selVer);
-
-          return `
-          <div>
-            <div class="wd-version-row${_wdDeleteMode && _wdSelectedItems.has('version:'+site.id+':'+ver.id) ? ' wd-selected' : ''}" draggable="${_wdDeleteMode ? 'false' : 'true'}" data-ver-id="${ver.id}" data-site-id="${site.id}" style="border-left-color: ${col.border};${_wdDeleteMode ? 'cursor:pointer;' : ''}" ${_wdDeleteMode ? `onclick="wdToggleSelect('version:${site.id}:${ver.id}')"` : ''}>
-              <span class="wd-version-name" onclick="toggleWdVersion('${ver.id}')" style="color: ${col.text};">${ver.name}</span>
-              ${versionDropdownHtml}
-              ${!_wdDeleteMode ? `<button class="wd-page-edit-btn" title="Rename page" onclick="event.stopPropagation(); openEditPageModal('${site.id}','${ver.id}')">✎</button>` : ''}
-              <span class="wd-version-chevron ${verOpen ? 'open' : ''}" id="wdVerChev_${ver.id}" onclick="toggleWdVersion('${ver.id}')">▼</span>
-              <button class="wd-add-word-btn" onclick="openAddWordModal('${site.id}','${ver.id}')" title="Add word card" style="color: ${col.text};">＋</button>
-            </div>
-            <div class="wd-version-cards ${verOpen ? 'open' : ''}" id="wdVerCards_${ver.id}">
-              ${visibleWords.map(w => `
-                <div class="wd-word-card${_wdDeleteMode && _wdSelectedItems.has('word:'+site.id+':'+ver.id+':'+w.id) ? ' wd-selected' : ''}"
-                  draggable="${_wdDeleteMode ? 'false' : 'true'}"
-                  data-word-id="${w.id}" data-site-id="${site.id}" data-ver-id="${ver.id}"
-                  onclick="${_wdDeleteMode ? `wdToggleSelect('word:${site.id}:${ver.id}:${w.id}')` : `copyWdWord('${w.id}','${site.id}','${ver.id}')`}"
-                  style="border-left-color: ${col.border};"
-                  onmouseenter="${_wdDeleteMode ? '' : `this.style.borderColor='${col.border}'`}"
-                  onmouseleave="${_wdDeleteMode ? '' : `this.style.borderColor=''; this.style.borderLeftColor='${col.border}'`}">
-                  <div class="wd-card-title" style="${makeBgStyle(w.color1, w.color2, col.bg, w.colorRatio)} border-bottom-color: ${col.border}; color: ${col.text};">
-                    <span class="wd-drag-handle" onclick="event.stopPropagation()">⠿</span>
-                    <div class="wd-card-title-text">
-                      <span style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.9px;line-height:1.3;display:block;">${w.sectionName || w.title || ''}</span>
-                      ${w.wordsCount ? `<span style="font-size:9.5px;font-weight:600;opacity:0.85;text-transform:none;letter-spacing:0.2px;display:block;margin-top:2px;">${w.wordsCount}</span>` : ''}
-                    </div>
-                    ${w.version ? `<span style="font-size:9px;font-weight:700;font-family:var(--mono);text-transform:uppercase;letter-spacing:0.4px;padding:2px 7px;border-radius:99px;background:#1a1a2e;color:#e8d5ff;flex-shrink:0;line-height:1.5;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,0.35);">${w.version}</span>` : ''}
-                    <button class="wd-card-edit-btn" title="Edit word"
-                      onclick="event.stopPropagation(); openEditWordModal('${w.id}','${site.id}','${ver.id}')">✎</button>
-                  </div>
-                  <div class="wd-card-word" style="${w.highlightColor && w.highlightColor !== '#ffffff' ? 'background:'+w.highlightColor+';' : ''}${w.fontColor && w.fontColor !== '#0d1b3e' ? 'color:'+w.fontColor+';' : ''}">${w.word}</div>
+      <div class="wd-page-banner-body ${bannerOpen ? 'open' : ''}" id="wdPageBannerBody_${ver.id}">
+        <div class="wd-version-cards open" id="wdVerCards_${ver.id}">
+          ${visibleWords.map(w => `
+            <div class="wd-section-card${_wdDeleteMode && _wdSelectedItems.has('word:'+site.id+':'+ver.id+':'+w.id) ? ' wd-selected' : ''}"
+              draggable="${_wdDeleteMode ? 'false' : 'true'}"
+              data-word-id="${w.id}" data-site-id="${site.id}" data-ver-id="${ver.id}"
+              style="border-left-color: ${col.border};"
+              onmouseenter="${_wdDeleteMode ? '' : `this.style.borderColor='${col.border}'`}"
+              onmouseleave="${_wdDeleteMode ? '' : `this.style.borderColor=''; this.style.borderLeftColor='${col.border}'`}"
+              ${_wdDeleteMode ? `onclick="wdToggleSelect('word:${site.id}:${ver.id}:${w.id}')"` : ''}>
+              <div class="wd-section-card-title" style="${makeBgStyle(w.color1, w.color2, col.bg, w.colorRatio)} border-bottom-color: ${col.border}; color: ${col.text};"
+                ${!_wdDeleteMode ? `onclick="openWdSectionPopup('${w.id}','${site.id}','${ver.id}')"` : ''}>
+                <span class="wd-drag-handle" onclick="event.stopPropagation()">⠿</span>
+                <div class="wd-section-card-title-text">
+                  <span style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.9px;line-height:1.3;display:block;">${w.sectionName || ''}</span>
                 </div>
-              `).join('')}
-              ${!visibleWords.length ? `<div style="font-family:var(--mono);font-size:10px;color:var(--ink3);padding:4px 4px 2px;">${selVer !== 'all' ? 'No words for this version — click ＋' : 'No words yet — click ＋'}</div>` : ''}
+                ${w.version ? `<span style="font-size:9px;font-weight:700;font-family:var(--mono);text-transform:uppercase;letter-spacing:0.4px;padding:2px 7px;border-radius:99px;background:#1a1a2e;color:#e8d5ff;flex-shrink:0;line-height:1.5;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,0.35);">${w.version}</span>` : ''}
+                <button class="wd-card-edit-btn" title="Edit section"
+                  onclick="event.stopPropagation(); openEditWordModal('${w.id}','${site.id}','${ver.id}')">✎</button>
+              </div>
+              <div class="wd-section-card-body" style="${w.highlightColor && w.highlightColor !== '#ffffff' ? 'background:'+w.highlightColor+';' : ''}${w.fontColor && w.fontColor !== '#0d1b3e' ? 'color:'+w.fontColor+';' : ''}">${w.word || ''}</div>
             </div>
-          </div>
-        `}).join('')}
-        ${!_wdDeleteMode ? `<button onclick="openAddVersionModal('${site.id}')" style="font-family:var(--mono);font-size:10px;color:${col.text};background:${col.bg};border:1px solid ${col.border};border-radius:6px;padding:3px 8px;cursor:pointer;margin:2px 0 4px;">+ Add Page</button>` : ''}
+          `).join('')}
+          ${!visibleWords.length ? `<div style="font-family:var(--mono);font-size:10px;color:var(--ink3);padding:4px 4px 2px;">${selVer !== 'all' ? 'No sections for this version — click ＋' : 'No sections yet — click ＋'}</div>` : ''}
+        </div>
+        ${!_wdDeleteMode ? `<button onclick="openAddWordModal('${site.id}','${ver.id}')" style="font-family:var(--mono);font-size:10px;color:${col.text};background:${col.bg};border:1px solid ${col.border};border-radius:6px;padding:3px 8px;cursor:pointer;margin:2px 0 0;">+ Add Section</button>` : ''}
       </div>
     </div>
   `;
   }).join('');
 }
 
-window.toggleWdBanner = function(siteId) {
-  const body = document.getElementById('wdBannerBody_' + siteId);
-  const chev = document.getElementById('wdBannerChev_' + siteId);
+window.toggleWdPageBanner = function(verId) {
+  const body = document.getElementById('wdPageBannerBody_' + verId);
+  const chev = document.getElementById('wdPageBannerChev_' + verId);
   if (!body) return;
   const open = body.classList.toggle('open');
   if (chev) chev.classList.toggle('open', open);
-  // When opening, collapse all versions except the latest (index 0)
-  if (open) {
-    const site = wordLibrary.find(s => s.id === siteId);
-    if (site && site.pageVersions && site.pageVersions.length) {
-      site.pageVersions.forEach((ver, idx) => {
-        const cards = document.getElementById('wdVerCards_' + ver.id);
-        const vChev = document.getElementById('wdVerChev_' + ver.id);
-        if (cards) cards.classList.toggle('open', idx === 0);
-        if (vChev) vChev.classList.toggle('open', idx === 0);
-      });
-    }
-  }
 };
 
 window.toggleWdVersion = function(verId) {
   const cards = document.getElementById('wdVerCards_' + verId);
-  const chev  = document.getElementById('wdVerChev_'  + verId);
   if (!cards) return;
-  const open = cards.classList.toggle('open');
-  if (chev) chev.classList.toggle('open', open);
+  cards.classList.toggle('open');
 };
 
 window.wdSelectPage = function(siteId, pageId) {
@@ -8584,7 +8585,18 @@ window.copyWdWord = function(wordId, siteId, verId) {
   });
 };
 
-window.openAddSiteModal = function() {
+window.openWdSectionPopup = function(wordId, siteId, verId) {
+  const site = wordLibrary.find(s => s.id === siteId); if (!site) return;
+  const ver  = (site.pageVersions||[]).find(v => v.id === verId); if (!ver) return;
+  const w    = (ver.words||[]).find(x => x.id === wordId); if (!w) return;
+  document.getElementById('wdSectionPopupTitle').textContent = w.sectionName || 'Section';
+  document.getElementById('wdSectionPopupBody').textContent  = w.word || '';
+  document.getElementById('wdSectionPopup').style.display    = 'flex';
+};
+
+window.closeWdSectionPopup = function() {
+  document.getElementById('wdSectionPopup').style.display = 'none';
+};
   document.getElementById('wdAddSiteEditId').value  = '';
   document.getElementById('wdAddSiteInput').value   = '';
   document.getElementById('wdAddSiteColor1').value  = '#ffffff';
@@ -8658,8 +8670,7 @@ window.openAddWordModal = function(siteId, verId) {
   document.getElementById('wdAddWordVerId').value  = verId;
   document.getElementById('wdAddWordEditId').value = '';
   document.getElementById('wdAddWordSectionName').value  = '';
-  document.getElementById('wdAddWordWordsCount').value   = '';
-  document.getElementById('wdAddWordText').value         = '';
+  document.getElementById('wdAddSectionText').value      = '';
   document.getElementById('wdAddWordFontColor').value        = '#0d1b3e';
   document.getElementById('wdAddWordFontColorHex').value     = '';
   document.getElementById('wdAddWordHighlightColor').value   = '#ffffff';
@@ -8668,8 +8679,8 @@ window.openAddWordModal = function(siteId, verId) {
   document.getElementById('wdAddWordColor2').value = '#ffffff';
   document.getElementById('wdAddWordColorRatio').value = 50;
   wdPopulateVersionSelect(siteId, verId, '');
-  document.getElementById('wdAddWordModalTitle').textContent = '+ Add Word Card';
-  document.getElementById('wdAddWordSubmitBtn').textContent  = 'Add Word';
+  document.getElementById('wdAddWordModalTitle').textContent = '+ Add Section Card';
+  document.getElementById('wdAddWordSubmitBtn').textContent  = 'Add Section';
   openModal('wdAddWordModal');
   setTimeout(() => document.getElementById('wdAddWordSectionName').focus(), 80);
 };
@@ -8682,8 +8693,7 @@ window.openEditWordModal = function(wordId, siteId, verId) {
   document.getElementById('wdAddWordVerId').value  = verId;
   document.getElementById('wdAddWordEditId').value = wordId;
   document.getElementById('wdAddWordSectionName').value  = w.sectionName || '';
-  document.getElementById('wdAddWordWordsCount').value   = w.wordsCount || '';
-  document.getElementById('wdAddWordText').value         = w.word || '';
+  document.getElementById('wdAddSectionText').value      = w.word || '';
   document.getElementById('wdAddWordFontColor').value        = w.fontColor || '#0d1b3e';
   document.getElementById('wdAddWordFontColorHex').value     = w.fontColor || '';
   document.getElementById('wdAddWordHighlightColor').value   = w.highlightColor || '#ffffff';
@@ -8692,7 +8702,7 @@ window.openEditWordModal = function(wordId, siteId, verId) {
   document.getElementById('wdAddWordColor2').value = w.color2 || '#ffffff';
   document.getElementById('wdAddWordColorRatio').value = w.colorRatio ?? 50;
   wdPopulateVersionSelect(siteId, verId, w.version || '');
-  document.getElementById('wdAddWordModalTitle').textContent = '✎ Edit Word Card';
+  document.getElementById('wdAddWordModalTitle').textContent = '✎ Edit Section Card';
   document.getElementById('wdAddWordSubmitBtn').textContent  = 'Save Changes';
   openModal('wdAddWordModal');
   setTimeout(() => document.getElementById('wdAddWordSectionName').focus(), 80);
@@ -8703,8 +8713,7 @@ window.confirmAddWord = function() {
   const verId       = document.getElementById('wdAddWordVerId').value;
   const editId      = document.getElementById('wdAddWordEditId').value;
   const sectionName = document.getElementById('wdAddWordSectionName').value.trim();
-  const wordsCount  = document.getElementById('wdAddWordWordsCount').value.trim();
-  const word        = document.getElementById('wdAddWordText').value.trim();
+  const word        = document.getElementById('wdAddSectionText').value.trim();
   const fontColor      = document.getElementById('wdAddWordFontColorHex').value.trim()
                       || document.getElementById('wdAddWordFontColor').value || '';
   const highlightColor = document.getElementById('wdAddWordHighlightColorHex').value.trim()
@@ -8718,23 +8727,23 @@ window.confirmAddWord = function() {
     ? (document.getElementById('wdAddWordVersionNew').value || '').trim()
     : _vSelVal
   );
-  if (!sectionName || !word) { toast('Fill in Section Name and word'); return; }
+  if (!sectionName) { toast('Fill in Section Name'); return; }
   const site = wordLibrary.find(s => s.id === siteId); if (!site) return;
   const ver  = (site.pageVersions||[]).find(v => v.id === verId); if (!ver) return;
   if (!ver.words) ver.words = [];
   if (editId) {
     const w = ver.words.find(x => x.id === editId);
-    if (w) { w.sectionName = sectionName; w.wordsCount = wordsCount; w.word = word;
+    if (w) { w.sectionName = sectionName; w.word = word;
              w.fontColor = fontColor; w.highlightColor = highlightColor;
              w.color1 = color1; w.color2 = color2; w.colorRatio = colorRatio;
              w.version = version; }
   } else {
-    ver.words.push({ id: uid(), sectionName, wordsCount, word, fontColor, highlightColor, color1, color2, colorRatio, version });
+    ver.words.push({ id: uid(), sectionName, word, fontColor, highlightColor, color1, color2, colorRatio, version });
   }
   closeModal('wdAddWordModal');
   renderWordLibrary();
   markUnsaved(true);
-  toast(editId ? 'Word updated' : 'Word added');
+  toast(editId ? 'Section updated' : 'Section added');
 };
 
 window.deleteWdWord = function(wordId, siteId, verId) {
@@ -8789,10 +8798,7 @@ window.wdConfirmDelete = function() {
   if (!confirm('Delete ' + _wdSelectedItems.size + ' selected item(s)? This cannot be undone.')) return;
   _wdSelectedItems.forEach(key => {
     const parts = key.split(':');
-    if (parts[0] === 'banner') {
-      const idx = wordLibrary.findIndex(s => s.id === parts[1]);
-      if (idx !== -1) wordLibrary.splice(idx, 1);
-    } else if (parts[0] === 'version') {
+    if (parts[0] === 'version') {
       const site = wordLibrary.find(s => s.id === parts[1]);
       if (site) {
         const vi = (site.pageVersions||[]).findIndex(v => v.id === parts[2]);
@@ -8821,12 +8827,12 @@ window.wdConfirmDelete = function() {
 
 // ── WORD CARD DRAG-AND-DROP ────────────────────────────────────────────────
 let _wdDrag = null; // { wordId, siteId, verId }
-let _wdBannerDrag = null; // { siteId, fromIdx }
+let _wdBannerDrag = null; // { verId, siteId, fromIdx (in site.pageVersions) }
 let _wdSearch = '';
-let _wdVersionDrag = null; // { verId, siteId, fromIdx }
+let _wdVersionDrag = null; // unused — kept for compat
 
 document.addEventListener('dragstart', function(e) {
-  const card = e.target.closest('.wd-word-card[draggable="true"]');
+  const card = e.target.closest('.wd-section-card[draggable="true"]');
   if (card) {
     _wdDrag = {
       wordId: card.dataset.wordId,
@@ -8837,45 +8843,32 @@ document.addEventListener('dragstart', function(e) {
     e.dataTransfer.effectAllowed = 'move';
     return;
   }
-  const handle = e.target.closest('.wd-banner-drag-handle');
+  const handle = e.target.closest('.wd-page-banner-drag-handle');
   if (handle) {
-    const banner = handle.closest('.wd-banner');
+    const banner = handle.closest('.wd-page-banner');
     if (banner) {
       const siteId = banner.dataset.siteId;
-      const fromIdx = wordLibrary.findIndex(s => s.id === siteId);
-      _wdBannerDrag = { siteId, fromIdx };
+      const verId  = banner.dataset.verId;
+      const site   = wordLibrary.find(s => s.id === siteId);
+      const fromIdx = site ? (site.pageVersions || []).findIndex(v => v.id === verId) : -1;
+      _wdBannerDrag = { verId, siteId, fromIdx };
       banner.classList.add('banner-dragging');
       e.dataTransfer.effectAllowed = 'move';
     }
     return;
   }
-  const verRow = e.target.closest('.wd-version-row[draggable="true"]');
-  if (verRow && !e.target.closest('.wd-word-card') && !e.target.closest('.wd-banner-drag-handle')) {
-    const siteId = verRow.dataset.siteId;
-    const verId  = verRow.dataset.verId;
-    const site   = wordLibrary.find(s => s.id === siteId);
-    const fromIdx = site ? (site.pageVersions || []).findIndex(v => v.id === verId) : -1;
-    _wdVersionDrag = { verId, siteId, fromIdx };
-    verRow.classList.add('ver-dragging');
-    e.dataTransfer.effectAllowed = 'move';
-  }
 });
 
 document.addEventListener('dragend', function(e) {
-  const card = e.target.closest('.wd-word-card');
+  const card = e.target.closest('.wd-section-card');
   if (card) card.classList.remove('dragging');
-  document.querySelectorAll('.wd-word-card').forEach(c => {
+  document.querySelectorAll('.wd-section-card').forEach(c => {
     c.classList.remove('drag-over-top', 'drag-over-bottom');
   });
-  const banner = e.target.closest('.wd-banner');
+  const banner = e.target.closest('.wd-page-banner');
   if (banner) banner.classList.remove('banner-dragging');
-  document.querySelectorAll('.wd-banner').forEach(b => {
+  document.querySelectorAll('.wd-page-banner').forEach(b => {
     b.classList.remove('banner-drag-over-top', 'banner-drag-over-bottom');
-  });
-  const verRow = e.target.closest('.wd-version-row');
-  if (verRow) verRow.classList.remove('ver-dragging');
-  document.querySelectorAll('.wd-version-row').forEach(r => {
-    r.classList.remove('ver-drag-over-top', 'ver-drag-over-bottom');
   });
   _wdDrag = null;
   _wdBannerDrag = null;
@@ -8884,12 +8877,12 @@ document.addEventListener('dragend', function(e) {
 
 document.addEventListener('dragover', function(e) {
   if (_wdDrag) {
-    const card = e.target.closest('.wd-word-card');
+    const card = e.target.closest('.wd-section-card');
     if (!card) return;
     if (card.dataset.verId !== _wdDrag.verId) return;
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
-    document.querySelectorAll('.wd-word-card').forEach(c => {
+    document.querySelectorAll('.wd-section-card').forEach(c => {
       c.classList.remove('drag-over-top', 'drag-over-bottom');
     });
     const rect = card.getBoundingClientRect();
@@ -8899,50 +8892,34 @@ document.addEventListener('dragover', function(e) {
   if (_wdBannerDrag) {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
-    const targetBanner = e.target.closest('.wd-banner');
-    document.querySelectorAll('.wd-banner').forEach(b => {
+    const targetBanner = e.target.closest('.wd-page-banner');
+    document.querySelectorAll('.wd-page-banner').forEach(b => {
       b.classList.remove('banner-drag-over-top', 'banner-drag-over-bottom');
     });
-    if (targetBanner && targetBanner.dataset.siteId !== _wdBannerDrag.siteId) {
+    if (targetBanner && targetBanner.dataset.verId !== _wdBannerDrag.verId) {
       const rect = targetBanner.getBoundingClientRect();
       targetBanner.classList.add(e.clientY < rect.top + rect.height / 2 ? 'banner-drag-over-top' : 'banner-drag-over-bottom');
     }
   }
-  if (_wdVersionDrag) {
-    const targetRow = e.target.closest('.wd-version-row');
-    if (!targetRow) return;
-    if (targetRow.dataset.siteId !== _wdVersionDrag.siteId) return;
-    if (targetRow.dataset.verId === _wdVersionDrag.verId) return;
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-    document.querySelectorAll('.wd-version-row').forEach(r => {
-      r.classList.remove('ver-drag-over-top', 'ver-drag-over-bottom');
-    });
-    const rect = targetRow.getBoundingClientRect();
-    targetRow.classList.add(e.clientY < rect.top + rect.height / 2 ? 'ver-drag-over-top' : 'ver-drag-over-bottom');
-  }
 });
 
 document.addEventListener('dragleave', function(e) {
-  const card = e.target.closest('.wd-word-card');
+  const card = e.target.closest('.wd-section-card');
   if (card) card.classList.remove('drag-over-top', 'drag-over-bottom');
-  // banner highlight cleanup handled by dragover — not removed here
-  const verRow = e.target.closest('.wd-version-row');
-  if (verRow) verRow.classList.remove('ver-drag-over-top', 'ver-drag-over-bottom');
 });
 
 document.addEventListener('drop', function(e) {
-  if (_wdVersionDrag) {
-    const targetRow = e.target.closest('.wd-version-row');
-    if (targetRow && targetRow.dataset.siteId === _wdVersionDrag.siteId && targetRow.dataset.verId !== _wdVersionDrag.verId) {
+  if (_wdBannerDrag) {
+    const targetBanner = e.target.closest('.wd-page-banner');
+    if (targetBanner && targetBanner.dataset.verId !== _wdBannerDrag.verId && targetBanner.dataset.siteId === _wdBannerDrag.siteId) {
       e.preventDefault();
-      const site = wordLibrary.find(s => s.id === _wdVersionDrag.siteId);
+      const site = wordLibrary.find(s => s.id === _wdBannerDrag.siteId);
       if (site && site.pageVersions) {
-        const toVerId = targetRow.dataset.verId;
+        const toVerId = targetBanner.dataset.verId;
         let toIdx = site.pageVersions.findIndex(v => v.id === toVerId);
-        const fromIdx = _wdVersionDrag.fromIdx;
+        const fromIdx = _wdBannerDrag.fromIdx;
         if (fromIdx !== -1 && toIdx !== -1) {
-          const rect = targetRow.getBoundingClientRect();
+          const rect = targetBanner.getBoundingClientRect();
           const dropAfter = e.clientY >= rect.top + rect.height / 2;
           const [moved] = site.pageVersions.splice(fromIdx, 1);
           toIdx = site.pageVersions.findIndex(v => v.id === toVerId);
@@ -8952,36 +8929,14 @@ document.addEventListener('drop', function(e) {
         }
       }
     }
-    document.querySelectorAll('.wd-version-row').forEach(r => {
-      r.classList.remove('ver-drag-over-top', 'ver-drag-over-bottom', 'ver-dragging');
-    });
-    _wdVersionDrag = null;
-    return;
-  }
-  if (_wdBannerDrag) {
-    const targetBanner = e.target.closest('.wd-banner');
-    if (targetBanner && targetBanner.dataset.siteId !== _wdBannerDrag.siteId) {
-      e.preventDefault();
-      const toSiteId = targetBanner.dataset.siteId;
-      const toIdx = wordLibrary.findIndex(s => s.id === toSiteId);
-      if (_wdBannerDrag.fromIdx !== -1 && toIdx !== -1) {
-        const rect = targetBanner.getBoundingClientRect();
-        const dropAfter = e.clientY >= rect.top + rect.height / 2;
-        const [moved] = wordLibrary.splice(_wdBannerDrag.fromIdx, 1);
-        const newToIdx = wordLibrary.findIndex(s => s.id === toSiteId);
-        wordLibrary.splice(dropAfter ? newToIdx + 1 : newToIdx, 0, moved);
-        markUnsaved(true);
-        renderWordLibrary();
-      }
-    }
-    document.querySelectorAll('.wd-banner').forEach(b => {
+    document.querySelectorAll('.wd-page-banner').forEach(b => {
       b.classList.remove('banner-drag-over-top', 'banner-drag-over-bottom', 'banner-dragging');
     });
     _wdBannerDrag = null;
     return;
   }
   if (!_wdDrag) return;
-  const targetCard = e.target.closest('.wd-word-card');
+  const targetCard = e.target.closest('.wd-section-card');
   if (!targetCard) return;
   if (targetCard.dataset.verId !== _wdDrag.verId) return;
   e.preventDefault();
@@ -9002,7 +8957,7 @@ document.addEventListener('drop', function(e) {
   toIdx = ver.words.findIndex(w => w.id === toWordId);
   ver.words.splice(dropAfter ? toIdx + 1 : toIdx, 0, moved);
 
-  document.querySelectorAll('.wd-word-card').forEach(c => {
+  document.querySelectorAll('.wd-section-card').forEach(c => {
     c.classList.remove('drag-over-top', 'drag-over-bottom', 'dragging');
   });
   _wdDrag = null;
@@ -9182,7 +9137,7 @@ function setAcPanelVisibility(visible) {
       <button onclick="wdConfirmDelete()" style="font-family:var(--mono);font-size:11px;font-weight:700;padding:5px 12px;background:var(--red);color:#fff;border:none;border-radius:var(--radius-sm);cursor:pointer;">Delete Selected</button>
     </div>
     <div style="display:flex;gap:6px;">
-      <button class="wd-add-site-btn" style="flex:1;" onclick="openAddSiteModal()">+ Add Website</button>
+      <button class="wd-add-site-btn" style="flex:1;" onclick="openAddSiteModal()">+ Add Library</button>
       <button id="wdDeleteModeBtn" onclick="toggleWdDeleteMode()" style="font-family:var(--mono);font-size:14px;padding:10px 13px;border-radius:var(--radius-sm);
                border:1.5px solid var(--border2);background:#fff;color:var(--ink3);cursor:pointer;flex-shrink:0;
                transition:all 0.15s;" title="Toggle delete mode">🗑</button>
@@ -9235,13 +9190,51 @@ function setWdPanelVisibility(visible) {
   function attachWdWheel() {
     const wdBody = document.getElementById('wdPanelBody');
     if (wdBody) {
-      wdBody.addEventListener('wheel', function(e) { e.stopPropagation(); }, { passive: true });
+      wdBody.addEventListener('wheel', function(e) {
+        const atTop = wdBody.scrollTop === 0;
+        const atBottom = wdBody.scrollTop + wdBody.clientHeight >= wdBody.scrollHeight - 1;
+        const scrollingUp = e.deltaY < 0;
+        const scrollingDown = e.deltaY > 0;
+        if ((scrollingUp && !atTop) || (scrollingDown && !atBottom)) {
+          e.preventDefault();
+        }
+        e.stopPropagation();
+      }, { passive: false });
     }
   }
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', attachWdWheel);
   } else {
     attachWdWheel();
+  }
+})();
+
+// Section popup — copy selected text on mouseup
+(function() {
+  function attachSectionPopupCopy() {
+    const popupBody = document.getElementById('wdSectionPopupBody');
+    if (!popupBody) return;
+    popupBody.addEventListener('mouseup', function() {
+      const sel = window.getSelection();
+      if (!sel || sel.isCollapsed) return;
+      const text = sel.toString();
+      if (!text) return;
+      navigator.clipboard.writeText(text).then(() => {
+        toast('📋 Copied: ' + text.slice(0, 40) + (text.length > 40 ? '…' : ''));
+      }).catch(() => {
+        const ta = document.createElement('textarea');
+        ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+        document.body.appendChild(ta); ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        toast('📋 Copied');
+      });
+    });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', attachSectionPopupCopy);
+  } else {
+    attachSectionPopupCopy();
   }
 })();
 
