@@ -531,7 +531,15 @@ body {
 #wdPanelBody::-webkit-scrollbar { width: 4px; }
 #wdPanelBody::-webkit-scrollbar-thumb { background: var(--jt-border); border-radius: 4px; }
 
-/* Page banner (promoted top-level, was .wd-version-row) */
+.wd-add-word-btn {
+  background: none; border: none; cursor: pointer;
+  color: var(--jt); font-size: 15px; line-height: 1;
+  flex-shrink: 0; padding: 0 2px;
+}
+.wd-version-cards { display: none; flex-direction: column; gap: 6px; padding: 4px 0 8px; }
+.wd-version-cards.open { display: flex; }
+
+/* Page banner (promoted top-level) */
 .wd-page-banner {
   background: #fff;
   border: 1.5px solid var(--border2);
@@ -576,24 +584,6 @@ body {
 }
 .wd-page-banner-header:hover .wd-page-banner-drag-handle { opacity: 0.45; }
 .wd-page-banner-drag-handle:hover { opacity: 0.8 !important; }
-
-.wd-add-word-btn {
-  background: none; border: none; cursor: pointer;
-  color: var(--jt); font-size: 15px; line-height: 1;
-  flex-shrink: 0; padding: 0 2px;
-}
-.wd-version-cards { display: none; flex-direction: column; gap: 6px; padding: 0 0 4px 0; }
-.wd-version-cards.open { display: flex; }
-
-/* Page edit button */
-.wd-page-edit-btn {
-  background: none; border: none; cursor: pointer;
-  color: var(--ink3); font-size: 11px; line-height: 1;
-  padding: 0 3px; flex-shrink: 0; opacity: 0;
-  transition: opacity 0.15s, color 0.15s; border-radius: 4px;
-}
-.wd-page-banner-header:hover .wd-page-edit-btn { opacity: 0.55; }
-.wd-page-edit-btn:hover { opacity: 1 !important; color: var(--jt); }
 
 /* Section card (was .wd-word-card) */
 .wd-section-card {
@@ -670,6 +660,14 @@ body {
 }
 .wd-section-card:hover .wd-card-edit-btn { opacity: 0.55; }
 .wd-card-edit-btn:hover { opacity: 1 !important; color: var(--jt); }
+.wd-page-edit-btn {
+  background: none; border: none; cursor: pointer;
+  color: var(--ink3); font-size: 11px; line-height: 1;
+  padding: 0 3px; flex-shrink: 0; opacity: 0;
+  transition: opacity 0.15s, color 0.15s; border-radius: 4px;
+}
+.wd-page-banner-header:hover .wd-page-edit-btn { opacity: 0.55; }
+.wd-page-edit-btn:hover { opacity: 1 !important; color: var(--jt); }
 
 /* Full text popup modal */
 .wd-section-popup-overlay {
@@ -1611,7 +1609,7 @@ body {
         <button class="wd-section-popup-close" onclick="closeWdSectionPopup()">✕</button>
       </div>
       <div class="wd-section-popup-body" id="wdSectionPopupBody"></div>
-      <div class="wd-section-popup-hint">Select any text above to copy the selection.</div>
+      <div class="wd-section-popup-hint">Select any text above, then release to copy the selection.</div>
     </div>
   </div>
 
@@ -8354,17 +8352,22 @@ function renderWordLibrary() {
   const body = document.getElementById('wdPanelBody');
   if (!body) return;
   if (!wordLibrary.length) {
-    body.innerHTML = `<div style="text-align:center;padding:32px 10px;font-family:var(--mono);font-size:12px;color:var(--ink3);">No libraries yet.<br>Click + Add Library below.</div>`;
+    body.innerHTML = `<div style="text-align:center;padding:32px 10px;font-family:var(--mono);font-size:12px;color:var(--ink3);">No word libraries yet.<br>Click + Add Website below.</div>`;
     return;
   }
 
-  // Snapshot open page banner state before rebuild
-  const openVersions = new Set();
+  // Snapshot open banner state before rebuild
+  const openBanners = new Set();
   document.querySelectorAll('.wd-page-banner-body.open').forEach(el => {
     const m = el.id.match(/^wdPageBannerBody_(.+)$/);
+    if (m) openBanners.add(m[1]);
+  });
+  const openVersions = new Set();
+  document.querySelectorAll('.wd-version-cards.open').forEach(el => {
+    const m = el.id.match(/^wdVerCards_(.+)$/);
     if (m) openVersions.add(m[1]);
   });
-  const isFirstRender = openVersions.size === 0;
+  const isFirstRender = openBanners.size === 0 && openVersions.size === 0;
 
   // 2-color gradient background helper
   function makeBgStyle(color1, color2, fallback, ratio) {
@@ -8385,59 +8388,74 @@ function renderWordLibrary() {
     { bg: 'var(--red-light)',   border: 'var(--red-border)',   text: 'var(--red)'   },
   ];
 
-  // Collect all (site, ver) pairs to render as top-level page banners
-  let allPageBanners = [];
-  wordLibrary.forEach((site, siteIdx) => {
-    const col = WD_SITE_COLORS[siteIdx % WD_SITE_COLORS.length];
-    (site.pageVersions || []).forEach(ver => {
-      allPageBanners.push({ site, ver, col });
-    });
-  });
-
-  // Apply search filter — filter page banners and their words
-  if (_wdSearch) {
-    const q = _wdSearch;
-    allPageBanners = allPageBanners.map(({ site, ver, col }) => {
-      const pageMatch = ver.name && ver.name.toLowerCase().includes(q);
-      const filteredWords = pageMatch
-        ? (ver.words || [])
-        : (ver.words || []).filter(w =>
+  // When searching, filter sites with no matching content and force banners open
+  const sitesToRender = _wdSearch
+    ? wordLibrary.filter(site => {
+        const pages = site.pageVersions || [];
+        const q = _wdSearch;
+        return pages.some(ver =>
+          (ver.name && ver.name.toLowerCase().includes(q)) ||
+          (ver.words || []).some(w =>
             (w.sectionName && w.sectionName.toLowerCase().includes(q)) ||
             (w.word && w.word.toLowerCase().includes(q))
-          );
-      return { site, ver: { ...ver, words: filteredWords }, col, _searchFiltered: !pageMatch };
-    }).filter(({ ver, _searchFiltered }) => ver.words.length > 0 || !_searchFiltered);
-  }
+          )
+        );
+      })
+    : wordLibrary;
 
-  if (!allPageBanners.length && _wdSearch) {
+  if (!sitesToRender.length && _wdSearch) {
     body.innerHTML = `<div style="text-align:center;padding:32px 10px;font-family:var(--mono);font-size:12px;color:var(--ink3);">No sections match "<strong>${_wdSearch}</strong>".</div>`;
     return;
   }
 
-  body.innerHTML = allPageBanners.map(({ site, ver, col }) => {
-    const bannerOpen = isFirstRender || openVersions.has(ver.id) || !!_wdSearch;
+  body.innerHTML = sitesToRender.flatMap((site, siteIdx) => {
+    const col = WD_SITE_COLORS[siteIdx % WD_SITE_COLORS.length];
+    const pages = site.pageVersions || [];
 
-    // Collect unique versions from word cards in this page
-    const wordVersions = [...new Set((ver.words||[]).map(w => w.version).filter(Boolean))];
-    const vKey = site.id + ':' + ver.id;
-    if (!_wdSelectedVersion[vKey]) _wdSelectedVersion[vKey] = 'all';
-    const selVer = _wdSelectedVersion[vKey];
+    // Init page selection state for this site
+    if (!_wdSelectedPage[site.id]) _wdSelectedPage[site.id] = 'all';
 
-    // Version dropdown inside page banner (only when there are versioned cards and not delete mode)
-    const versionDropdownHtml = (!_wdDeleteMode && wordVersions.length) ? `
-      <select onchange="wdSelectVersion('${site.id}','${ver.id}',this.value)" onclick="event.stopPropagation()"
-        style="font-family:var(--mono);font-size:9.5px;padding:2px 5px;border-radius:5px;
-               border:1px solid ${col.border};background:rgba(255,255,255,0.85);
-               color:${col.text};cursor:pointer;max-width:110px;flex-shrink:0;">
-        <option value="all" ${selVer==='all'?'selected':''}>All Versions</option>
-        ${wordVersions.map(v => `<option value="${v}" ${selVer===v?'selected':''}>${v}</option>`).join('')}
-      </select>` : '';
+    // Apply search filter at page level
+    let visiblePages = pages;
+    if (_wdSearch) {
+      const q = _wdSearch;
+      visiblePages = pages.map(ver => {
+        const pageMatch = ver.name && ver.name.toLowerCase().includes(q);
+        const filteredWords = pageMatch
+          ? (ver.words || [])
+          : (ver.words || []).filter(w =>
+              (w.sectionName && w.sectionName.toLowerCase().includes(q)) ||
+              (w.word && w.word.toLowerCase().includes(q))
+            );
+        return { ...ver, words: filteredWords, _searchFiltered: !pageMatch };
+      }).filter(ver => ver.words.length > 0 || !ver._searchFiltered);
+    }
 
-    // Filter words by selected version
-    const allWords = ver.words || [];
-    const visibleWords = (selVer === 'all') ? allWords : allWords.filter(w => w.version === selVer);
+    return visiblePages.map((ver, verIdx) => {
+      const bannerOpen = isFirstRender ? (verIdx === 0 && siteIdx === 0) : openBanners.has(ver.id) || !!_wdSearch;
+      const verOpen = bannerOpen;
 
-    return `
+      // Collect unique versions from word cards in this page
+      const wordVersions = [...new Set((ver.words||[]).map(w => w.version).filter(Boolean))];
+      const vKey = site.id + ':' + ver.id;
+      if (!_wdSelectedVersion[vKey]) _wdSelectedVersion[vKey] = 'all';
+      const selVer = _wdSelectedVersion[vKey];
+
+      // Version dropdown inside page banner
+      const versionDropdownHtml = (!_wdDeleteMode && wordVersions.length) ? `
+        <select onchange="wdSelectVersion('${site.id}','${ver.id}',this.value)" onclick="event.stopPropagation()"
+          style="font-family:var(--mono);font-size:9.5px;padding:2px 5px;border-radius:5px;
+                 border:1px solid ${col.border};background:rgba(255,255,255,0.85);
+                 color:${col.text};cursor:pointer;max-width:110px;flex-shrink:0;">
+          <option value="all" ${selVer==='all'?'selected':''}>All Versions</option>
+          ${wordVersions.map(v => `<option value="${v}" ${selVer===v?'selected':''}>${v}</option>`).join('')}
+        </select>` : '';
+
+      // Filter words by selected version
+      const allWords = ver.words || [];
+      const visibleWords = (selVer === 'all') ? allWords : allWords.filter(w => w.version === selVer);
+
+      return `
     <div class="wd-page-banner${_wdDeleteMode && _wdSelectedItems.has('version:'+site.id+':'+ver.id) ? ' wd-selected' : ''}"
       id="wdPageBanner_${ver.id}" data-site-id="${site.id}" data-ver-id="${ver.id}"
       style="border-color: ${col.border};">
@@ -8452,7 +8470,7 @@ function renderWordLibrary() {
         <button class="wd-add-word-btn" onclick="event.stopPropagation(); openAddWordModal('${site.id}','${ver.id}')" title="Add section" style="color: ${col.text};">＋</button>
       </div>
       <div class="wd-page-banner-body ${bannerOpen ? 'open' : ''}" id="wdPageBannerBody_${ver.id}">
-        <div class="wd-version-cards open" id="wdVerCards_${ver.id}">
+        <div class="wd-version-cards ${verOpen ? 'open' : ''}" id="wdVerCards_${ver.id}">
           ${visibleWords.map(w => `
             <div class="wd-section-card${_wdDeleteMode && _wdSelectedItems.has('word:'+site.id+':'+ver.id+':'+w.id) ? ' wd-selected' : ''}"
               draggable="${_wdDeleteMode ? 'false' : 'true'}"
@@ -8476,10 +8494,11 @@ function renderWordLibrary() {
           `).join('')}
           ${!visibleWords.length ? `<div style="font-family:var(--mono);font-size:10px;color:var(--ink3);padding:4px 4px 2px;">${selVer !== 'all' ? 'No sections for this version — click ＋' : 'No sections yet — click ＋'}</div>` : ''}
         </div>
-        ${!_wdDeleteMode ? `<button onclick="openAddWordModal('${site.id}','${ver.id}')" style="font-family:var(--mono);font-size:10px;color:${col.text};background:${col.bg};border:1px solid ${col.border};border-radius:6px;padding:3px 8px;cursor:pointer;margin:2px 0 0;">+ Add Section</button>` : ''}
+        ${!_wdDeleteMode ? `<button onclick="openAddWordModal('${site.id}','${ver.id}')" style="font-family:var(--mono);font-size:10px;color:${col.text};background:${col.bg};border:1px solid ${col.border};border-radius:6px;padding:3px 8px;cursor:pointer;margin:2px 0 4px;">+ Add Section</button>` : ''}
       </div>
     </div>
   `;
+    });
   }).join('');
 }
 
@@ -8489,12 +8508,17 @@ window.toggleWdPageBanner = function(verId) {
   if (!body) return;
   const open = body.classList.toggle('open');
   if (chev) chev.classList.toggle('open', open);
+  // Also toggle the version cards container inside
+  const cards = document.getElementById('wdVerCards_' + verId);
+  if (cards) cards.classList.toggle('open', open);
 };
 
 window.toggleWdVersion = function(verId) {
   const cards = document.getElementById('wdVerCards_' + verId);
+  const chev  = document.getElementById('wdVerChev_'  + verId);
   if (!cards) return;
-  cards.classList.toggle('open');
+  const open = cards.classList.toggle('open');
+  if (chev) chev.classList.toggle('open', open);
 };
 
 window.wdSelectPage = function(siteId, pageId) {
@@ -8597,6 +8621,8 @@ window.openWdSectionPopup = function(wordId, siteId, verId) {
 window.closeWdSectionPopup = function() {
   document.getElementById('wdSectionPopup').style.display = 'none';
 };
+
+window.openAddSiteModal = function() {
   document.getElementById('wdAddSiteEditId').value  = '';
   document.getElementById('wdAddSiteInput').value   = '';
   document.getElementById('wdAddSiteColor1').value  = '#ffffff';
@@ -8827,9 +8853,8 @@ window.wdConfirmDelete = function() {
 
 // ── WORD CARD DRAG-AND-DROP ────────────────────────────────────────────────
 let _wdDrag = null; // { wordId, siteId, verId }
-let _wdBannerDrag = null; // { verId, siteId, fromIdx (in site.pageVersions) }
+let _wdBannerDrag = null; // { verId, siteId, fromIdx }
 let _wdSearch = '';
-let _wdVersionDrag = null; // unused — kept for compat
 
 document.addEventListener('dragstart', function(e) {
   const card = e.target.closest('.wd-section-card[draggable="true"]');
@@ -8847,10 +8872,18 @@ document.addEventListener('dragstart', function(e) {
   if (handle) {
     const banner = handle.closest('.wd-page-banner');
     if (banner) {
-      const siteId = banner.dataset.siteId;
       const verId  = banner.dataset.verId;
+      const siteId = banner.dataset.siteId;
       const site   = wordLibrary.find(s => s.id === siteId);
-      const fromIdx = site ? (site.pageVersions || []).findIndex(v => v.id === verId) : -1;
+      // fromIdx is across all rendered page banners (flatMap order)
+      let fromIdx = -1;
+      let counter = 0;
+      wordLibrary.forEach(s => {
+        (s.pageVersions || []).forEach(v => {
+          if (v.id === verId) fromIdx = counter;
+          counter++;
+        });
+      });
       _wdBannerDrag = { verId, siteId, fromIdx };
       banner.classList.add('banner-dragging');
       e.dataTransfer.effectAllowed = 'move';
@@ -8911,19 +8944,30 @@ document.addEventListener('dragleave', function(e) {
 document.addEventListener('drop', function(e) {
   if (_wdBannerDrag) {
     const targetBanner = e.target.closest('.wd-page-banner');
-    if (targetBanner && targetBanner.dataset.verId !== _wdBannerDrag.verId && targetBanner.dataset.siteId === _wdBannerDrag.siteId) {
+    if (targetBanner && targetBanner.dataset.verId !== _wdBannerDrag.verId) {
       e.preventDefault();
-      const site = wordLibrary.find(s => s.id === _wdBannerDrag.siteId);
-      if (site && site.pageVersions) {
-        const toVerId = targetBanner.dataset.verId;
-        let toIdx = site.pageVersions.findIndex(v => v.id === toVerId);
-        const fromIdx = _wdBannerDrag.fromIdx;
-        if (fromIdx !== -1 && toIdx !== -1) {
-          const rect = targetBanner.getBoundingClientRect();
-          const dropAfter = e.clientY >= rect.top + rect.height / 2;
-          const [moved] = site.pageVersions.splice(fromIdx, 1);
-          toIdx = site.pageVersions.findIndex(v => v.id === toVerId);
-          site.pageVersions.splice(dropAfter ? toIdx + 1 : toIdx, 0, moved);
+      const toVerId  = targetBanner.dataset.verId;
+      const toSiteId = targetBanner.dataset.siteId;
+      const fromSite = wordLibrary.find(s => s.id === _wdBannerDrag.siteId);
+      const toSite   = wordLibrary.find(s => s.id === toSiteId);
+      if (fromSite && toSite) {
+        const fromVerIdx = (fromSite.pageVersions || []).findIndex(v => v.id === _wdBannerDrag.verId);
+        if (fromVerIdx !== -1) {
+          const [moved] = fromSite.pageVersions.splice(fromVerIdx, 1);
+          // If same site, insert relative to target
+          if (fromSite === toSite) {
+            let toIdx = fromSite.pageVersions.findIndex(v => v.id === toVerId);
+            const rect = targetBanner.getBoundingClientRect();
+            const dropAfter = e.clientY >= rect.top + rect.height / 2;
+            fromSite.pageVersions.splice(dropAfter ? toIdx + 1 : toIdx, 0, moved);
+          } else {
+            // Cross-site: move page to target site
+            let toIdx = (toSite.pageVersions || []).findIndex(v => v.id === toVerId);
+            const rect = targetBanner.getBoundingClientRect();
+            const dropAfter = e.clientY >= rect.top + rect.height / 2;
+            if (!toSite.pageVersions) toSite.pageVersions = [];
+            toSite.pageVersions.splice(dropAfter ? toIdx + 1 : toIdx, 0, moved);
+          }
           markUnsaved(true);
           renderWordLibrary();
         }
@@ -9209,7 +9253,7 @@ function setWdPanelVisibility(visible) {
   }
 })();
 
-// Section popup — copy selected text on mouseup
+// Selection-to-copy on WD section popup body
 (function() {
   function attachSectionPopupCopy() {
     const popupBody = document.getElementById('wdSectionPopupBody');
@@ -9280,5 +9324,5 @@ if ('serviceWorker' in navigator) {
          font-size:18px;cursor:pointer;
          box-shadow:0 2px 12px rgba(13,27,62,0.22);
          align-items:center;justify-content:center;">↑</button>
-<script>// 22</script>
+<script>// 23</script>
 <protonpass-root-8df7 data-protonpass-role="root" data-protonpass-theme="dark"></protonpass-root-8df7></body></html>
