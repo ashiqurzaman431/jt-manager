@@ -547,6 +547,7 @@ body {
   overflow: hidden;
   box-shadow: 0 2px 10px rgba(21,101,192,0.10);
   margin-bottom: 4px;
+  flex-shrink: 0;
 }
 .wd-page-banner-header {
   display: flex;
@@ -676,19 +677,24 @@ body {
   background: rgba(0,0,0,0.38);
   z-index: 1200;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
+  padding: 16px 12px;
+  padding-top: max(16px, env(safe-area-inset-top));
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 .wd-section-popup {
   background: #fff;
   border-radius: 12px;
   box-shadow: 0 8px 40px rgba(21,101,192,0.18);
   width: 480px;
-  max-width: 95vw;
-  max-height: 80vh;
+  max-width: 100%;
+  max-height: calc(100svh - 32px);
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  flex-shrink: 0;
 }
 .wd-section-popup-header {
   display: flex;
@@ -9317,21 +9323,17 @@ function setWdPanelVisibility(visible) {
   }
 }
 
-// Capture mouse wheel on WD panel body so it scrolls without bubbling
+// Stop wheel/touch events from bubbling out of WD panel body — let native scroll run
 (function() {
   function attachWdWheel() {
     const wdBody = document.getElementById('wdPanelBody');
     if (wdBody) {
       wdBody.addEventListener('wheel', function(e) {
-        const atTop = wdBody.scrollTop === 0;
-        const atBottom = wdBody.scrollTop + wdBody.clientHeight >= wdBody.scrollHeight - 1;
-        const scrollingUp = e.deltaY < 0;
-        const scrollingDown = e.deltaY > 0;
-        if ((scrollingUp && !atTop) || (scrollingDown && !atBottom)) {
-          e.preventDefault();
-        }
         e.stopPropagation();
-      }, { passive: false });
+      }, { passive: true });
+      wdBody.addEventListener('touchmove', function(e) {
+        e.stopPropagation();
+      }, { passive: true });
     }
   }
   if (document.readyState === 'loading') {
