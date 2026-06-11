@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="JT Manager">
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,400;0,500;1,400&amp;family=DM+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://accounts.google.com/gsi/client" async="" defer=""></script>
 <style>
 :root {
@@ -53,8 +53,8 @@
   --gray-light:  rgba(156,163,175,0.09);
   --gray-border: rgba(156,163,175,0.22);
 
-  --mono: 'DM Mono', monospace;
-  --sans: 'DM Sans', sans-serif;
+  --mono: 'Geist Mono', 'DM Mono', monospace;
+  --sans: 'Inter', 'DM Sans', sans-serif;
   --radius: 14px;
   --radius-sm: 9px;
   --shadow:    0 2px 16px rgba(0,0,0,0.45);
@@ -70,10 +70,11 @@ html { scroll-behavior:smooth; color-scheme:dark; }
 ::-webkit-scrollbar-thumb:hover { background: rgba(108,142,246,0.45); }
 
 body {
-  font-size: 15.6px;
+  font-size: 15px;
   background: var(--bg);
   color: var(--ink);
   font-family: var(--sans);
+  letter-spacing: -0.01em;
   min-height: 100vh;
   padding-bottom: 80px;
   overflow-x: hidden;
@@ -144,16 +145,16 @@ body {
   background: var(--jt-grad);
   border-radius:10px;
   display:flex; align-items:center; justify-content:center;
-  font-family:var(--mono); font-size:14.3px; font-weight:600; color:#fff;
+  font-family:var(--sans); font-size:14px; font-weight:800; color:#fff; letter-spacing:-0.3px;
   box-shadow: 0 0 0 1px rgba(108,142,246,0.3), 0 4px 16px rgba(108,142,246,0.35);
   flex-shrink:0;
 }
-.topbar-title { font-family:var(--mono); font-size:19.8px; font-weight:500; color:var(--ink); letter-spacing:-0.3px; }
-.topbar-sub { font-family:var(--mono); font-size:11px; color:var(--ink3); margin-top:2px; }
+.topbar-title { font-family:var(--sans); font-size:20px; font-weight:700; color:var(--ink); letter-spacing:-0.5px; }
+.topbar-sub { font-family:var(--sans); font-size:11px; color:var(--ink3); margin-top:2px; letter-spacing:0; }
 .version-badge {
-  font-family:var(--mono); font-size:11px;
+  font-family:var(--mono); font-size:10.5px; letter-spacing:0.3px;
   background:var(--jt-light); color:var(--jt);
-  border:1px solid var(--jt-border); padding:5px 12px; border-radius:99px;
+  border:1px solid var(--jt-border); padding:4px 12px; border-radius:99px;
 }
 
 /* ── NAV ── */
@@ -165,7 +166,7 @@ body {
 .nav-btn {
   flex:1; padding:11px 4px; border:1px solid transparent;
   background:transparent; color:var(--ink3);
-  font-family:var(--mono); font-size:12.1px; font-weight:500;
+  font-family:var(--sans); font-size:12.5px; font-weight:500;
   cursor:pointer; border-radius:var(--radius-sm); transition:all 0.18s;
   display:flex; align-items:center; justify-content:center; gap:6px;
 }
@@ -310,14 +311,16 @@ body {
   gap: 8px;
 }
 .ac-flow-title {
-  font-size: 12.5px;
+  font-size: 13px;
   font-weight: 700;
+  font-family: var(--sans);
   color: var(--ink);
   flex: 1;
   min-width: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  letter-spacing: -0.2px;
 }
 .ac-flow-meta {
   font-family: var(--mono);
@@ -434,11 +437,12 @@ body {
 }
 .ac-timer-label { color: var(--jt); font-size: 10px; font-weight: 600; }
 .ac-timer-val {
-  font-weight: 800;
-  color: var(--jt);
-  font-size: 14px;
-  letter-spacing: 1px;
+  font-weight: 700;
+  color: #6c8ef6;
+  font-size: 16px;
+  letter-spacing: 0.5px;
   font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 16px rgba(108,142,246,0.5);
 }
 
 /* Flow card enlarged */
@@ -577,7 +581,7 @@ body {
   padding: 8px 12px;
   border-radius: 10px;
   border: 1.5px solid rgba(124,58,237,0.18);
-  background: #fff;
+  background: var(--surface2);
   color: var(--ink);
   outline: none;
   transition: border-color 0.15s, box-shadow 0.15s;
@@ -674,7 +678,7 @@ body {
   opacity: 0.7;
 }
 .wd-page-banner-chevron.open { transform: rotate(180deg); }
-.wd-page-banner-body { display: none; flex-direction: column; gap: 5px; padding: 8px 10px 10px; background: #fafbff; }
+.wd-page-banner-body { display: none; flex-direction: column; gap: 5px; padding: 8px 10px 10px; background: var(--surface2); }
 .wd-page-banner-body.open { display: flex; }
 .wd-page-banner.banner-drag-over-top    { border-top: 2.5px solid var(--wdAcc, #7c3aed); }
 .wd-page-banner.banner-drag-over-bottom { border-bottom: 2.5px solid var(--wdAcc, #7c3aed); }
@@ -735,7 +739,7 @@ body {
   padding: 7px 10px 8px;
   line-height: 1.55;
   word-break: break-word;
-  background: #fff;
+  background: var(--surface2);
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
@@ -911,8 +915,8 @@ body {
 
 /* ── SECTION TITLE ── */
 .sec-title {
-  font-family:var(--mono); font-size:13.2px; font-weight:600;
-  color:var(--ink3); text-transform:uppercase; letter-spacing:0.6px;
+  font-family:var(--mono); font-size:10.5px; font-weight:600;
+  color:var(--ink3); text-transform:uppercase; letter-spacing:1.2px;
   margin-bottom:12px;
 }
 
@@ -928,13 +932,13 @@ body {
 }
 .stat-chip:hover { border-color:var(--jt-border); box-shadow:var(--glow); }
 .stat-chip-label { font-family:var(--mono); font-size:9.9px; color:var(--ink3); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px; }
-.stat-chip-val { font-family:var(--mono); font-size:19.8px; font-weight:700; }
-.stat-chip-val.blue { color:var(--jt); }
-.stat-chip-val.green { color:var(--green); }
-.stat-chip-val.amber { color:var(--amber); }
-.stat-chip-val.red { color:var(--red); }
-.stat-chip-val.gray { color:var(--gray); }
-.stat-chip-val.purple { color:var(--purple); }
+.stat-chip-val { font-family:var(--mono); font-size:22px; font-weight:700; letter-spacing:-0.5px; }
+.stat-chip-val.blue { color:#6c8ef6; text-shadow: 0 0 20px rgba(108,142,246,0.4); }
+.stat-chip-val.green { color:#34d399; text-shadow: 0 0 20px rgba(52,211,153,0.4); }
+.stat-chip-val.amber { color:#fbbf24; text-shadow: 0 0 20px rgba(251,191,36,0.35); }
+.stat-chip-val.red { color:#f87171; text-shadow: 0 0 20px rgba(248,113,113,0.4); }
+.stat-chip-val.gray { color:#9ca3af; }
+.stat-chip-val.purple { color:#a78bfa; text-shadow: 0 0 20px rgba(167,139,250,0.4); }
 
 /* ── DASHBOARD ACCOUNT CARDS ── */
 .dash-cards { display:grid; grid-template-columns:repeat(auto-fill, minmax(260px,1fr)); gap:14px; margin-bottom:28px; }
@@ -952,7 +956,7 @@ body {
 .dash-card.dash-card-ready { border-color:var(--green-border); background:linear-gradient(160deg, rgba(52,211,153,0.06) 0%, var(--surface) 60%); }
 .dash-card.dash-card-ready::before { background:linear-gradient(90deg,var(--green),#34d399); }
 .dash-card-head { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:12px; }
-.dash-card-name { font-size:15.4px; font-weight:600; color:var(--ink); }
+.dash-card-name { font-size:15px; font-weight:700; color:var(--ink); letter-spacing:-0.2px; }
 .dash-card-country { font-family:var(--mono); font-size:11px; color:var(--ink3); margin-top:2px; }
 .acc-status-pill {
   font-family:var(--mono); font-size:9.9px; font-weight:600;
@@ -995,7 +999,7 @@ body {
   box-shadow:var(--shadow); text-align:center;
 }
 .earnings-label { font-family:var(--mono); font-size:11px; color:var(--ink3); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px; }
-.earnings-val { font-family:var(--mono); font-size:24.2px; font-weight:700; color:var(--jt); }
+.earnings-val { font-family:var(--mono); font-size:26px; font-weight:700; color:#6c8ef6; letter-spacing:-0.5px; text-shadow: 0 0 24px rgba(108,142,246,0.45); }
 .earnings-sub { font-family:var(--mono); font-size:9.9px; color:var(--ink3); margin-top:3px; }
 
 /* ── TASK MANAGEMENT ── */
@@ -1011,7 +1015,7 @@ body {
   display:flex; align-items:center; justify-content:space-between;
   padding:13px 16px; cursor:pointer;
 }
-.panel-title { display:flex; align-items:center; gap:8px; font-size:14.3px; font-weight:500; }
+.panel-title { display:flex; align-items:center; gap:8px; font-size:14px; font-weight:600; font-family:var(--sans); letter-spacing:-0.1px; }
 .panel-icon {
   width:22px; height:22px; background:var(--jt-light); border:1px solid var(--jt-border);
   border-radius:6px; color:var(--jt); font-size:15.4px;
@@ -1054,8 +1058,8 @@ select option { background: var(--surface3); color: var(--ink); }
 .btn-primary {
   background:var(--jt-grad); color:#fff; border:none;
   border-radius:var(--radius-sm); padding:11px 20px;
-  font-family:var(--mono); font-size:13.2px; font-weight:600;
-  cursor:pointer; box-shadow:0 2px 10px rgba(21,101,192,0.28);
+  font-family:var(--sans); font-size:13px; font-weight:600; letter-spacing:-0.1px;
+  cursor:pointer; box-shadow:0 4px 18px rgba(108,142,246,0.3);
   transition:opacity 0.15s;
 }
 .btn-primary:hover { opacity:0.88; }
@@ -1080,10 +1084,10 @@ select option { background: var(--surface3); color: var(--ink); }
   box-shadow:var(--shadow); display:flex; align-items:flex-start; gap:14px;
   transition:border-color 0.15s, box-shadow 0.15s;
 }
-.task-card:hover { border-color:var(--jt-border); box-shadow:var(--glow); }
+.task-card:hover { border-color:var(--jt-border); box-shadow: 0 0 0 1px var(--jt-border), 0 8px 32px rgba(108,142,246,0.18); }
 .task-body { flex:1; min-width:0; }
 .task-head { display:flex; align-items:center; gap:8px; margin-bottom:6px; flex-wrap:wrap; }
-.task-title { font-size:15.4px; font-weight:700; color:var(--ink); margin-bottom:8px; line-height:1.3; }
+.task-title { font-size:15px; font-weight:700; color:var(--ink); margin-bottom:8px; line-height:1.3; letter-spacing:-0.2px; }
 .task-assignments { display:flex; flex-wrap:wrap; gap:4px; margin-bottom:8px; }
 .assign-chip {
   font-family:var(--mono); font-size:9.9px; padding:2px 8px; border-radius:99px;
@@ -1122,7 +1126,7 @@ select option { background: var(--surface3); color: var(--ink); }
 }
 .acc-list-item:hover { background:var(--surface2); }
 .acc-list-item.selected { background: rgba(108,142,246,0.10); border-left:3px solid var(--jt); }
-.acc-list-item-name { font-size:14.3px; font-weight:500; color:var(--ink); }
+.acc-list-item-name { font-size:14px; font-weight:600; font-family:var(--sans); color:var(--ink); letter-spacing:-0.1px; }
 .acc-list-item-sub { font-family:var(--mono); font-size:11px; color:var(--ink3); margin-top:1px; }
 
 .acc-detail-panel {
@@ -1212,12 +1216,12 @@ select option { background: var(--surface3); color: var(--ink); }
   content:''; position:absolute; left:0; top:0; bottom:0;
   width:4px; border-radius:var(--radius-sm) 0 0 var(--radius-sm);
 }
-.history-item.task-hist::before { background:var(--jt); }
+.history-item.task-hist::before { background: linear-gradient(180deg,#6c8ef6,#a78bfa); }
 .history-item.payout-hist { background:linear-gradient(120deg, rgba(52,211,153,0.10) 0%, rgba(52,211,153,0.06) 100%); border:1.5px solid var(--green-border); }
 .history-item.payout-hist::before { background:var(--green); width:5px; }
 .history-item-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:3px; }
-.history-item-title { font-size:13.2px; font-weight:500; color:var(--ink); }
-.history-item-amount { font-family:var(--mono); font-size:13.2px; font-weight:700; color:var(--green); }
+.history-item-title { font-size:13px; font-weight:600; font-family:var(--sans); color:var(--ink); }
+.history-item-amount { font-family:var(--mono); font-size:14px; font-weight:700; color:#34d399; letter-spacing:-0.3px; text-shadow: 0 0 16px rgba(52,211,153,0.45); }
 .history-item-meta { font-family:var(--mono); font-size:9.9px; color:var(--ink3); }
 .total-withdrawn-bar {
   background: rgba(108,142,246,0.08); border:1px solid var(--jt-border);
@@ -1240,7 +1244,7 @@ select option { background: var(--surface3); color: var(--ink); }
   box-shadow: 0 24px 80px rgba(0,0,0,0.6), 0 0 0 1px var(--border2);
   max-height:90vh; overflow-y:auto;
 }
-.modal-title { font-family:var(--mono); font-size:15.4px; font-weight:600; color:var(--ink); margin-bottom:18px; display:flex; align-items:center; justify-content:space-between; }
+.modal-title { font-family:var(--sans); font-size:16px; font-weight:700; color:var(--ink); margin-bottom:18px; letter-spacing:-0.3px; display:flex; align-items:center; justify-content:space-between; }
 .modal-close { background:none; border:none; font-size:19.8px; color:var(--ink3); cursor:pointer; line-height:1; }
 .modal-fields { display:flex; flex-direction:column; gap:12px; }
 .modal-actions { display:flex; gap:8px; margin-top:16px; }
@@ -1286,14 +1290,14 @@ select option { background: var(--surface3); color: var(--ink); }
   padding:11px 24px; z-index:100; gap:12px;
   overflow:hidden;
 }
-.save-bar-info { font-family:var(--mono); font-size:11px; color:var(--ink3); }
-.save-bar-info strong { color:var(--ink); font-size:12.1px; display:block; margin-bottom:1px; }
+.save-bar-info { font-family:var(--sans); font-size:11px; color:var(--ink3); }
+.save-bar-info strong { color:var(--ink); font-size:12px; font-weight:700; display:block; margin-bottom:1px; }
 .btn-save {
   background:var(--jt-grad); color:#fff; border:none;
   border-radius:var(--radius-sm); padding:10px 18px;
-  font-family:var(--mono); font-size:12.1px; font-weight:600;
+  font-family:var(--sans); font-size:12.5px; font-weight:600; letter-spacing:-0.1px;
   cursor:pointer; display:flex; align-items:center; gap:7px;
-  box-shadow:0 2px 10px rgba(21,101,192,0.3); white-space:nowrap;
+  box-shadow:0 4px 18px rgba(108,142,246,0.3); white-space:nowrap;
 }
 
 /* ── TOAST ── */
@@ -1414,12 +1418,12 @@ select option { background: var(--surface3); color: var(--ink); }
   font-family:var(--mono); font-size:22px; font-weight:600; color:#fff;
   margin:0 auto 20px; box-shadow:0 0 0 1px rgba(108,142,246,0.3), 0 4px 16px rgba(108,142,246,0.4);
 }
-.login-title { font-family:var(--mono); font-size:22px; font-weight:600; color:var(--ink); margin-bottom:6px; }
-.login-sub { font-family:var(--mono); font-size:11.5px; color:var(--ink3); margin-bottom:32px; line-height:1.6; }
+.login-title { font-family:var(--sans); font-size:24px; font-weight:800; color:var(--ink); margin-bottom:6px; letter-spacing:-0.5px; }
+.login-sub { font-family:var(--sans); font-size:13px; color:var(--ink3); margin-bottom:32px; line-height:1.6; }
 .login-btn {
   display:inline-flex; align-items:center; gap:10px;
   padding:12px 24px; border-radius:99px; border:1.5px solid var(--border2);
-  background:#fff; color:var(--ink2); font-family:var(--sans); font-size:14px;
+  background:var(--surface2); color:var(--ink2); font-family:var(--sans); font-size:14px;
   font-weight:600; cursor:pointer; transition:all 0.15s;
   box-shadow:0 2px 8px rgba(21,101,192,0.08);
 }
@@ -1513,17 +1517,17 @@ select option { background: var(--surface3); color: var(--ink); }
       A newer data file is available in Drive. <span id="driveNewFileInfo" style="color:#1d4ed8;font-weight:600;"></span>
     </div>
     <button onclick="driveGetLatestFromBanner()" style="font-family:var(--mono);font-size:11px;padding:6px 14px;border-radius:99px;border:1px solid #93c5fd;background:#dbeafe;color:#1e40af;cursor:pointer;white-space:nowrap;font-weight:600;">Load Now</button>
-    <button onclick="document.getElementById('driveNewFileBanner').classList.remove('visible')" style="margin-left:6px;font-family:var(--mono);font-size:11px;padding:6px 12px;border-radius:99px;border:1px solid #cbd5e1;background:#fff;color:var(--ink3);cursor:pointer;">Dismiss</button>
+    <button onclick="document.getElementById('driveNewFileBanner').classList.remove('visible')" style="margin-left:6px;font-family:var(--mono);font-size:11px;padding:6px 12px;border-radius:99px;border:1px solid var(--border2);background:var(--surface3);color:var(--ink2);cursor:pointer;">Dismiss</button>
   </div>
 
   <!-- BUG BANNER — shows when bugLog has entries -->
   <div id="bugLockBanner" style="display: none; margin-bottom: 18px; background: rgb(255, 248, 240); border: 2px solid rgb(217, 119, 6); border-radius: 14px; padding: 14px 20px; align-items: center; gap: 14px; box-shadow: rgba(217, 119, 6, 0.13) 0px 4px 18px;">
     <span style="font-size:24px;flex-shrink:0;">🐛</span>
     <div style="flex:1;">
-      <div style="font-family:'DM Mono',monospace;font-size:13px;font-weight:700;color:#b45309;letter-spacing:0.2px;">UPDATES PENDING — <span id="bugBannerCount">0</span> update(s) logged</div>
-      <div style="font-family:'DM Mono',monospace;font-size:10.5px;color:#92400e;margin-top:3px;">This file has pending updates. Contact the AI to apply and clear the log.</div>
+      <div style="font-family:'Geist Mono',monospace;font-size:13px;font-weight:700;color:#b45309;letter-spacing:0.2px;">UPDATES PENDING — <span id="bugBannerCount">0</span> update(s) logged</div>
+      <div style="font-family:'Geist Mono',monospace;font-size:10.5px;color:#92400e;margin-top:3px;">This file has pending updates. Contact the AI to apply and clear the log.</div>
     </div>
-    <button onclick="openBugModal(false)" style="font-family:'DM Mono',monospace;font-size:11px;padding:6px 14px;border-radius:99px;border:1px solid #d97706;background:#fef3c7;color:#b45309;cursor:pointer;white-space:nowrap;">📋 View Updates</button>
+    <button onclick="openBugModal(false)" style="font-family:'Geist Mono',monospace;font-size:11px;padding:6px 14px;border-radius:99px;border:1px solid #d97706;background:#fef3c7;color:#b45309;cursor:pointer;white-space:nowrap;">📋 View Updates</button>
   </div>
 
   <!-- BUG REPORT MODAL -->
@@ -1536,80 +1540,80 @@ select option { background: var(--surface3); color: var(--ink); }
       <div class="modal-fields" style="gap:14px;">
         <!-- Bug log entries -->
         <div id="bugLogList">
-          <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--ink3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Pending Updates</div>
+          <div style="font-family:'Geist Mono',monospace;font-size:11px;color:var(--ink3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Pending Updates</div>
           <div id="bugLogEntries" style="display:flex;flex-direction:column;gap:8px;max-height:200px;overflow-y:auto;margin-bottom:4px;">
       <div style="background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.22);border-radius:8px;padding:10px 12px;">
-        <div style="font-family:'DM Mono',monospace;font-size:9px;color:#fbbf24;margin-bottom:4px;opacity:0.7;">#1 · 2026.05.25 17:39</div>
-        <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--ink2);line-height:1.5;">count for today tasks isnt reseting at 5 pm of the day, as per time of +6 gmt or dhaka timezone.</div>
+        <div style="font-family:'Geist Mono',monospace;font-size:9px;color:#fbbf24;margin-bottom:4px;opacity:0.7;">#1 · 2026.05.25 17:39</div>
+        <div style="font-family:'Geist Mono',monospace;font-size:12px;color:var(--ink2);line-height:1.5;">count for today tasks isnt reseting at 5 pm of the day, as per time of +6 gmt or dhaka timezone.</div>
       </div>
       <div style="background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.22);border-radius:8px;padding:10px 12px;">
-        <div style="font-family:'DM Mono',monospace;font-size:9px;color:#fbbf24;margin-bottom:4px;opacity:0.7;">#2 · 2026.05.25 17:39</div>
-        <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--ink2);line-height:1.5;">search for tasks using task title system in the task list.</div>
+        <div style="font-family:'Geist Mono',monospace;font-size:9px;color:#fbbf24;margin-bottom:4px;opacity:0.7;">#2 · 2026.05.25 17:39</div>
+        <div style="font-family:'Geist Mono',monospace;font-size:12px;color:var(--ink2);line-height:1.5;">search for tasks using task title system in the task list.</div>
       </div>
       <div style="background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.22);border-radius:8px;padding:10px 12px;">
-        <div style="font-family:'DM Mono',monospace;font-size:9px;color:#fbbf24;margin-bottom:4px;opacity:0.7;">#3 · 2026.05.25 17:45</div>
-        <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--ink2);line-height:1.5;">tasks have tags, like fresh(which are just added), after 1 hours from the added time of task, they changes to today's task.</div>
+        <div style="font-family:'Geist Mono',monospace;font-size:9px;color:#fbbf24;margin-bottom:4px;opacity:0.7;">#3 · 2026.05.25 17:45</div>
+        <div style="font-family:'Geist Mono',monospace;font-size:12px;color:var(--ink2);line-height:1.5;">tasks have tags, like fresh(which are just added), after 1 hours from the added time of task, they changes to today's task.</div>
       </div>
       <div style="background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.22);border-radius:8px;padding:10px 12px;">
-        <div style="font-family:'DM Mono',monospace;font-size:9px;color:#fbbf24;margin-bottom:4px;opacity:0.7;">#4 · 2026.05.25 17:48</div>
-        <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--ink2);line-height:1.5;">for nw updates #6 and #4, the system of the file checks times when clicked on save to drive button. the tags in the update #6 needs to have animation relavant to the tags.</div>
+        <div style="font-family:'Geist Mono',monospace;font-size:9px;color:#fbbf24;margin-bottom:4px;opacity:0.7;">#4 · 2026.05.25 17:48</div>
+        <div style="font-family:'Geist Mono',monospace;font-size:12px;color:var(--ink2);line-height:1.5;">for nw updates #6 and #4, the system of the file checks times when clicked on save to drive button. the tags in the update #6 needs to have animation relavant to the tags.</div>
       </div>
       <div style="background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.22);border-radius:8px;padding:10px 12px;">
-        <div style="font-family:'DM Mono',monospace;font-size:9px;color:#fbbf24;margin-bottom:4px;opacity:0.7;">#5 · 2026.05.25 21:11</div>
-        <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--ink2);line-height:1.5;">needs update for account filter. create a checkbox of except. if that is checked, all tasks that were assignd to other accounts except that account be shown.</div>
+        <div style="font-family:'Geist Mono',monospace;font-size:9px;color:#fbbf24;margin-bottom:4px;opacity:0.7;">#5 · 2026.05.25 21:11</div>
+        <div style="font-family:'Geist Mono',monospace;font-size:12px;color:var(--ink2);line-height:1.5;">needs update for account filter. create a checkbox of except. if that is checked, all tasks that were assignd to other accounts except that account be shown.</div>
       </div>
       <div style="background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.22);border-radius:8px;padding:10px 12px;">
-        <div style="font-family:'DM Mono',monospace;font-size:9px;color:#fbbf24;margin-bottom:4px;opacity:0.7;">#6 · 2026.05.25 21:27</div>
-        <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--ink2);line-height:1.5;">task er arekta new sort krar holo je last edited, eta default sort thakbe.</div>
+        <div style="font-family:'Geist Mono',monospace;font-size:9px;color:#fbbf24;margin-bottom:4px;opacity:0.7;">#6 · 2026.05.25 21:27</div>
+        <div style="font-family:'Geist Mono',monospace;font-size:12px;color:var(--ink2);line-height:1.5;">task er arekta new sort krar holo je last edited, eta default sort thakbe.</div>
       </div>
       <div style="background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.22);border-radius:8px;padding:10px 12px;">
-        <div style="font-family:'DM Mono',monospace;font-size:9px;color:#fbbf24;margin-bottom:4px;opacity:0.7;">#7 · 2026.05.25 21:45</div>
-        <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--ink2);line-height:1.5;">there is a new update related to #6 and #12, this is basically filter. filter by fresh, todays tags. another tag will be given which is quicky. all of the tags new to have their own animation and style. this tags are shown top of the task list. any number of tag can be selected once. now we have 3 tag, Fresh, todays task and quicky. fresh and todays are automated and removed after time. but quicky tags is given to a task while adding the task and is never removed if user didnt do it.</div>
+        <div style="font-family:'Geist Mono',monospace;font-size:9px;color:#fbbf24;margin-bottom:4px;opacity:0.7;">#7 · 2026.05.25 21:45</div>
+        <div style="font-family:'Geist Mono',monospace;font-size:12px;color:var(--ink2);line-height:1.5;">there is a new update related to #6 and #12, this is basically filter. filter by fresh, todays tags. another tag will be given which is quicky. all of the tags new to have their own animation and style. this tags are shown top of the task list. any number of tag can be selected once. now we have 3 tag, Fresh, todays task and quicky. fresh and todays are automated and removed after time. but quicky tags is given to a task while adding the task and is never removed if user didnt do it.</div>
       </div>
       <div style="background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.22);border-radius:8px;padding:10px 12px;">
-        <div style="font-family:'DM Mono',monospace;font-size:9px;color:#fbbf24;margin-bottom:4px;opacity:0.7;">#8 · 2026.05.26 06:35</div>
-        <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--ink2);line-height:1.5;">new tag, error fixed.</div>
+        <div style="font-family:'Geist Mono',monospace;font-size:9px;color:#fbbf24;margin-bottom:4px;opacity:0.7;">#8 · 2026.05.26 06:35</div>
+        <div style="font-family:'Geist Mono',monospace;font-size:12px;color:var(--ink2);line-height:1.5;">new tag, error fixed.</div>
       </div>
       <div style="background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.22);border-radius:8px;padding:10px 12px;">
-        <div style="font-family:'DM Mono',monospace;font-size:9px;color:#fbbf24;margin-bottom:4px;opacity:0.7;">#9 · 2026.05.26 07:01</div>
-        <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--ink2);line-height:1.5;">the system is using global time. pls fix it to local device time.</div>
+        <div style="font-family:'Geist Mono',monospace;font-size:9px;color:#fbbf24;margin-bottom:4px;opacity:0.7;">#9 · 2026.05.26 07:01</div>
+        <div style="font-family:'Geist Mono',monospace;font-size:12px;color:var(--ink2);line-height:1.5;">the system is using global time. pls fix it to local device time.</div>
       </div>
       <div style="background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.22);border-radius:8px;padding:10px 12px;">
-        <div style="font-family:'DM Mono',monospace;font-size:9px;color:#fbbf24;margin-bottom:4px;opacity:0.7;">#10 · 2026.05.26 07:15</div>
-        <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--ink2);line-height:1.5;">in the task management tab, i need something to come to the top instantly. cause this will have a lot tasks and sometimes, scrolling is taking a longer.</div>
+        <div style="font-family:'Geist Mono',monospace;font-size:9px;color:#fbbf24;margin-bottom:4px;opacity:0.7;">#10 · 2026.05.26 07:15</div>
+        <div style="font-family:'Geist Mono',monospace;font-size:12px;color:var(--ink2);line-height:1.5;">in the task management tab, i need something to come to the top instantly. cause this will have a lot tasks and sometimes, scrolling is taking a longer.</div>
       </div>
       <div style="background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.22);border-radius:8px;padding:10px 12px;">
-        <div style="font-family:'DM Mono',monospace;font-size:9px;color:#fbbf24;margin-bottom:4px;opacity:0.7;">#11 · 2026.05.26 07:53</div>
-        <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--ink2);line-height:1.5;">eror note is not visible in the task card.</div>
+        <div style="font-family:'Geist Mono',monospace;font-size:9px;color:#fbbf24;margin-bottom:4px;opacity:0.7;">#11 · 2026.05.26 07:53</div>
+        <div style="font-family:'Geist Mono',monospace;font-size:12px;color:var(--ink2);line-height:1.5;">eror note is not visible in the task card.</div>
       </div>
       <div style="background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.22);border-radius:8px;padding:10px 12px;">
-        <div style="font-family:'DM Mono',monospace;font-size:9px;color:#fbbf24;margin-bottom:4px;opacity:0.7;">#12 · 2026.05.26 07:56</div>
-        <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--ink2);line-height:1.5;">an update regarding #17, i thik we should have a task description, which is optional but can be added. note for error, ignore it for now. skip #17.</div>
+        <div style="font-family:'Geist Mono',monospace;font-size:9px;color:#fbbf24;margin-bottom:4px;opacity:0.7;">#12 · 2026.05.26 07:56</div>
+        <div style="font-family:'Geist Mono',monospace;font-size:12px;color:var(--ink2);line-height:1.5;">an update regarding #17, i thik we should have a task description, which is optional but can be added. note for error, ignore it for now. skip #17.</div>
       </div>
       <div style="background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.22);border-radius:8px;padding:10px 12px;">
-        <div style="font-family:'DM Mono',monospace;font-size:9px;color:#fbbf24;margin-bottom:4px;opacity:0.7;">#13 · 2026.05.26 10:16</div>
-        <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--ink2);line-height:1.5;">#15y you need to fix it to the local device time but in 24h format.</div>
+        <div style="font-family:'Geist Mono',monospace;font-size:9px;color:#fbbf24;margin-bottom:4px;opacity:0.7;">#13 · 2026.05.26 10:16</div>
+        <div style="font-family:'Geist Mono',monospace;font-size:12px;color:var(--ink2);line-height:1.5;">#15y you need to fix it to the local device time but in 24h format.</div>
       </div>
       <div style="background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.22);border-radius:8px;padding:10px 12px;">
-        <div style="font-family:'DM Mono',monospace;font-size:9px;color:#fbbf24;margin-bottom:4px;opacity:0.7;">#14 · 2026.05.26 10:18</div>
-        <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--ink2);line-height:1.5;">if a accounts is dead, dont show it in the dashboard.</div>
+        <div style="font-family:'Geist Mono',monospace;font-size:9px;color:#fbbf24;margin-bottom:4px;opacity:0.7;">#14 · 2026.05.26 10:18</div>
+        <div style="font-family:'Geist Mono',monospace;font-size:12px;color:var(--ink2);line-height:1.5;">if a accounts is dead, dont show it in the dashboard.</div>
       </div>
       <div style="background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.22);border-radius:8px;padding:10px 12px;">
-        <div style="font-family:'DM Mono',monospace;font-size:9px;color:#fbbf24;margin-bottom:4px;opacity:0.7;">#15 · 2026.06.02 00:01</div>
-        <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--ink2);line-height:1.5;">Drive auto-fetch notification: the app currently auto-fetches the latest data file on load. Change this so it does NOT fetch automatically. Instead show a notification/banner that a newer data file is available and let the user manually click to get it.</div>
+        <div style="font-family:'Geist Mono',monospace;font-size:9px;color:#fbbf24;margin-bottom:4px;opacity:0.7;">#15 · 2026.06.02 00:01</div>
+        <div style="font-family:'Geist Mono',monospace;font-size:12px;color:var(--ink2);line-height:1.5;">Drive auto-fetch notification: the app currently auto-fetches the latest data file on load. Change this so it does NOT fetch automatically. Instead show a notification/banner that a newer data file is available and let the user manually click to get it.</div>
       </div>
       <div style="background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.22);border-radius:8px;padding:10px 12px;">
-        <div style="font-family:'DM Mono',monospace;font-size:9px;color:#fbbf24;margin-bottom:4px;opacity:0.7;">#16 · 2026.06.02 00:04</div>
-        <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--ink2);line-height:1.5;">Earnings history payout view: currently earnings history lists which accounts and tasks were rewarded on a given day. Replace this with a view that shows per-account payout amounts for the selected time range (daily, monthly, yearly, or custom range), making it easy to see how much each account paid out in that period.</div>
+        <div style="font-family:'Geist Mono',monospace;font-size:9px;color:#fbbf24;margin-bottom:4px;opacity:0.7;">#16 · 2026.06.02 00:04</div>
+        <div style="font-family:'Geist Mono',monospace;font-size:12px;color:var(--ink2);line-height:1.5;">Earnings history payout view: currently earnings history lists which accounts and tasks were rewarded on a given day. Replace this with a view that shows per-account payout amounts for the selected time range (daily, monthly, yearly, or custom range), making it easy to see how much each account paid out in that period.</div>
       </div></div>
-          <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--ink3);margin-bottom:10px;">Only the AI can clear this log (apply the fixes).</div>
+          <div style="font-family:'Geist Mono',monospace;font-size:10px;color:var(--ink3);margin-bottom:10px;">Only the AI can clear this log (apply the fixes).</div>
           <div style="border-top:1px solid var(--border);padding-top:12px;"></div>
         </div>
         <!-- Add new bug form — always visible -->
         <div id="bugReportForm">
           <div class="field">
             <label>Add an update to the log</label>
-            <textarea id="bugReportInput" placeholder="Describe the update…" style="min-height:80px;font-family:'DM Mono',monospace;font-size:13px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:10px;color:var(--ink);resize:vertical;width:100%;outline:none;"></textarea>
+            <textarea id="bugReportInput" placeholder="Describe the update…" style="min-height:80px;font-family:'Geist Mono',monospace;font-size:13px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:10px;color:var(--ink);resize:vertical;width:100%;outline:none;"></textarea>
           </div>
           <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:6px;">
             <button class="btn-secondary" onclick="closeModal('bugModal')">Close</button>
@@ -1636,31 +1640,31 @@ select option { background: var(--surface3); color: var(--ink); }
           <label>Banner Color 1 (optional)</label>
           <div style="display:flex;align-items:center;gap:8px;">
             <input type="color" id="wdAddSiteColor1" value="#ffffff" oninput="document.getElementById('wdAddSiteColor1Hex').value=this.value" style="width:38px;height:34px;border:1px solid var(--border2);border-radius:6px;cursor:pointer;padding:2px;flex-shrink:0;">
-            <input type="text" id="wdAddSiteColor1Hex" placeholder="#hex" oninput="if(this.value.match(/^#[0-9a-fA-F]{6}$/))document.getElementById('wdAddSiteColor1').value=this.value" style="flex:1;background:#fafbff;border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:13px;padding:7px 10px;outline:none;">
-            <button type="button" onclick="wdEyeDrop('wdAddSiteColor1','wdAddSiteColor1Hex')" title="Pick color from screen" style="font-family:var(--mono);font-size:14px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:#fff;color:var(--ink3);cursor:pointer;">🎨</button>
-            <button type="button" onclick="document.getElementById('wdAddSiteColor1').value='#ffffff';document.getElementById('wdAddSiteColor1Hex').value='';" style="font-family:var(--mono);font-size:10px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:#fff;color:var(--ink3);cursor:pointer;">✕</button>
+            <input type="text" id="wdAddSiteColor1Hex" placeholder="#hex" oninput="if(this.value.match(/^#[0-9a-fA-F]{6}$/))document.getElementById('wdAddSiteColor1').value=this.value" style="flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:13px;padding:7px 10px;outline:none;">
+            <button type="button" onclick="wdEyeDrop('wdAddSiteColor1','wdAddSiteColor1Hex')" title="Pick color from screen" style="font-family:var(--mono);font-size:14px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:var(--surface3);color:var(--ink2);cursor:pointer;">🎨</button>
+            <button type="button" onclick="document.getElementById('wdAddSiteColor1').value='#ffffff';document.getElementById('wdAddSiteColor1Hex').value='';" style="font-family:var(--mono);font-size:10px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:var(--surface3);color:var(--ink2);cursor:pointer;">✕</button>
           </div>
         </div>
         <div class="field">
           <label>Banner Color 2 (optional)</label>
           <div style="display:flex;align-items:center;gap:8px;">
             <input type="color" id="wdAddSiteColor2" value="#ffffff" oninput="document.getElementById('wdAddSiteColor2Hex').value=this.value" style="width:38px;height:34px;border:1px solid var(--border2);border-radius:6px;cursor:pointer;padding:2px;flex-shrink:0;">
-            <input type="text" id="wdAddSiteColor2Hex" placeholder="#hex" oninput="if(this.value.match(/^#[0-9a-fA-F]{6}$/))document.getElementById('wdAddSiteColor2').value=this.value" style="flex:1;background:#fafbff;border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:13px;padding:7px 10px;outline:none;">
-            <button type="button" onclick="wdEyeDrop('wdAddSiteColor2','wdAddSiteColor2Hex')" title="Pick color from screen" style="font-family:var(--mono);font-size:14px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:#fff;color:var(--ink3);cursor:pointer;">🎨</button>
-            <button type="button" onclick="document.getElementById('wdAddSiteColor2').value='#ffffff';document.getElementById('wdAddSiteColor2Hex').value='';" style="font-family:var(--mono);font-size:10px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:#fff;color:var(--ink3);cursor:pointer;">✕</button>
+            <input type="text" id="wdAddSiteColor2Hex" placeholder="#hex" oninput="if(this.value.match(/^#[0-9a-fA-F]{6}$/))document.getElementById('wdAddSiteColor2').value=this.value" style="flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:13px;padding:7px 10px;outline:none;">
+            <button type="button" onclick="wdEyeDrop('wdAddSiteColor2','wdAddSiteColor2Hex')" title="Pick color from screen" style="font-family:var(--mono);font-size:14px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:var(--surface3);color:var(--ink2);cursor:pointer;">🎨</button>
+            <button type="button" onclick="document.getElementById('wdAddSiteColor2').value='#ffffff';document.getElementById('wdAddSiteColor2Hex').value='';" style="font-family:var(--mono);font-size:10px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:var(--surface3);color:var(--ink2);cursor:pointer;">✕</button>
           </div>
         </div>
         <div class="field">
           <label>Color Split % — how much is Color 1 (1–99, default 50)</label>
-          <input type="number" id="wdAddSiteColorRatio" value="50" min="1" max="99" style="background:#fafbff;border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:13px;padding:7px 10px;outline:none;width:100%;">
+          <input type="number" id="wdAddSiteColorRatio" value="50" min="1" max="99" style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:13px;padding:7px 10px;outline:none;width:100%;">
         </div>
         <div class="field">
           <label>Title Text Color (optional — overrides auto color)</label>
           <div style="display:flex;align-items:center;gap:8px;">
             <input type="color" id="wdAddSiteTitleColor" value="#1565C0" oninput="document.getElementById('wdAddSiteTitleColorHex').value=this.value" style="width:38px;height:34px;border:1px solid var(--border2);border-radius:6px;cursor:pointer;padding:2px;flex-shrink:0;">
-            <input type="text" id="wdAddSiteTitleColorHex" placeholder="#hex" oninput="if(this.value.match(/^#[0-9a-fA-F]{6}$/))document.getElementById('wdAddSiteTitleColor').value=this.value" style="flex:1;background:#fafbff;border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:13px;padding:7px 10px;outline:none;">
-            <button type="button" onclick="wdEyeDrop('wdAddSiteTitleColor','wdAddSiteTitleColorHex')" title="Pick color from screen" style="font-family:var(--mono);font-size:14px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:#fff;color:var(--ink3);cursor:pointer;">🎨</button>
-            <button type="button" onclick="document.getElementById('wdAddSiteTitleColor').value='#1565C0';document.getElementById('wdAddSiteTitleColorHex').value='';" style="font-family:var(--mono);font-size:10px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:#fff;color:var(--ink3);cursor:pointer;">↺</button>
+            <input type="text" id="wdAddSiteTitleColorHex" placeholder="#hex" oninput="if(this.value.match(/^#[0-9a-fA-F]{6}$/))document.getElementById('wdAddSiteTitleColor').value=this.value" style="flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:13px;padding:7px 10px;outline:none;">
+            <button type="button" onclick="wdEyeDrop('wdAddSiteTitleColor','wdAddSiteTitleColorHex')" title="Pick color from screen" style="font-family:var(--mono);font-size:14px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:var(--surface3);color:var(--ink2);cursor:pointer;">🎨</button>
+            <button type="button" onclick="document.getElementById('wdAddSiteTitleColor').value='#1565C0';document.getElementById('wdAddSiteTitleColorHex').value='';" style="font-family:var(--mono);font-size:10px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:var(--surface3);color:var(--ink2);cursor:pointer;">↺</button>
           </div>
         </div>
       </div>
@@ -1687,31 +1691,31 @@ select option { background: var(--surface3); color: var(--ink); }
           <label>Banner Color 1 (optional)</label>
           <div style="display:flex;align-items:center;gap:8px;">
             <input type="color" id="wdAddVerColor1" value="#ffffff" oninput="document.getElementById('wdAddVerColor1Hex').value=this.value" style="width:38px;height:34px;border:1px solid var(--border2);border-radius:6px;cursor:pointer;padding:2px;flex-shrink:0;">
-            <input type="text" id="wdAddVerColor1Hex" placeholder="#hex" oninput="if(this.value.match(/^#[0-9a-fA-F]{6}$/))document.getElementById('wdAddVerColor1').value=this.value" style="flex:1;background:#fafbff;border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:13px;padding:7px 10px;outline:none;">
-            <button type="button" onclick="wdEyeDrop('wdAddVerColor1','wdAddVerColor1Hex')" title="Pick color from screen" style="font-family:var(--mono);font-size:14px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:#fff;color:var(--ink3);cursor:pointer;">🎨</button>
-            <button type="button" onclick="document.getElementById('wdAddVerColor1').value='#ffffff';document.getElementById('wdAddVerColor1Hex').value='';" style="font-family:var(--mono);font-size:10px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:#fff;color:var(--ink3);cursor:pointer;">✕</button>
+            <input type="text" id="wdAddVerColor1Hex" placeholder="#hex" oninput="if(this.value.match(/^#[0-9a-fA-F]{6}$/))document.getElementById('wdAddVerColor1').value=this.value" style="flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:13px;padding:7px 10px;outline:none;">
+            <button type="button" onclick="wdEyeDrop('wdAddVerColor1','wdAddVerColor1Hex')" title="Pick color from screen" style="font-family:var(--mono);font-size:14px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:var(--surface3);color:var(--ink2);cursor:pointer;">🎨</button>
+            <button type="button" onclick="document.getElementById('wdAddVerColor1').value='#ffffff';document.getElementById('wdAddVerColor1Hex').value='';" style="font-family:var(--mono);font-size:10px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:var(--surface3);color:var(--ink2);cursor:pointer;">✕</button>
           </div>
         </div>
         <div class="field">
           <label>Banner Color 2 (optional)</label>
           <div style="display:flex;align-items:center;gap:8px;">
             <input type="color" id="wdAddVerColor2" value="#ffffff" oninput="document.getElementById('wdAddVerColor2Hex').value=this.value" style="width:38px;height:34px;border:1px solid var(--border2);border-radius:6px;cursor:pointer;padding:2px;flex-shrink:0;">
-            <input type="text" id="wdAddVerColor2Hex" placeholder="#hex" oninput="if(this.value.match(/^#[0-9a-fA-F]{6}$/))document.getElementById('wdAddVerColor2').value=this.value" style="flex:1;background:#fafbff;border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:13px;padding:7px 10px;outline:none;">
-            <button type="button" onclick="wdEyeDrop('wdAddVerColor2','wdAddVerColor2Hex')" title="Pick color from screen" style="font-family:var(--mono);font-size:14px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:#fff;color:var(--ink3);cursor:pointer;">🎨</button>
-            <button type="button" onclick="document.getElementById('wdAddVerColor2').value='#ffffff';document.getElementById('wdAddVerColor2Hex').value='';" style="font-family:var(--mono);font-size:10px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:#fff;color:var(--ink3);cursor:pointer;">✕</button>
+            <input type="text" id="wdAddVerColor2Hex" placeholder="#hex" oninput="if(this.value.match(/^#[0-9a-fA-F]{6}$/))document.getElementById('wdAddVerColor2').value=this.value" style="flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:13px;padding:7px 10px;outline:none;">
+            <button type="button" onclick="wdEyeDrop('wdAddVerColor2','wdAddVerColor2Hex')" title="Pick color from screen" style="font-family:var(--mono);font-size:14px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:var(--surface3);color:var(--ink2);cursor:pointer;">🎨</button>
+            <button type="button" onclick="document.getElementById('wdAddVerColor2').value='#ffffff';document.getElementById('wdAddVerColor2Hex').value='';" style="font-family:var(--mono);font-size:10px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:var(--surface3);color:var(--ink2);cursor:pointer;">✕</button>
           </div>
         </div>
         <div class="field">
           <label>Color Split % — how much is Color 1 (1–99, default 50)</label>
-          <input type="number" id="wdAddVerColorRatio" value="50" min="1" max="99" style="background:#fafbff;border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:13px;padding:7px 10px;outline:none;width:100%;">
+          <input type="number" id="wdAddVerColorRatio" value="50" min="1" max="99" style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:13px;padding:7px 10px;outline:none;width:100%;">
         </div>
         <div class="field">
           <label>Title Text Color (optional — overrides auto color)</label>
           <div style="display:flex;align-items:center;gap:8px;">
             <input type="color" id="wdAddVerTitleColor" value="#1565C0" oninput="document.getElementById('wdAddVerTitleColorHex').value=this.value" style="width:38px;height:34px;border:1px solid var(--border2);border-radius:6px;cursor:pointer;padding:2px;flex-shrink:0;">
-            <input type="text" id="wdAddVerTitleColorHex" placeholder="#hex" oninput="if(this.value.match(/^#[0-9a-fA-F]{6}$/))document.getElementById('wdAddVerTitleColor').value=this.value" style="flex:1;background:#fafbff;border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:13px;padding:7px 10px;outline:none;">
-            <button type="button" onclick="wdEyeDrop('wdAddVerTitleColor','wdAddVerTitleColorHex')" title="Pick color from screen" style="font-family:var(--mono);font-size:14px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:#fff;color:var(--ink3);cursor:pointer;">🎨</button>
-            <button type="button" onclick="document.getElementById('wdAddVerTitleColor').value='#1565C0';document.getElementById('wdAddVerTitleColorHex').value='';" style="font-family:var(--mono);font-size:10px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:#fff;color:var(--ink3);cursor:pointer;">↺</button>
+            <input type="text" id="wdAddVerTitleColorHex" placeholder="#hex" oninput="if(this.value.match(/^#[0-9a-fA-F]{6}$/))document.getElementById('wdAddVerTitleColor').value=this.value" style="flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:13px;padding:7px 10px;outline:none;">
+            <button type="button" onclick="wdEyeDrop('wdAddVerTitleColor','wdAddVerTitleColorHex')" title="Pick color from screen" style="font-family:var(--mono);font-size:14px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:var(--surface3);color:var(--ink2);cursor:pointer;">🎨</button>
+            <button type="button" onclick="document.getElementById('wdAddVerTitleColor').value='#1565C0';document.getElementById('wdAddVerTitleColorHex').value='';" style="font-family:var(--mono);font-size:10px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:var(--surface3);color:var(--ink2);cursor:pointer;">↺</button>
           </div>
         </div>
       </div>
@@ -1747,51 +1751,51 @@ select option { background: var(--surface3); color: var(--ink); }
         </div>
         <div class="field">
           <label>Section Text</label>
-          <textarea id="wdAddSectionText" placeholder="Enter section content — can be long. Click the section title in the panel to view full text and copy." style="min-height:120px;resize:vertical;background:#fafbff;border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:13px;padding:7px 10px;outline:none;width:100%;box-sizing:border-box;"></textarea>
+          <textarea id="wdAddSectionText" placeholder="Enter section content — can be long. Click the section title in the panel to view full text and copy." style="min-height:120px;resize:vertical;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:13px;padding:7px 10px;outline:none;width:100%;box-sizing:border-box;"></textarea>
         </div>
         <div class="field">
           <label>Font Color (optional)</label>
           <div style="display:flex;align-items:center;gap:8px;">
             <input type="color" id="wdAddWordFontColor" value="#0d1b3e" oninput="document.getElementById('wdAddWordFontColorHex').value=this.value" style="width:38px;height:34px;border:1px solid var(--border2);border-radius:6px;cursor:pointer;padding:2px;flex-shrink:0;">
-            <input type="text" id="wdAddWordFontColorHex" placeholder="#0d1b3e" oninput="if(this.value.length===7||this.value.length===4)document.getElementById('wdAddWordFontColor').value=this.value" style="flex:1;background:#fafbff;border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:13px;padding:7px 10px;outline:none;">
-            <button type="button" onclick="document.getElementById('wdAddWordFontColor').value='#0d1b3e';document.getElementById('wdAddWordFontColorHex').value='';" style="font-family:var(--mono);font-size:10px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:#fff;color:var(--ink3);cursor:pointer;white-space:nowrap;">Clear</button>
+            <input type="text" id="wdAddWordFontColorHex" placeholder="#0d1b3e" oninput="if(this.value.length===7||this.value.length===4)document.getElementById('wdAddWordFontColor').value=this.value" style="flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:13px;padding:7px 10px;outline:none;">
+            <button type="button" onclick="document.getElementById('wdAddWordFontColor').value='#0d1b3e';document.getElementById('wdAddWordFontColorHex').value='';" style="font-family:var(--mono);font-size:10px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:var(--surface3);color:var(--ink2);cursor:pointer;white-space:nowrap;">Clear</button>
           </div>
         </div>
         <div class="field">
           <label>Highlight Color (optional)</label>
           <div style="display:flex;align-items:center;gap:8px;">
             <input type="color" id="wdAddWordHighlightColor" value="#ffffff" oninput="document.getElementById('wdAddWordHighlightColorHex').value=this.value" style="width:38px;height:34px;border:1px solid var(--border2);border-radius:6px;cursor:pointer;padding:2px;flex-shrink:0;">
-            <input type="text" id="wdAddWordHighlightColorHex" placeholder="#ffffff" oninput="if(this.value.length===7||this.value.length===4)document.getElementById('wdAddWordHighlightColor').value=this.value" style="flex:1;background:#fafbff;border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:13px;padding:7px 10px;outline:none;">
-            <button type="button" onclick="document.getElementById('wdAddWordHighlightColor').value='#ffffff';document.getElementById('wdAddWordHighlightColorHex').value='';" style="font-family:var(--mono);font-size:10px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:#fff;color:var(--ink3);cursor:pointer;white-space:nowrap;">Clear</button>
+            <input type="text" id="wdAddWordHighlightColorHex" placeholder="#ffffff" oninput="if(this.value.length===7||this.value.length===4)document.getElementById('wdAddWordHighlightColor').value=this.value" style="flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:13px;padding:7px 10px;outline:none;">
+            <button type="button" onclick="document.getElementById('wdAddWordHighlightColor').value='#ffffff';document.getElementById('wdAddWordHighlightColorHex').value='';" style="font-family:var(--mono);font-size:10px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:var(--surface3);color:var(--ink2);cursor:pointer;white-space:nowrap;">Clear</button>
           </div>
         </div>
         <div class="field">
           <label>Title Bar Color 1 (optional — left half)</label>
           <div style="display:flex;align-items:center;gap:8px;">
             <input type="color" id="wdAddWordColor1" value="#ffffff" style="width:38px;height:34px;border:1px solid var(--border2);border-radius:6px;cursor:pointer;padding:2px;flex-shrink:0;">
-            <button type="button" onclick="document.getElementById('wdAddWordColor1').value='#ffffff';" style="font-family:var(--mono);font-size:10px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:#fff;color:var(--ink3);cursor:pointer;">Clear</button>
+            <button type="button" onclick="document.getElementById('wdAddWordColor1').value='#ffffff';" style="font-family:var(--mono);font-size:10px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:var(--surface3);color:var(--ink2);cursor:pointer;">Clear</button>
           </div>
         </div>
         <div class="field">
           <label>Title Bar Color 2 (optional — right half)</label>
           <div style="display:flex;align-items:center;gap:8px;">
             <input type="color" id="wdAddWordColor2" value="#ffffff" style="width:38px;height:34px;border:1px solid var(--border2);border-radius:6px;cursor:pointer;padding:2px;flex-shrink:0;">
-            <button type="button" onclick="document.getElementById('wdAddWordColor2').value='#ffffff';" style="font-family:var(--mono);font-size:10px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:#fff;color:var(--ink3);cursor:pointer;">Clear</button>
+            <button type="button" onclick="document.getElementById('wdAddWordColor2').value='#ffffff';" style="font-family:var(--mono);font-size:10px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:var(--surface3);color:var(--ink2);cursor:pointer;">Clear</button>
           </div>
         </div>
         <div class="field">
           <label>Title Bar Color Split % — how much is Color 1 (1–99, default 50)</label>
-          <input type="number" id="wdAddWordColorRatio" value="50" min="1" max="99" style="background:#fafbff;border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:13px;padding:7px 10px;outline:none;width:100%;">
+          <input type="number" id="wdAddWordColorRatio" value="50" min="1" max="99" style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:13px;padding:7px 10px;outline:none;width:100%;">
         </div>
         <div class="field">
           <label>Version (optional)</label>
           <select id="wdAddWordVersionSelect"
             onchange="wdHandleVersionSelectChange(this.value)"
-            style="background:#fafbff;border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:13px;padding:7px 10px;outline:none;width:100%;cursor:pointer;">
+            style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:13px;padding:7px 10px;outline:none;width:100%;cursor:pointer;">
             <option value="">(none)</option>
           </select>
           <input type="text" id="wdAddWordVersionNew" placeholder="e.g. v1.0 or 2026.06.07"
-            style="display:none;margin-top:6px;background:#fafbff;border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:13px;padding:7px 10px;outline:none;width:100%;">
+            style="display:none;margin-top:6px;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:13px;padding:7px 10px;outline:none;width:100%;">
         </div>
       </div>
       <input type="hidden" id="wdAddWordSiteId" value="">
@@ -2012,14 +2016,14 @@ select option { background: var(--surface3); color: var(--ink); }
     <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap;align-items:center;">
       <div style="display:flex;align-items:center;gap:5px;flex:1;min-width:180px;">
         <span style="font-family:var(--mono);font-size:10px;color:var(--ink3);white-space:nowrap;">Title</span>
-        <input type="text" id="taskTitleSearch" placeholder="Search by title…" oninput="applyTaskSearch()" style="flex:1;font-family:var(--mono);font-size:11.5px;padding:5px 8px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:#fff;color:var(--ink);outline:none;">
+        <input type="text" id="taskTitleSearch" placeholder="Search by title…" oninput="applyTaskSearch()" style="flex:1;font-family:var(--mono);font-size:11.5px;padding:5px 8px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--surface2);color:var(--ink);outline:none;">
       </div>
       <div style="display:flex;align-items:center;gap:5px;">
         <span style="font-family:var(--mono);font-size:10px;color:var(--ink3);white-space:nowrap;">Range</span>
-        <input type="number" id="taskRangeFrom" placeholder="From" oninput="applyTaskSearch()" style="width:72px;font-family:var(--mono);font-size:11.5px;padding:5px 6px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:#fff;color:var(--ink);outline:none;">
+        <input type="number" id="taskRangeFrom" placeholder="From" oninput="applyTaskSearch()" style="width:72px;font-family:var(--mono);font-size:11.5px;padding:5px 6px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--surface2);color:var(--ink);outline:none;">
         <span style="font-family:var(--mono);font-size:10px;color:var(--ink3);">–</span>
-        <input type="number" id="taskRangeTo" placeholder="To" oninput="applyTaskSearch()" style="width:72px;font-family:var(--mono);font-size:11.5px;padding:5px 6px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:#fff;color:var(--ink);outline:none;">
-        <button onclick="clearTaskSearch()" style="font-family:var(--mono);font-size:10px;padding:4px 8px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:#fff;color:var(--ink3);cursor:pointer;" title="Clear search">✕</button>
+        <input type="number" id="taskRangeTo" placeholder="To" oninput="applyTaskSearch()" style="width:72px;font-family:var(--mono);font-size:11.5px;padding:5px 6px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--surface2);color:var(--ink);outline:none;">
+        <button onclick="clearTaskSearch()" style="font-family:var(--mono);font-size:10px;padding:4px 8px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--surface3);color:var(--ink2);cursor:pointer;" title="Clear search">✕</button>
       </div>
     </div>
 
@@ -2027,7 +2031,7 @@ select option { background: var(--surface3); color: var(--ink); }
     <div id="taskFilterRow" style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
       <div style="display:flex;align-items:center;gap:5px;">
         <span style="font-family:var(--mono);font-size:10px;color:var(--ink3);white-space:nowrap;">Type</span>
-        <select id="taskTypeFilterBar" onchange="setTaskTypeFilterDropdown(this.value)" style="font-family:var(--mono);font-size:11.5px;padding:5px 8px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:#fff;color:var(--ink);cursor:pointer;outline:none;">
+        <select id="taskTypeFilterBar" onchange="setTaskTypeFilterDropdown(this.value)" style="font-family:var(--mono);font-size:11.5px;padding:5px 8px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--surface2);color:var(--ink);cursor:pointer;outline:none;">
           <option value="all">All Tasks</option>
           <option value="google">🔍 Google</option>
           <option value="youtube">▶ YouTube</option>
@@ -2035,7 +2039,7 @@ select option { background: var(--surface3); color: var(--ink); }
       </div>
       <div style="display:flex;align-items:center;gap:5px;">
         <span style="font-family:var(--mono);font-size:10px;color:var(--ink3);white-space:nowrap;">Account</span>
-        <select id="taskAccountFilterBar" onchange="setTaskAccountFilter(this.value)" style="font-family:var(--mono);font-size:11.5px;padding:5px 8px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:#fff;color:var(--ink);cursor:pointer;outline:none;"><option value="all">All Accounts</option></select>
+        <select id="taskAccountFilterBar" onchange="setTaskAccountFilter(this.value)" style="font-family:var(--mono);font-size:11.5px;padding:5px 8px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--surface2);color:var(--ink);cursor:pointer;outline:none;"><option value="all">All Accounts</option></select>
         <label id="taskAccExceptLabel" style="display:none;font-family:var(--mono);font-size:11px;color:var(--ink2);align-items:center;gap:5px;cursor:pointer;">
           <input type="checkbox" id="taskAccExceptCb" onchange="setTaskAccountExcept(this.checked)" style="accent-color:var(--jt);width:13px;height:13px;">
           Except
@@ -2043,7 +2047,7 @@ select option { background: var(--surface3); color: var(--ink); }
       </div>
       <div id="taskSortBar" style="display:flex;align-items:center;gap:5px;">
         <span style="font-family:var(--mono);font-size:10px;color:var(--ink3);white-space:nowrap;">Sort</span>
-        <select id="taskSortSelect" onchange="setTaskSortDropdown(this.value)" style="font-family:var(--mono);font-size:11.5px;padding:5px 8px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:#fff;color:var(--ink);cursor:pointer;outline:none;">
+        <select id="taskSortSelect" onchange="setTaskSortDropdown(this.value)" style="font-family:var(--mono);font-size:11.5px;padding:5px 8px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--surface2);color:var(--ink);cursor:pointer;outline:none;">
           <option value="last-edited">Last Edited</option>
           <option value="unassigned">Default</option>
           <option value="alpha">A → Z</option>
@@ -2056,7 +2060,7 @@ select option { background: var(--surface3); color: var(--ink); }
       </div>
       <div id="taskSortDirBar" style="display:flex;align-items:center;gap:5px;">
         <span style="font-family:var(--mono);font-size:10px;color:var(--ink3);white-space:nowrap;">Dir</span>
-        <select id="taskSortDirSelect" onchange="setTaskSortDirDropdown(this.value)" style="font-family:var(--mono);font-size:11.5px;padding:5px 8px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:#fff;color:var(--ink);cursor:pointer;outline:none;">
+        <select id="taskSortDirSelect" onchange="setTaskSortDirDropdown(this.value)" style="font-family:var(--mono);font-size:11.5px;padding:5px 8px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--surface2);color:var(--ink);cursor:pointer;outline:none;">
           <option value="asc">Asc ↑</option>
           <option value="desc">Desc ↓</option>
         </select>
@@ -2081,18 +2085,18 @@ select option { background: var(--surface3); color: var(--ink); }
     <!-- Default Reward Settings -->
     <div style="margin-top:28px;">
       <div class="sec-title">Default Reward Settings</div>
-      <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px;">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px;">
         <div style="font-family:var(--mono);font-size:12.1px;color:var(--ink3);margin-bottom:16px;line-height:1.6;">
           Set the default reward pre-filled when adding a new task. You can always override it per task.
         </div>
         <div style="display:flex;gap:12px;flex-wrap:wrap;">
           <div class="field" style="flex:1;min-width:160px;">
             <label>Default Google Task Reward (USDT)</label>
-            <input type="number" id="defaultGoogleRewardInput" min="0" step="any" placeholder="0.00" style="background:#fafbff;border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:14.3px;padding:9px 10px;outline:none;width:100%;">
+            <input type="number" id="defaultGoogleRewardInput" min="0" step="any" placeholder="0.00" style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:14.3px;padding:9px 10px;outline:none;width:100%;">
           </div>
           <div class="field" style="flex:1;min-width:160px;">
             <label>Default YouTube Task Reward (USDT)</label>
-            <input type="number" id="defaultYoutubeRewardInput" min="0" step="any" placeholder="0.00" style="background:#fafbff;border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:14.3px;padding:9px 10px;outline:none;width:100%;">
+            <input type="number" id="defaultYoutubeRewardInput" min="0" step="any" placeholder="0.00" style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:14.3px;padding:9px 10px;outline:none;width:100%;">
           </div>
           <div style="display:flex;align-items:flex-end;padding-bottom:1px;">
             <button class="btn-primary" style="padding:10px 20px;white-space:nowrap;" onclick="saveDefaultRewards()">Save Defaults</button>
@@ -2130,7 +2134,7 @@ select option { background: var(--surface3); color: var(--ink); }
       <div class="sec-title" style="margin-bottom:0">Accounts</div>
       <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
         <span style="font-family:var(--mono);font-size:9.9px;color:var(--ink3);">Sort:</span>
-        <select id="accSortSelect" onchange="setAccSortDropdown(this.value)" style="font-family:var(--mono);font-size:11.5px;padding:5px 8px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:#fff;color:var(--ink);cursor:pointer;outline:none;">
+        <select id="accSortSelect" onchange="setAccSortDropdown(this.value)" style="font-family:var(--mono);font-size:11.5px;padding:5px 8px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--surface2);color:var(--ink);cursor:pointer;outline:none;">
           <option value="default" id="accSortDefault">Default</option>
           <option value="payout_date" id="accSortPayoutDate">Payout Date</option>
           <option value="balance" id="accSortBalance">Balance</option>
@@ -2150,11 +2154,11 @@ select option { background: var(--surface3); color: var(--ink); }
           <span class="version-badge" style="font-size:9.9px;" id="accCount">0</span>
         </div>
         <div style="padding:8px 12px;border-bottom:1px solid var(--border);">
-          <input type="text" id="accSearchInput" oninput="renderAccList()" placeholder="🔍 Search accounts…" style="width:100%;background:#fafbff;border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:12.1px;padding:7px 10px;outline:none;">
+          <input type="text" id="accSearchInput" oninput="renderAccList()" placeholder="🔍 Search accounts…" style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:12.1px;padding:7px 10px;outline:none;">
         </div>
         <div style="padding:6px 12px 4px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px;">
           <span style="font-family:var(--mono);font-size:10px;color:var(--ink3);white-space:nowrap;">GoLogin</span>
-          <select id="goLoginFilterBar" onchange="setGoLoginFilter(this.value)" style="font-family:var(--mono);font-size:11.5px;padding:4px 8px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:#fff;color:var(--ink);cursor:pointer;outline:none;flex:1;"><option value="all">All Profiles</option></select>
+          <select id="goLoginFilterBar" onchange="setGoLoginFilter(this.value)" style="font-family:var(--mono);font-size:11.5px;padding:4px 8px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--surface2);color:var(--ink);cursor:pointer;outline:none;flex:1;"><option value="all">All Profiles</option></select>
         </div>
         <div class="acc-list-items" id="accListItems"><div style="padding:24px;text-align:center;font-family:var(--mono);font-size:12.1px;color:var(--ink3);">No accounts yet</div></div>
       </div><!-- /acc-list-panel -->
@@ -2289,7 +2293,7 @@ TaskRec01: task assigned, timer started.</div>
     <!-- Global Settings: JMPT Rate -->
     <div style="margin-top:28px;">
       <div class="sec-title">Global Payout Settings</div>
-      <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px;">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px;">
         <div style="font-family:var(--mono);font-size:12.1px;color:var(--ink3);margin-bottom:16px;line-height:1.6;">
           Enter any known exchange reference — e.g. <em>"2 JMPT = $0.02"</em> or <em>"5 JMPT = $0.01"</em> — and the system will calculate the rate automatically.
           The rate is used at the moment you mark a task <strong style="color:var(--jt);">Rewarded</strong> to convert USD → JMPT.
@@ -2301,12 +2305,12 @@ TaskRec01: task assigned, timer started.</div>
           <div style="font-family:var(--mono);font-size:11px;color:var(--ink3);width:100%;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px;">Enter what you know:</div>
           <div class="field" style="flex:1;min-width:100px;">
             <label>JMPT Amount</label>
-            <input type="number" id="rateInputJmpt" min="0" step="any" placeholder="e.g. 2" oninput="calcRateFromInputs()" style="background:#fff;border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:14.3px;padding:9px 10px;outline:none;width:100%;">
+            <input type="number" id="rateInputJmpt" min="0" step="any" placeholder="e.g. 2" oninput="calcRateFromInputs()" style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:14.3px;padding:9px 10px;outline:none;width:100%;">
           </div>
           <div style="font-family:var(--mono);font-size:15.4px;color:var(--ink3);padding-bottom:10px;">=</div>
           <div class="field" style="flex:1;min-width:100px;">
             <label>USD Amount ($)</label>
-            <input type="number" id="rateInputUsd" min="0" step="any" placeholder="e.g. 0.02" oninput="calcRateFromInputs()" style="background:#fff;border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:14.3px;padding:9px 10px;outline:none;width:100%;">
+            <input type="number" id="rateInputUsd" min="0" step="any" placeholder="e.g. 0.02" oninput="calcRateFromInputs()" style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:14.3px;padding:9px 10px;outline:none;width:100%;">
           </div>
           <div style="padding-bottom:10px;display:flex;flex-direction:column;align-items:flex-start;gap:3px;">
             <span style="font-family:var(--mono);font-size:9.9px;color:var(--ink3);">Calculated rate:</span>
@@ -2318,7 +2322,7 @@ TaskRec01: task assigned, timer started.</div>
         <div style="display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:12px;">
           <div class="field" style="flex:1;min-width:160px;">
             <label>Saved Active Rate (JMPT per $0.01)</label>
-            <input type="number" id="globalJmptRateInput" min="0" step="any" placeholder="Auto-calculated or enter manually" oninput="updateJmptRatePreview()" style="background:#fafbff;border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:14.3px;padding:9px 10px;outline:none;width:100%;">
+            <input type="number" id="globalJmptRateInput" min="0" step="any" placeholder="Auto-calculated or enter manually" oninput="updateJmptRatePreview()" style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:14.3px;padding:9px 10px;outline:none;width:100%;">
           </div>
           <div style="font-family:var(--mono);font-size:12.1px;color:var(--ink3);padding-bottom:10px;white-space:nowrap;">
             → $1.00 = <strong id="globalJmptRatePreview" style="color:var(--jt);">—</strong>
@@ -2329,7 +2333,7 @@ TaskRec01: task assigned, timer started.</div>
         <div style="display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;">
           <div class="field" style="flex:1;min-width:160px;">
             <label>Payout Ready Threshold (JMPT)</label>
-            <input type="number" id="globalPayoutThresholdInput" min="0" step="any" placeholder="0.5" style="background:#fff;border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:14.3px;padding:9px 10px;outline:none;width:100%;">
+            <input type="number" id="globalPayoutThresholdInput" min="0" step="any" placeholder="0.5" style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:14.3px;padding:9px 10px;outline:none;width:100%;">
           </div>
           <div style="font-family:var(--mono);font-size:11px;color:var(--ink3);padding-bottom:10px;max-width:260px;line-height:1.5;">
             Account auto-promotes to <strong style="color:var(--jt);">Payout Ready</strong> when JMPT balance ≥ this value, and reverts to <strong style="color:var(--green);">Active</strong> after payout.
@@ -2340,10 +2344,10 @@ TaskRec01: task assigned, timer started.</div>
         <!-- Quick reference examples -->
         <div style="margin-top:12px;font-family:var(--mono);font-size:9.9px;color:var(--ink3);line-height:2;">
           Quick fill:
-          <button onclick="quickFillRate(1,0.01)" style="margin-left:6px;padding:2px 10px;border-radius:99px;border:1px solid var(--border2);background:#fff;color:var(--ink2);font-family:var(--mono);font-size:9.9px;cursor:pointer;">1 JMPT = $0.01</button>
-          <button onclick="quickFillRate(2,0.01)" style="margin-left:4px;padding:2px 10px;border-radius:99px;border:1px solid var(--border2);background:#fff;color:var(--ink2);font-family:var(--mono);font-size:9.9px;cursor:pointer;">2 JMPT = $0.01</button>
-          <button onclick="quickFillRate(1,0.02)" style="margin-left:4px;padding:2px 10px;border-radius:99px;border:1px solid var(--border2);background:#fff;color:var(--ink2);font-family:var(--mono);font-size:9.9px;cursor:pointer;">1 JMPT = $0.02</button>
-          <button onclick="quickFillRate(5,0.01)" style="margin-left:4px;padding:2px 10px;border-radius:99px;border:1px solid var(--border2);background:#fff;color:var(--ink2);font-family:var(--mono);font-size:9.9px;cursor:pointer;">5 JMPT = $0.01</button>
+          <button onclick="quickFillRate(1,0.01)" style="margin-left:6px;padding:2px 10px;border-radius:99px;border:1px solid var(--border2);background:var(--surface3);color:var(--ink2);font-family:var(--mono);font-size:9.9px;cursor:pointer;">1 JMPT = $0.01</button>
+          <button onclick="quickFillRate(2,0.01)" style="margin-left:4px;padding:2px 10px;border-radius:99px;border:1px solid var(--border2);background:var(--surface3);color:var(--ink2);font-family:var(--mono);font-size:9.9px;cursor:pointer;">2 JMPT = $0.01</button>
+          <button onclick="quickFillRate(1,0.02)" style="margin-left:4px;padding:2px 10px;border-radius:99px;border:1px solid var(--border2);background:var(--surface3);color:var(--ink2);font-family:var(--mono);font-size:9.9px;cursor:pointer;">1 JMPT = $0.02</button>
+          <button onclick="quickFillRate(5,0.01)" style="margin-left:4px;padding:2px 10px;border-radius:99px;border:1px solid var(--border2);background:var(--surface3);color:var(--ink2);font-family:var(--mono);font-size:9.9px;cursor:pointer;">5 JMPT = $0.01</button>
         </div>
       </div>
     </div>
@@ -2359,11 +2363,11 @@ TaskRec01: task assigned, timer started.</div>
     </div>
 
     <!-- Filter Controls -->
-    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px;margin-bottom:18px;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px;margin-bottom:18px;">
       <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;">
         <div class="field" style="flex:1;min-width:130px;">
           <label>Time Range</label>
-          <select id="ehRangeSelect" onchange="onEhRangeChange()" style="background:#fafbff;border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:14.3px;padding:9px 10px;outline:none;width:100%;">
+          <select id="ehRangeSelect" onchange="onEhRangeChange()" style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:14.3px;padding:9px 10px;outline:none;width:100%;">
             <option value="daily">Daily (Last 30 days)</option>
             <option value="weekly">Weekly (Last 12 weeks)</option>
             <option value="monthly">Monthly (Last 12 months)</option>
@@ -2373,16 +2377,16 @@ TaskRec01: task assigned, timer started.</div>
         </div>
         <div class="field" style="flex:1;min-width:140px;">
           <label>Account</label>
-          <select id="ehAccountSelect" onchange="renderEarningsHistory()" style="background:#fafbff;border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:14.3px;padding:9px 10px;outline:none;width:100%;"><option value="all">All Accounts</option></select>
+          <select id="ehAccountSelect" onchange="renderEarningsHistory()" style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:14.3px;padding:9px 10px;outline:none;width:100%;"><option value="all">All Accounts</option></select>
         </div>
         <div id="ehCustomRange" style="display:none;flex:1;min-width:280px;gap:10px;flex-wrap:wrap;align-items:center;">
           <div class="field" style="flex:1;">
             <label>From</label>
-            <input type="date" id="ehFromDate" onchange="renderEarningsHistory()" style="background:#fafbff;border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:14.3px;padding:9px 10px;outline:none;width:100%;">
+            <input type="date" id="ehFromDate" onchange="renderEarningsHistory()" style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:14.3px;padding:9px 10px;outline:none;width:100%;">
           </div>
           <div class="field" style="flex:1;">
             <label>To</label>
-            <input type="date" id="ehToDate" onchange="renderEarningsHistory()" style="background:#fafbff;border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:14.3px;padding:9px 10px;outline:none;width:100%;">
+            <input type="date" id="ehToDate" onchange="renderEarningsHistory()" style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:14.3px;padding:9px 10px;outline:none;width:100%;">
           </div>
         </div>
       </div>
@@ -2407,7 +2411,7 @@ TaskRec01: task assigned, timer started.</div>
       <div class="stat-chip"><div class="stat-chip-label">JMPT Earned</div><div class="stat-chip-val purple" style="font-weight:700;">0.0000 JMPT</div></div>
       <div class="stat-chip"><div class="stat-chip-label">Periods Active</div><div class="stat-chip-val gray" style="font-weight:700;">0</div></div>
     </div>
-      <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
         <div id="ehTaskTable"><div class="empty-state" style="margin:0;border:none;border-radius:0;"><div class="es-icon">📋</div>No rewarded tasks in this range</div></div>
       </div>
     </div>
@@ -2416,7 +2420,7 @@ TaskRec01: task assigned, timer started.</div>
     <div>
       <div class="sec-title" style="margin-bottom:10px;">Payout Withdrawals</div>
       <!-- Earnings table -->
-      <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
         <div id="ehTable"><div class="empty-state" style="margin:0;border:none;border-radius:0;"><div class="es-icon">📊</div>No payout records in this range</div></div>
       </div>
     </div>
@@ -2437,7 +2441,7 @@ TaskRec01: task assigned, timer started.</div>
         <span id="uhlvBadge" style="font-family:var(--mono);font-size:10px;color:var(--jt);background:var(--jt-light);border:1px solid var(--jt-border);border-radius:99px;padding:4px 12px;" title="Update History and Log Version — higher number wins on data load">UHLV: 33</span>
       </div>
     </div>
-    <div style="font-family:var(--mono);font-size:11.5px;color:var(--ink3);margin-bottom:18px;line-height:1.7;background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;box-shadow:var(--shadow);">
+    <div style="font-family:var(--mono);font-size:11.5px;color:var(--ink3);margin-bottom:18px;line-height:1.7;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;box-shadow:var(--shadow);">
       This log is maintained by the AI. Every update that was reported and applied is recorded here permanently with its ID, cause, and fix details. You cannot edit or delete entries — only the AI can add to this log.
     </div>
     <div id="bugHistoryList" style="display:flex;flex-direction:column;gap:12px;">
@@ -2451,7 +2455,7 @@ TaskRec01: task assigned, timer started.</div>
         </div>
       </div>
     </div>
-    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
       <div style="padding:12px 18px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
         <div style="display:flex;align-items:center;gap:10px;">
           <span style="font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;background:var(--jt-grad);border-radius:6px;padding:3px 10px;">UPDATE-052</span>
@@ -2479,7 +2483,7 @@ TaskRec01: task assigned, timer started.</div>
         </div>
       </div>
     </div>
-    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
       <div style="padding:12px 18px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
         <div style="display:flex;align-items:center;gap:10px;">
           <span style="font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;background:var(--jt-grad);border-radius:6px;padding:3px 10px;">UPDATE-051</span>
@@ -2507,7 +2511,7 @@ TaskRec01: task assigned, timer started.</div>
         </div>
       </div>
     </div>
-    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
       <div style="padding:12px 18px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
         <div style="display:flex;align-items:center;gap:10px;">
           <span style="font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;background:var(--jt-grad);border-radius:6px;padding:3px 10px;">undefined</span>
@@ -2535,7 +2539,7 @@ TaskRec01: task assigned, timer started.</div>
         </div>
       </div>
     </div>
-    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
       <div style="padding:12px 18px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
         <div style="display:flex;align-items:center;gap:10px;">
           <span style="font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;background:var(--jt-grad);border-radius:6px;padding:3px 10px;">UPDATE-049</span>
@@ -2563,7 +2567,7 @@ TaskRec01: task assigned, timer started.</div>
         </div>
       </div>
     </div>
-    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
       <div style="padding:12px 18px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
         <div style="display:flex;align-items:center;gap:10px;">
           <span style="font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;background:var(--jt-grad);border-radius:6px;padding:3px 10px;">UPDATE-048</span>
@@ -2591,7 +2595,7 @@ TaskRec01: task assigned, timer started.</div>
         </div>
       </div>
     </div>
-    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
       <div style="padding:12px 18px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
         <div style="display:flex;align-items:center;gap:10px;">
           <span style="font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;background:var(--jt-grad);border-radius:6px;padding:3px 10px;">UPDATE-047</span>
@@ -2619,7 +2623,7 @@ TaskRec01: task assigned, timer started.</div>
         </div>
       </div>
     </div>
-    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
       <div style="padding:12px 18px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
         <div style="display:flex;align-items:center;gap:10px;">
           <span style="font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;background:var(--jt-grad);border-radius:6px;padding:3px 10px;">UPDATE-046</span>
@@ -2647,7 +2651,7 @@ TaskRec01: task assigned, timer started.</div>
         </div>
       </div>
     </div>
-    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
       <div style="padding:12px 18px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
         <div style="display:flex;align-items:center;gap:10px;">
           <span style="font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;background:var(--jt-grad);border-radius:6px;padding:3px 10px;">UPDATE-045</span>
@@ -2675,7 +2679,7 @@ TaskRec01: task assigned, timer started.</div>
         </div>
       </div>
     </div>
-    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
       <div style="padding:12px 18px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
         <div style="display:flex;align-items:center;gap:10px;">
           <span style="font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;background:var(--jt-grad);border-radius:6px;padding:3px 10px;">UPDATE-044</span>
@@ -2703,7 +2707,7 @@ TaskRec01: task assigned, timer started.</div>
         </div>
       </div>
     </div>
-    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
       <div style="padding:12px 18px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
         <div style="display:flex;align-items:center;gap:10px;">
           <span style="font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;background:var(--jt-grad);border-radius:6px;padding:3px 10px;">UPDATE-043</span>
@@ -2731,7 +2735,7 @@ TaskRec01: task assigned, timer started.</div>
         </div>
       </div>
     </div>
-    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
       <div style="padding:12px 18px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
         <div style="display:flex;align-items:center;gap:10px;">
           <span style="font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;background:var(--jt-grad);border-radius:6px;padding:3px 10px;">UPDATE-042</span>
@@ -2759,7 +2763,7 @@ TaskRec01: task assigned, timer started.</div>
         </div>
       </div>
     </div>
-    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
       <div style="padding:12px 18px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
         <div style="display:flex;align-items:center;gap:10px;">
           <span style="font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;background:var(--jt-grad);border-radius:6px;padding:3px 10px;">UPDATE-041</span>
@@ -2787,7 +2791,7 @@ TaskRec01: task assigned, timer started.</div>
         </div>
       </div>
     </div>
-    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
       <div style="padding:12px 18px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
         <div style="display:flex;align-items:center;gap:10px;">
           <span style="font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;background:var(--jt-grad);border-radius:6px;padding:3px 10px;">UPDATE-040</span>
@@ -2815,7 +2819,7 @@ TaskRec01: task assigned, timer started.</div>
         </div>
       </div>
     </div>
-    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
       <div style="padding:12px 18px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
         <div style="display:flex;align-items:center;gap:10px;">
           <span style="font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;background:var(--jt-grad);border-radius:6px;padding:3px 10px;">UPDATE-039</span>
@@ -2843,7 +2847,7 @@ TaskRec01: task assigned, timer started.</div>
         </div>
       </div>
     </div>
-    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
       <div style="padding:12px 18px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
         <div style="display:flex;align-items:center;gap:10px;">
           <span style="font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;background:var(--jt-grad);border-radius:6px;padding:3px 10px;">UPDATE-038</span>
@@ -2871,7 +2875,7 @@ TaskRec01: task assigned, timer started.</div>
         </div>
       </div>
     </div>
-    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
       <div style="padding:12px 18px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
         <div style="display:flex;align-items:center;gap:10px;">
           <span style="font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;background:var(--jt-grad);border-radius:6px;padding:3px 10px;">UPDATE-038</span>
@@ -2899,7 +2903,7 @@ TaskRec01: task assigned, timer started.</div>
         </div>
       </div>
     </div>
-    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
       <div style="padding:12px 18px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
         <div style="display:flex;align-items:center;gap:10px;">
           <span style="font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;background:var(--jt-grad);border-radius:6px;padding:3px 10px;">UPDATE-037</span>
@@ -2927,7 +2931,7 @@ TaskRec01: task assigned, timer started.</div>
         </div>
       </div>
     </div>
-    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
       <div style="padding:12px 18px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
         <div style="display:flex;align-items:center;gap:10px;">
           <span style="font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;background:var(--jt-grad);border-radius:6px;padding:3px 10px;">UPDATE-037</span>
@@ -2955,7 +2959,7 @@ TaskRec01: task assigned, timer started.</div>
         </div>
       </div>
     </div>
-    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
       <div style="padding:12px 18px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
         <div style="display:flex;align-items:center;gap:10px;">
           <span style="font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;background:var(--jt-grad);border-radius:6px;padding:3px 10px;">UPDATE-036</span>
@@ -2983,7 +2987,7 @@ TaskRec01: task assigned, timer started.</div>
         </div>
       </div>
     </div>
-    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
       <div style="padding:12px 18px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
         <div style="display:flex;align-items:center;gap:10px;">
           <span style="font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;background:var(--jt-grad);border-radius:6px;padding:3px 10px;">UPDATE-035</span>
@@ -3011,7 +3015,7 @@ TaskRec01: task assigned, timer started.</div>
         </div>
       </div>
     </div>
-    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
       <div style="padding:12px 18px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
         <div style="display:flex;align-items:center;gap:10px;">
           <span style="font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;background:var(--jt-grad);border-radius:6px;padding:3px 10px;">UPDATE-034</span>
@@ -3039,7 +3043,7 @@ TaskRec01: task assigned, timer started.</div>
         </div>
       </div>
     </div>
-    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
       <div style="padding:12px 18px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
         <div style="display:flex;align-items:center;gap:10px;">
           <span style="font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;background:var(--jt-grad);border-radius:6px;padding:3px 10px;">UPDATE-033</span>
@@ -3067,7 +3071,7 @@ TaskRec01: task assigned, timer started.</div>
         </div>
       </div>
     </div>
-    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
       <div style="padding:12px 18px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
         <div style="display:flex;align-items:center;gap:10px;">
           <span style="font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;background:var(--jt-grad);border-radius:6px;padding:3px 10px;">UPDATE-032</span>
@@ -3095,7 +3099,7 @@ TaskRec01: task assigned, timer started.</div>
         </div>
       </div>
     </div>
-    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
       <div style="padding:12px 18px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
         <div style="display:flex;align-items:center;gap:10px;">
           <span style="font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;background:var(--jt-grad);border-radius:6px;padding:3px 10px;">UPDATE-031</span>
@@ -3123,7 +3127,7 @@ TaskRec01: task assigned, timer started.</div>
         </div>
       </div>
     </div>
-    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
       <div style="padding:12px 18px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
         <div style="display:flex;align-items:center;gap:10px;">
           <span style="font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;background:var(--jt-grad);border-radius:6px;padding:3px 10px;">UPDATE-030</span>
@@ -3151,7 +3155,7 @@ TaskRec01: task assigned, timer started.</div>
         </div>
       </div>
     </div>
-    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
       <div style="padding:12px 18px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
         <div style="display:flex;align-items:center;gap:10px;">
           <span style="font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;background:var(--jt-grad);border-radius:6px;padding:3px 10px;">UPDATE-029</span>
@@ -3179,7 +3183,7 @@ TaskRec01: task assigned, timer started.</div>
         </div>
       </div>
     </div>
-    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
       <div style="padding:12px 18px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
         <div style="display:flex;align-items:center;gap:10px;">
           <span style="font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;background:var(--jt-grad);border-radius:6px;padding:3px 10px;">UPDATE-028</span>
@@ -3207,7 +3211,7 @@ TaskRec01: task assigned, timer started.</div>
         </div>
       </div>
     </div>
-    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
       <div style="padding:12px 18px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
         <div style="display:flex;align-items:center;gap:10px;">
           <span style="font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;background:var(--jt-grad);border-radius:6px;padding:3px 10px;">UPDATE-027</span>
@@ -3235,7 +3239,7 @@ TaskRec01: task assigned, timer started.</div>
         </div>
       </div>
     </div>
-    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
       <div style="padding:12px 18px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
         <div style="display:flex;align-items:center;gap:10px;">
           <span style="font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;background:var(--jt-grad);border-radius:6px;padding:3px 10px;">UPDATE-026</span>
@@ -3263,7 +3267,7 @@ TaskRec01: task assigned, timer started.</div>
         </div>
       </div>
     </div>
-    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
       <div style="padding:12px 18px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
         <div style="display:flex;align-items:center;gap:10px;">
           <span style="font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;background:var(--jt-grad);border-radius:6px;padding:3px 10px;">UPDATE-025</span>
@@ -3291,7 +3295,7 @@ TaskRec01: task assigned, timer started.</div>
         </div>
       </div>
     </div>
-    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
       <div style="padding:12px 18px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
         <div style="display:flex;align-items:center;gap:10px;">
           <span style="font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;background:var(--jt-grad);border-radius:6px;padding:3px 10px;">UPDATE-024</span>
@@ -3319,7 +3323,7 @@ TaskRec01: task assigned, timer started.</div>
         </div>
       </div>
     </div>
-    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
       <div style="padding:12px 18px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
         <div style="display:flex;align-items:center;gap:10px;">
           <span style="font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;background:var(--jt-grad);border-radius:6px;padding:3px 10px;">UPDATE-023</span>
@@ -3347,7 +3351,7 @@ TaskRec01: task assigned, timer started.</div>
         </div>
       </div>
     </div>
-    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
       <div style="padding:12px 18px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
         <div style="display:flex;align-items:center;gap:10px;">
           <span style="font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;background:var(--jt-grad);border-radius:6px;padding:3px 10px;">UPDATE-022</span>
@@ -3375,7 +3379,7 @@ TaskRec01: task assigned, timer started.</div>
         </div>
       </div>
     </div>
-    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
       <div style="padding:12px 18px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
         <div style="display:flex;align-items:center;gap:10px;">
           <span style="font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;background:var(--jt-grad);border-radius:6px;padding:3px 10px;">UPDATE-021</span>
@@ -3403,7 +3407,7 @@ TaskRec01: task assigned, timer started.</div>
         </div>
       </div>
     </div>
-    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
       <div style="padding:12px 18px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
         <div style="display:flex;align-items:center;gap:10px;">
           <span style="font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;background:var(--jt-grad);border-radius:6px;padding:3px 10px;">UPDATE-020</span>
@@ -3431,7 +3435,7 @@ TaskRec01: task assigned, timer started.</div>
         </div>
       </div>
     </div>
-    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
       <div style="padding:12px 18px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
         <div style="display:flex;align-items:center;gap:10px;">
           <span style="font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;background:var(--jt-grad);border-radius:6px;padding:3px 10px;">UPDATE-019</span>
@@ -3459,7 +3463,7 @@ TaskRec01: task assigned, timer started.</div>
         </div>
       </div>
     </div>
-    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
       <div style="padding:12px 18px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
         <div style="display:flex;align-items:center;gap:10px;">
           <span style="font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;background:var(--jt-grad);border-radius:6px;padding:3px 10px;">UPDATE-018</span>
@@ -3487,7 +3491,7 @@ TaskRec01: task assigned, timer started.</div>
         </div>
       </div>
     </div>
-    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
       <div style="padding:12px 18px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
         <div style="display:flex;align-items:center;gap:10px;">
           <span style="font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;background:var(--jt-grad);border-radius:6px;padding:3px 10px;">UPDATE-017</span>
@@ -3515,7 +3519,7 @@ TaskRec01: task assigned, timer started.</div>
         </div>
       </div>
     </div>
-    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
       <div style="padding:12px 18px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
         <div style="display:flex;align-items:center;gap:10px;">
           <span style="font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;background:var(--jt-grad);border-radius:6px;padding:3px 10px;">UPDATE-016</span>
@@ -3543,7 +3547,7 @@ TaskRec01: task assigned, timer started.</div>
         </div>
       </div>
     </div>
-    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
       <div style="padding:12px 18px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
         <div style="display:flex;align-items:center;gap:10px;">
           <span style="font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;background:var(--jt-grad);border-radius:6px;padding:3px 10px;">UPDATE-015</span>
@@ -3571,7 +3575,7 @@ TaskRec01: task assigned, timer started.</div>
         </div>
       </div>
     </div>
-    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
       <div style="padding:12px 18px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
         <div style="display:flex;align-items:center;gap:10px;">
           <span style="font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;background:var(--jt-grad);border-radius:6px;padding:3px 10px;">UPDATE-014</span>
@@ -3599,7 +3603,7 @@ TaskRec01: task assigned, timer started.</div>
         </div>
       </div>
     </div>
-    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
       <div style="padding:12px 18px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
         <div style="display:flex;align-items:center;gap:10px;">
           <span style="font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;background:var(--jt-grad);border-radius:6px;padding:3px 10px;">UPDATE-013</span>
@@ -3627,7 +3631,7 @@ TaskRec01: task assigned, timer started.</div>
         </div>
       </div>
     </div>
-    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
       <div style="padding:12px 18px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
         <div style="display:flex;align-items:center;gap:10px;">
           <span style="font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;background:var(--jt-grad);border-radius:6px;padding:3px 10px;">UPDATE-012</span>
@@ -3655,7 +3659,7 @@ TaskRec01: task assigned, timer started.</div>
         </div>
       </div>
     </div>
-    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
       <div style="padding:12px 18px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
         <div style="display:flex;align-items:center;gap:10px;">
           <span style="font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;background:var(--jt-grad);border-radius:6px;padding:3px 10px;">UPDATE-011</span>
@@ -3683,7 +3687,7 @@ TaskRec01: task assigned, timer started.</div>
         </div>
       </div>
     </div>
-    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
       <div style="padding:12px 18px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
         <div style="display:flex;align-items:center;gap:10px;">
           <span style="font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;background:var(--jt-grad);border-radius:6px;padding:3px 10px;">UPDATE-010</span>
@@ -3711,7 +3715,7 @@ TaskRec01: task assigned, timer started.</div>
         </div>
       </div>
     </div>
-    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
       <div style="padding:12px 18px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
         <div style="display:flex;align-items:center;gap:10px;">
           <span style="font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;background:var(--jt-grad);border-radius:6px;padding:3px 10px;">UPDATE-009</span>
@@ -3739,7 +3743,7 @@ TaskRec01: task assigned, timer started.</div>
         </div>
       </div>
     </div>
-    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
       <div style="padding:12px 18px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
         <div style="display:flex;align-items:center;gap:10px;">
           <span style="font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;background:var(--jt-grad);border-radius:6px;padding:3px 10px;">UPDATE-008</span>
@@ -3767,7 +3771,7 @@ TaskRec01: task assigned, timer started.</div>
         </div>
       </div>
     </div>
-    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
       <div style="padding:12px 18px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
         <div style="display:flex;align-items:center;gap:10px;">
           <span style="font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;background:var(--jt-grad);border-radius:6px;padding:3px 10px;">UPDATE-008b</span>
@@ -3795,7 +3799,7 @@ TaskRec01: task assigned, timer started.</div>
         </div>
       </div>
     </div>
-    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
       <div style="padding:12px 18px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
         <div style="display:flex;align-items:center;gap:10px;">
           <span style="font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;background:var(--jt-grad);border-radius:6px;padding:3px 10px;">UPDATE-007</span>
@@ -3823,7 +3827,7 @@ TaskRec01: task assigned, timer started.</div>
         </div>
       </div>
     </div>
-    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
       <div style="padding:12px 18px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
         <div style="display:flex;align-items:center;gap:10px;">
           <span style="font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;background:var(--jt-grad);border-radius:6px;padding:3px 10px;">UPDATE-006</span>
@@ -3851,7 +3855,7 @@ TaskRec01: task assigned, timer started.</div>
         </div>
       </div>
     </div>
-    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
       <div style="padding:12px 18px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
         <div style="display:flex;align-items:center;gap:10px;">
           <span style="font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;background:var(--jt-grad);border-radius:6px;padding:3px 10px;">UPDATE-005</span>
@@ -3879,7 +3883,7 @@ TaskRec01: task assigned, timer started.</div>
         </div>
       </div>
     </div>
-    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
       <div style="padding:12px 18px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
         <div style="display:flex;align-items:center;gap:10px;">
           <span style="font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;background:var(--jt-grad);border-radius:6px;padding:3px 10px;">UPDATE-004</span>
@@ -3907,7 +3911,7 @@ TaskRec01: task assigned, timer started.</div>
         </div>
       </div>
     </div>
-    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
       <div style="padding:12px 18px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
         <div style="display:flex;align-items:center;gap:10px;">
           <span style="font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;background:var(--jt-grad);border-radius:6px;padding:3px 10px;">UPDATE-003</span>
@@ -3935,7 +3939,7 @@ TaskRec01: task assigned, timer started.</div>
         </div>
       </div>
     </div>
-    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
       <div style="padding:12px 18px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
         <div style="display:flex;align-items:center;gap:10px;">
           <span style="font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;background:var(--jt-grad);border-radius:6px;padding:3px 10px;">UPDATE-002</span>
@@ -3963,7 +3967,7 @@ TaskRec01: task assigned, timer started.</div>
         </div>
       </div>
     </div>
-    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
       <div style="padding:12px 18px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
         <div style="display:flex;align-items:center;gap:10px;">
           <span style="font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;background:var(--jt-grad);border-radius:6px;padding:3px 10px;">UPDATE-001</span>
@@ -4016,7 +4020,7 @@ TaskRec01: task assigned, timer started.</div>
       <strong>☁ Save to Drive</strong>
       <span id="saveBarSub">Uploads new version · falls back to download if offline</span>
     </div>
-    <button onclick="(function(){var p=document.getElementById('driveLogPanel');p.style.display=p.style.display==='none'?'block':'none';})()" style="font-family:var(--mono);font-size:10px;padding:4px 10px;border-radius:99px;border:1px solid var(--border2);background:#fff;color:var(--ink3);cursor:pointer;white-space:nowrap;">📋 Log</button>
+    <button onclick="(function(){var p=document.getElementById('driveLogPanel');p.style.display=p.style.display==='none'?'block':'none';})()" style="font-family:var(--mono);font-size:10px;padding:4px 10px;border-radius:99px;border:1px solid var(--border2);background:var(--surface3);color:var(--ink2);cursor:pointer;white-space:nowrap;">📋 Log</button>
   </div>
   <button id="undoBtn" onclick="undoLast()" style="display: none; align-items: center; gap: 6px; padding: 9px 16px; border-radius: var(--radius-sm); border: 1px solid var(--border2); background: rgb(255, 255, 255); color: var(--ink2); font-family: var(--mono); font-size: 12.1px; font-weight: 600; cursor: pointer; white-space: nowrap;" title="Undo: Status → completed (6854)">↩ Undo (6)</button>
   <button class="btn-save" id="btnSave">
@@ -4054,7 +4058,7 @@ TaskRec01: task assigned, timer started.</div>
       <div class="field">
         <label>Device</label>
         <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
-          <select id="accModalDevice" style="flex:1;background:#fafbff;border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:14.3px;padding:9px 10px;outline:none;">
+          <select id="accModalDevice" style="flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:14.3px;padding:9px 10px;outline:none;">
             <option value="">— None —</option>
             <option value="VIVO">VIVO</option>
             <option value="OPPO">OPPO</option>
@@ -4128,7 +4132,7 @@ TaskRec01: task assigned, timer started.</div>
     <input type="hidden" id="linksModalTaskId" value="ev1c13790irmplcu7sb">
     <!-- Existing links list -->
     <div id="linksModalList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
-    <div style="display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 12px;">
+    <div style="display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 12px;">
       <button onclick="copyLink('ev1c13790irmplcu7sb',0)" style="font-family:var(--mono);font-size:12.1px;color:var(--jt);background:var(--jt-light);border:1px solid var(--jt-border);border-radius:6px;padding:4px 10px;cursor:pointer;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left;">📋 VIDEO LINK</button>
       <span style="font-family:var(--mono);font-size:9.9px;color:var(--ink3);flex-shrink:0;overflow:hidden;text-overflow:ellipsis;max-width:120px;" title="https://www.youtube.com/watch?v=bN2Lza5SV0E">https://www.youtube.com/watch?v=bN2Lza5SV0E</span>
       <button onclick="deleteLink('ev1c13790irmplcu7sb',0)" style="flex-shrink:0;background:var(--red-light);color:var(--red);border:1px solid var(--red-border);border-radius:4px;width:22px;height:22px;cursor:pointer;font-size:12.1px;">✕</button>
@@ -4209,18 +4213,18 @@ TaskRec01: task assigned, timer started.</div>
       <div style="font-family:var(--mono);font-size:11px;color:var(--ink3);text-transform:uppercase;font-weight:600;">Log New Error</div>
       <div class="field">
         <label>Error Type</label>
-        <select id="errorModalType" onchange="toggleErrorTypeField()" style="background:#fafbff;border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:13px;padding:8px 10px;outline:none;">
+        <select id="errorModalType" onchange="toggleErrorTypeField()" style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:13px;padding:8px 10px;outline:none;">
           <option value="task_error">Task Error (affects all)</option>
           <option value="acc_error">Account Error (per account)</option>
         </select>
       </div>
       <div class="field" id="errorModalAccField" style="display:none;">
         <label>Account</label>
-        <select id="errorModalAccSelect" style="background:#fafbff;border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:13px;padding:8px 10px;outline:none;"><option value="ay5gvbgk8zimpi9hqbg">Kesler51</option><option value="0qh676el20smpicodvu">SonicThunder</option><option value="drsd00qdflqmpid187v">Noah82</option><option value="rm76fskvnolmpid4djn">GrowMax96</option><option value="vkx9vv9jwwmpid6quz">Matteo67</option><option value="4lehzx4rlmxmpid8d4b">Antonila43</option><option value="t9pgt7rh2kmpidg2xw">Mayk0626</option><option value="q7e8i4fx5njmpjzomzm">Rocky70</option></select>
+        <select id="errorModalAccSelect" style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:13px;padding:8px 10px;outline:none;"><option value="ay5gvbgk8zimpi9hqbg">Kesler51</option><option value="0qh676el20smpicodvu">SonicThunder</option><option value="drsd00qdflqmpid187v">Noah82</option><option value="rm76fskvnolmpid4djn">GrowMax96</option><option value="vkx9vv9jwwmpid6quz">Matteo67</option><option value="4lehzx4rlmxmpid8d4b">Antonila43</option><option value="t9pgt7rh2kmpidg2xw">Mayk0626</option><option value="q7e8i4fx5njmpjzomzm">Rocky70</option></select>
       </div>
       <div class="field">
         <label>Sub-type</label>
-        <select id="errorModalSubType" style="background:#fafbff;border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:13px;padding:8px 10px;outline:none;">
+        <select id="errorModalSubType" style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:13px;padding:8px 10px;outline:none;">
           <option value="video_not_found">Video Not Found</option>
           <option value="words_dont_match">Words Don't Match</option>
         </select>
@@ -4231,7 +4235,7 @@ TaskRec01: task assigned, timer started.</div>
       </div>
       <div class="field">
         <label>Note (optional)</label>
-        <input type="text" id="errorModalNote" placeholder="Details…" style="background:#fafbff;border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:13px;padding:8px 10px;outline:none;">
+        <input type="text" id="errorModalNote" placeholder="Details…" style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:13px;padding:8px 10px;outline:none;">
       </div>
       <button class="btn-primary" style="background:var(--red);box-shadow:0 2px 6px rgba(192,57,43,0.2);width:100%;" onclick="addTaskError()">⚠ Log Error</button>
     </div>
@@ -4252,7 +4256,7 @@ TaskRec01: task assigned, timer started.</div>
     <input type="hidden" id="thumbModalTaskId" value="c2lbc16hro5mplcs2qq">
     <img id="thumbModalPreview" src="" alt="preview" style="width: 100%; max-height: 160px; object-fit: cover; border-radius: 8px; margin-bottom: 10px; display: none;">
     <div style="font-family:var(--mono);font-size:11px;color:var(--ink3);margin-bottom:10px;" id="thumbModalStatus">No thumbnail</div>
-    <div style="position:relative;border:1.5px dashed var(--border2);border-radius:var(--radius-sm);padding:16px;text-align:center;cursor:pointer;font-family:var(--mono);font-size:12px;color:var(--ink3);background:#fafbff;margin-bottom:12px;">
+    <div style="position:relative;border:1.5px dashed var(--border2);border-radius:var(--radius-sm);padding:16px;text-align:center;cursor:pointer;font-family:var(--mono);font-size:12px;color:var(--ink3);background:var(--surface2);margin-bottom:12px;">
       📷 Click to select new image or paste (Ctrl+V)
       <input type="file" accept="image/*" onchange="handleThumbModalFile(event)" style="position:absolute;inset:0;opacity:0;cursor:pointer;">
     </div>
@@ -7008,7 +7012,7 @@ function renderLinksModalList(taskId) {
     return;
   }
   container.innerHTML = links.map((l, i) => `
-    <div style="display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 12px;">
+    <div style="display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 12px;">
       <button onclick="copyLink('${taskId}',${i})" style="font-family:var(--mono);font-size:12.1px;color:var(--jt);background:var(--jt-light);border:1px solid var(--jt-border);border-radius:6px;padding:4px 10px;cursor:pointer;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left;">📋 ${l.label||l.url}</button>
       <span style="font-family:var(--mono);font-size:9.9px;color:var(--ink3);flex-shrink:0;overflow:hidden;text-overflow:ellipsis;max-width:120px;" title="${l.url}">${l.url}</span>
       <button onclick="deleteLink('${taskId}',${i})" style="flex-shrink:0;background:var(--red-light);color:var(--red);border:1px solid var(--red-border);border-radius:4px;width:22px;height:22px;cursor:pointer;font-size:12.1px;">✕</button>
@@ -8514,11 +8518,11 @@ function renderBugHistory() {
   const el = document.getElementById('bugHistoryList');
   if (!el) return;
   if (!bugHistory || !bugHistory.length) {
-    el.innerHTML = `<div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:32px;text-align:center;box-shadow:var(--shadow);font-family:var(--mono);font-size:12px;color:var(--ink3);">No resolved bugs yet.</div>`;
+    el.innerHTML = `<div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:32px;text-align:center;box-shadow:var(--shadow);font-family:var(--mono);font-size:12px;color:var(--ink3);">No resolved bugs yet.</div>`;
     return;
   }
   el.innerHTML = [...bugHistory].map(b => `
-    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
       <div style="padding:12px 18px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
         <div style="display:flex;align-items:center;gap:10px;">
           <span style="font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;background:var(--jt-grad);border-radius:6px;padding:3px 10px;">${b.id}</span>
@@ -8876,7 +8880,7 @@ window.openAddPagePicker = function() {
   list.innerHTML = wordLibrary.map(s =>
     `<button onclick="closeModal('wdPickLibraryModal'); openAddVersionModal('${s.id}')"
       style="font-family:var(--mono);font-size:12px;padding:10px 14px;border-radius:8px;
-             border:1.5px solid var(--border2);background:#fff;color:var(--ink);
+             border:1.5px solid var(--border2);background:var(--surface2);color:var(--ink);
              cursor:pointer;text-align:left;width:100%;transition:background 0.12s;"
       onmouseenter="this.style.background='var(--jt-light)'"
       onmouseleave="this.style.background='#fff'">${s.siteName}</button>`
@@ -9412,8 +9416,8 @@ function renderBugLogEntries() {
   } else {
     el.innerHTML = bugLog.map((b, i) => `
       <div style="background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.22);border-radius:8px;padding:10px 12px;">
-        <div style="font-family:'DM Mono',monospace;font-size:9px;color:#fbbf24;margin-bottom:4px;opacity:0.7;">#${i+1} · ${b.ts}</div>
-        <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--ink2);line-height:1.5;">${b.text}</div>
+        <div style="font-family:'Geist Mono',monospace;font-size:9px;color:#fbbf24;margin-bottom:4px;opacity:0.7;">#${i+1} · ${b.ts}</div>
+        <div style="font-family:'Geist Mono',monospace;font-size:12px;color:var(--ink2);line-height:1.5;">${b.text}</div>
       </div>`).join('');
   }
 }
