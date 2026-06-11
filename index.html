@@ -7275,7 +7275,7 @@ function initGIS() {
   // Try silent token restore via stored hint
   const hint = localStorage.getItem('gis_login_hint');
   if (hint) {
-    _gisTokenClient.requestAccessToken({ hint, prompt: '' });
+    _gisTokenClient.requestAccessToken({ hint, prompt: 'select_account' });
   }
 }
 
