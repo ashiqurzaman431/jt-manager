@@ -2531,7 +2531,13 @@ TaskRec01: task assigned, timer started.</div>
       <div class="field"><label>Account Name</label><input type="text" id="accModalName" placeholder="e.g. Matteo67"></div>
       <div class="field"><label>Wallet Address</label><input type="text" id="accModalWallet" placeholder="0x..."></div>
       <div class="field"><label>Country</label><input type="text" id="accModalCountry" placeholder="e.g. Germany"></div>
-      <div class="field"><label>GoLogin Profile</label><select id="accModalGologin" style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:14.3px;padding:9px 10px;outline:none;width:100%;"><option value="">— None —</option></select></div>
+      <div class="field"><label>GoLogin Profiles</label>
+        <div id="accModalGologinPills" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:6px;min-height:24px;"></div>
+        <select id="accModalGologin" style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:14.3px;padding:9px 10px;outline:none;width:100%;">
+          <option value="">— Add a profile —</option>
+        </select>
+        <input type="hidden" id="accModalGologinData" value="[]">
+      </div>
       <div class="field">
         <label>Status</label>
         <select id="accModalStatus">
@@ -2802,6 +2808,10 @@ TaskRec01: task assigned, timer started.</div>
       <div class="field">
         <label>Profile Name</label>
         <input type="text" id="gologinModalName" placeholder="e.g. redmiroberts">
+      </div>
+      <div class="field">
+        <label>Data Remaining (MB)</label>
+        <input type="number" id="gologinModalData" placeholder="490" step="any" min="0">
       </div>
     </div>
     <div class="modal-actions">
@@ -4279,15 +4289,17 @@ window.unarchiveTask = function(id) {
 window.assignToAllActive = function(taskId) {
   const t = tasks.find(t => t.id===taskId); if(!t) return;
   const alreadyAssigned = new Set((t.assignments||[]).map(a => a.accountId));
-  const eligible = accounts.filter(a => a.status !== 'dead' && !alreadyAssigned.has(a.id) && !isProfileLowData(a.gologin));
-  const skippedLowData = accounts.filter(a => a.status !== 'dead' && !alreadyAssigned.has(a.id) && isProfileLowData(a.gologin)).length;
+  const eligible = accounts.filter(a => a.status !== 'dead' && !alreadyAssigned.has(a.id) && !isAccAllProfilesLow(a));
+  const skippedLowData = accounts.filter(a => a.status !== 'dead' && !alreadyAssigned.has(a.id) && isAccAllProfilesLow(a)).length;
   if (!eligible.length && skippedLowData === 0) { toast('All active accounts already assigned'); return; }
   if (!eligible.length) { toast(`⚠ All unassigned accounts blocked — GoLogin profile < 30 MB`); return; }
   pushUndo('Assign all → ' + t.title);
   if (!t.assignments) t.assignments = [];
   eligible.forEach(acc => {
     t.assignments.push({
-      id: uid(), accountId: acc.id, status: 'assigned',
+      id: uid(), accountId: acc.id,
+      gologinProfile: getAccGologins(acc)[0] || '',
+      status: 'assigned',
       reward: t.defaultReward, assignedAt: now(),
       completedAt: null, rewardedAt: null,
       _acTimerStart: Date.now(),
@@ -4349,11 +4361,11 @@ window.openAssignModal = function(taskId) {
   document.getElementById('assignModalTaskInfo').textContent = `Task: ${t.title} · Default: ${fmtUSDT(t.defaultReward)}`;
   document.getElementById('assignModalReward').value = '';
   const alreadyAssigned = new Set((t.assignments||[]).map(a => a.accountId));
-  const eligible = accounts.filter(a => a.status !== 'dead' && !alreadyAssigned.has(a.id) && !isProfileLowData(a.gologin));
-  const blockedByData = accounts.filter(a => a.status !== 'dead' && !alreadyAssigned.has(a.id) && isProfileLowData(a.gologin)).length;
+  const eligible = accounts.filter(a => a.status !== 'dead' && !alreadyAssigned.has(a.id) && !isAccAllProfilesLow(a));
+  const blockedByData = accounts.filter(a => a.status !== 'dead' && !alreadyAssigned.has(a.id) && isAccAllProfilesLow(a)).length;
 
-  // Sort: never-assigned first, most recently assigned last
-  // Find the latest assignedAt for each account across all tasks
+  // Sort: most recently assigned first — but if the top account has a task currently
+  // in progress (status === 'assigned'), demote it so the next available account shows first
   const lastAssignedAt = {};
   tasks.forEach(task => {
     (task.assignments||[]).forEach(asgn => {
@@ -4361,11 +4373,27 @@ window.openAssignModal = function(taskId) {
       if ((asgn.assignedAt||'') > prev) lastAssignedAt[asgn.accountId] = asgn.assignedAt;
     });
   });
+
+  function hasTaskInProgress(accId) {
+    return tasks.some(task =>
+      (task.assignments||[]).some(asgn => asgn.accountId === accId && asgn.status === 'assigned')
+    );
+  }
+
   eligible.sort((a, b) => {
     const ta = lastAssignedAt[a.id] || '';
     const tb = lastAssignedAt[b.id] || '';
-    return tb.localeCompare(ta); // most recent → top, older/never → bottom
+    return tb.localeCompare(ta);
   });
+
+  // If the first account has a task in progress, find the next one without and swap it to front
+  if (eligible.length > 1 && hasTaskInProgress(eligible[0].id)) {
+    const nextIdx = eligible.findIndex((a, i) => i > 0 && !hasTaskInProgress(a.id));
+    if (nextIdx !== -1) {
+      const [next] = eligible.splice(nextIdx, 1);
+      eligible.unshift(next);
+    }
+  }
 
   const sel = document.getElementById('assignModalAccSelect');
   let noEligibleMsg = 'No eligible accounts (all assigned or dead)';
@@ -4387,7 +4415,7 @@ window.confirmAssign = function() {
   if (!accId) { toast('No eligible account to assign'); return; }
   // Final guard: block if account's profile dropped below 30 MB since modal opened
   const accCheck = accounts.find(a => a.id === accId);
-  if (accCheck && isProfileLowData(accCheck.gologin)) {
+  if (accCheck && isAccAllProfilesLow(accCheck)) {
     toast('⚠ Cannot assign — GoLogin profile has less than 30 MB remaining');
     return;
   }
@@ -4396,6 +4424,7 @@ window.confirmAssign = function() {
   const asgn = {
     id: uid(),
     accountId: accId,
+    gologinProfile: getAccGologins(accCheck)[0] || '',
     status: 'assigned',
     reward: customReward!=='' ? parseFloat(customReward) : t.defaultReward,
     assignedAt: now(),
@@ -4438,9 +4467,9 @@ function renderAccList() {
   const searchQ = (document.getElementById('accSearchInput') ? document.getElementById('accSearchInput').value : '').toLowerCase().trim();
 
   let filteredAccounts = accounts.filter(a => {
-    if (goLoginFilter !== 'all' && a.gologin !== goLoginFilter) return false;
+    if (goLoginFilter !== 'all' && !getAccGologins(a).includes(goLoginFilter)) return false;
     if (searchQ) {
-      const hay = [a.name, a.country, a.gologin, a.walletAddress, a.notes, a.device].join(' ').toLowerCase();
+      const hay = [a.name, a.country, getAccGologins(a).join(' '), a.walletAddress, a.notes, a.device].join(' ').toLowerCase();
       if (!hay.includes(searchQ)) return false;
     }
     return true;
@@ -4656,7 +4685,7 @@ function renderAccDetail(accId) {
           <div class="info-row"><div class="info-label">Name</div><div class="info-val">${acc.name}</div></div>
           <div class="info-row"><div class="info-label">Wallet</div><div class="info-val wallet">${acc.walletAddress||'—'}</div></div>
           <div class="info-row"><div class="info-label">Country</div><div class="info-val">${countryFlag(acc.country) ? countryFlag(acc.country)+' ' : ''}${acc.country||'—'}</div></div>
-          <div class="info-row"><div class="info-label">GoLogin</div><div class="info-val">${acc.gologin||'—'}</div></div>
+          <div class="info-row"><div class="info-label">GoLogin</div><div class="info-val">${getAccGologins(acc).length ? getAccGologins(acc).map(n => `<span style="display:inline-block;font-family:var(--mono);font-size:10.5px;padding:2px 8px;border-radius:99px;background:var(--jt-light);color:var(--jt);border:1px solid var(--jt-border);margin:1px 2px;">${n}</span>`).join('') : '—'}</div></div>
           ${acc.device ? `<div class="info-row"><div class="info-label">Device</div><div class="info-val"><span style="font-family:var(--mono);font-size:11px;background:var(--purple-light);color:var(--purple);border:1px solid var(--purple-border);border-radius:99px;padding:2px 10px;">${acc.device}</span></div></div>` : ''}
           <div class="info-row"><div class="info-label">Status</div><div class="info-val"><span class="acc-status-pill ${acc.status}">${statusLabel(acc.status)}</span></div></div>
           ${acc.notes ? `<div class="info-row"><div class="info-label">Notes</div><div class="info-val" style="font-size:12.1px;color:var(--ink3);">${acc.notes}</div></div>` : ''}
@@ -4859,7 +4888,8 @@ window.bulkRemove = function(accId) {
 window.openAddAccountModal = function() {
   document.getElementById('accModalTitle').textContent = 'Add Account';
   document.getElementById('accModalId').value = '';
-  ['accModalName','accModalWallet','accModalCountry','accModalGologin','accModalNotes'].forEach(id => document.getElementById(id).value='');
+  ['accModalName','accModalWallet','accModalCountry','accModalNotes'].forEach(id => document.getElementById(id).value='');
+  document.getElementById('accModalGologinData').value = '[]';
   document.getElementById('accModalStatus').value = 'active';
   const devSel = document.getElementById('accModalDevice');
   if (devSel) devSel.value = '';
@@ -4873,8 +4903,8 @@ window.openEditAccountModal = function(id) {
   document.getElementById('accModalName').value = acc.name||'';
   document.getElementById('accModalWallet').value = acc.walletAddress||'';
   document.getElementById('accModalCountry').value = acc.country||'';
-  document.getElementById('accModalGologin').value = acc.gologin||'';
-  populateGologinSelect('accModalGologin', acc.gologin||'');
+  document.getElementById('accModalGologinData').value = JSON.stringify(getAccGologins(acc));
+  populateGologinSelect('accModalGologin', '');
   document.getElementById('accModalStatus').value = acc.status||'active';
   const devSel = document.getElementById('accModalDevice');
   if (devSel) { ensureDeviceOptions(devSel, acc.device||''); }
@@ -4890,7 +4920,7 @@ window.saveAccount = function() {
     name,
     walletAddress: document.getElementById('accModalWallet').value.trim(),
     country: document.getElementById('accModalCountry').value.trim(),
-    gologin: document.getElementById('accModalGologin').value.trim(),
+    gologins: JSON.parse(document.getElementById('accModalGologinData').value || '[]'),
     status: document.getElementById('accModalStatus').value,
     device: deviceSel ? deviceSel.value : '',
     notes: document.getElementById('accModalNotes').value.trim(),
@@ -4922,32 +4952,92 @@ window.saveAccount = function() {
 // GOLOGIN MANAGEMENT
 // ─────────────────────────────────────────
 
-// Returns true if a named GoLogin profile has < 30 MB remaining
-// Also returns true for any account whose profile doesn't exist in the list (safety)
-function isProfileLowData(profileName) {
-  if (!profileName) return false; // no profile linked = not blocked
-  const profile = gologinProfiles.find(p => p.name === profileName);
-  if (!profile) return false; // profile not in managed list = not blocked
-  return (profile.dataRemaining || 0) < 30;
+// Returns true if ALL of an account's gologin profiles are low data (or if any single profile is low)
+// For blocking assignment: true if the account has at least one profile and ALL are low data
+function isProfileLowData(profileNameOrAcc) {
+  // Legacy call: string profile name
+  if (typeof profileNameOrAcc === 'string') {
+    if (!profileNameOrAcc) return false;
+    const profile = gologinProfiles.find(p => p.name === profileNameOrAcc);
+    if (!profile) return false;
+    return (profile.dataRemaining || 0) < 30;
+  }
+  return false;
 }
 
-// Populate a <select> element with gologin profile options
+// Returns true if an account has profiles and ALL of them are low data
+function isAccAllProfilesLow(acc) {
+  const profiles = getAccGologins(acc);
+  if (!profiles.length) return false;
+  return profiles.every(name => isProfileLowData(name));
+}
+
+// Helper: get gologin profiles for an account as array (supports legacy string)
+function getAccGologins(acc) {
+  if (!acc) return [];
+  if (Array.isArray(acc.gologins)) return acc.gologins;
+  if (acc.gologin && typeof acc.gologin === 'string') return [acc.gologin];
+  return [];
+}
+
+// Populate the multi-profile select + pills in the account modal
 function populateGologinSelect(selectId, currentValue) {
+  // currentValue ignored — we use accModalGologinData hidden field instead
   const sel = document.getElementById(selectId);
   if (!sel) return;
-  sel.innerHTML = '<option value="">— None —</option>' +
+  sel.innerHTML = '<option value="">— Add a profile —</option>' +
     gologinProfiles.map(p => {
       const lowData = isProfileLowData(p.name);
       const label = p.name + (lowData ? ' ⚠ LOW DATA' : '');
-      return `<option value="${p.name}" ${p.name === currentValue ? 'selected' : ''}>${label}</option>`;
+      return `<option value="${p.name}">${label}</option>`;
     }).join('');
+  // Attach change handler to add profile as pill
+  sel.onchange = function() {
+    const val = sel.value;
+    if (!val) return;
+    const hidden = document.getElementById('accModalGologinData');
+    const current = JSON.parse(hidden.value || '[]');
+    if (!current.includes(val)) {
+      current.push(val);
+      hidden.value = JSON.stringify(current);
+      renderAccModalGologinPills(current);
+    }
+    sel.value = '';
+  };
+  // Render existing pills from hidden field
+  const hidden = document.getElementById('accModalGologinData');
+  if (hidden) renderAccModalGologinPills(JSON.parse(hidden.value || '[]'));
 }
+
+function renderAccModalGologinPills(profiles) {
+  const container = document.getElementById('accModalGologinPills');
+  if (!container) return;
+  if (!profiles.length) { container.innerHTML = '<span style="font-family:var(--mono);font-size:10.5px;color:var(--ink3);">None</span>'; return; }
+  container.innerHTML = profiles.map(name =>
+    `<span style="display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:10.5px;
+      padding:3px 8px;border-radius:99px;background:var(--jt-light);color:var(--jt);border:1px solid var(--jt-border);">
+      ${name.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+      <span onclick="removeAccModalGologin('${name.replace(/'/g,"\\'")}')
+" style="cursor:pointer;font-size:13px;line-height:1;margin-left:2px;opacity:0.7;" title="Remove">×</span>
+    </span>`
+  ).join('');
+}
+
+window.removeAccModalGologin = function(name) {
+  const hidden = document.getElementById('accModalGologinData');
+  if (!hidden) return;
+  let current = JSON.parse(hidden.value || '[]');
+  current = current.filter(n => n !== name);
+  hidden.value = JSON.stringify(current);
+  renderAccModalGologinPills(current);
+};
 
 // Open Add modal
 window.openAddGologinModal = function() {
   document.getElementById('gologinModalTitle').textContent = 'Add GoLogin Profile';
   document.getElementById('gologinModalId').value = '';
   document.getElementById('gologinModalName').value = '';
+  document.getElementById('gologinModalData').value = '490';
   openModal('gologinModal');
   setTimeout(() => document.getElementById('gologinModalName').focus(), 80);
 };
@@ -4958,6 +5048,7 @@ window.openEditGologinModal = function(id) {
   document.getElementById('gologinModalTitle').textContent = 'Edit GoLogin Profile';
   document.getElementById('gologinModalId').value = id;
   document.getElementById('gologinModalName').value = p.name;
+  document.getElementById('gologinModalData').value = typeof p.dataRemaining === 'number' ? p.dataRemaining : 490;
   openModal('gologinModal');
   setTimeout(() => { const el = document.getElementById('gologinModalName'); if(el){el.focus();el.select();} }, 80);
 };
@@ -4969,18 +5060,26 @@ window.saveGologinProfile = function() {
   if (!name) { toast('Profile name is required'); return; }
   const dup = gologinProfiles.find(p => p.name === name && p.id !== id);
   if (dup) { toast('A profile with that name already exists'); return; }
+  const dataVal = document.getElementById('gologinModalData').value;
+  const dataRemaining = dataVal !== '' ? parseFloat(dataVal) : 490;
   if (id) {
     const p = gologinProfiles.find(x => x.id === id);
     if (p) {
       const oldName = p.name;
       p.name = name;
+      p.dataRemaining = dataRemaining;
       if (oldName !== name) {
-        accounts.forEach(a => { if (a.gologin === oldName) a.gologin = name; });
+        accounts.forEach(a => {
+          if (Array.isArray(a.gologins)) {
+            const idx = a.gologins.indexOf(oldName);
+            if (idx !== -1) a.gologins[idx] = name;
+          } else if (a.gologin === oldName) { a.gologin = name; }
+        });
       }
       toast('Profile updated');
     }
   } else {
-    gologinProfiles.push({ id: uid(), name, dataRemaining: 490, createdAt: now() });
+    gologinProfiles.push({ id: uid(), name, dataRemaining, createdAt: now() });
     toast('Profile added');
   }
   closeModal('gologinModal');
@@ -4991,12 +5090,16 @@ window.saveGologinProfile = function() {
 // Delete profile
 window.deleteGologinProfile = function(id) {
   const p = gologinProfiles.find(x => x.id === id); if (!p) return;
-  const linkedCount = accounts.filter(a => a.gologin === p.name).length;
+  const linkedCount = accounts.filter(a => getAccGologins(a).includes(p.name)).length;
   const msg = linkedCount
     ? `Delete "${p.name}"? This profile is linked to ${linkedCount} account(s). Their GoLogin field will be cleared.`
     : `Delete GoLogin profile "${p.name}"?`;
   openConfirm(msg, () => {
-    accounts.forEach(a => { if (a.gologin === p.name) a.gologin = ''; });
+    accounts.forEach(a => {
+      if (Array.isArray(a.gologins)) {
+        a.gologins = a.gologins.filter(n => n !== p.name);
+      } else if (a.gologin === p.name) { a.gologin = ''; }
+    });
     const idx = gologinProfiles.findIndex(x => x.id === id);
     if (idx !== -1) gologinProfiles.splice(idx, 1);
     renderGologinPage();
@@ -5005,29 +5108,41 @@ window.deleteGologinProfile = function(id) {
   });
 };
 
-// Deduct data when a task is completed via this profile
+// Deduct data when a task is completed via this account's profiles
 // YouTube = -12 MB, Google = -8 MB
 function deductGologinData(accountId, taskType) {
   const acc = accounts.find(a => a.id === accountId);
-  if (!acc || !acc.gologin) return;
-  const profile = gologinProfiles.find(p => p.name === acc.gologin);
-  if (!profile) return;
+  if (!acc) return;
+  const profileNames = getAccGologins(acc);
+  if (!profileNames.length) return;
   const deduction = taskType === 'youtube' ? 12 : 8;
-  profile.dataRemaining = Math.max(0, (typeof profile.dataRemaining === 'number' ? profile.dataRemaining : 490) - deduction);
+  profileNames.forEach(name => {
+    const profile = gologinProfiles.find(p => p.name === name);
+    if (profile) {
+      profile.dataRemaining = Math.max(0, (typeof profile.dataRemaining === 'number' ? profile.dataRemaining : 490) - deduction);
+    }
+  });
 }
 
 // Computed: accounts linked to a profile
 function gologinLinkedAccounts(profileName) {
-  return accounts.filter(a => a.gologin === profileName).length;
+  return accounts.filter(a => getAccGologins(a).includes(profileName)).length;
 }
 
-// Computed: total completed+rewarded tasks for accounts linked to a profile
+// Computed: total completed+rewarded tasks assigned while this profile was linked
 function gologinTotalTasks(profileName) {
-  const linkedIds = new Set(accounts.filter(a => a.gologin === profileName).map(a => a.id));
   let count = 0;
   tasks.forEach(task => {
     (task.assignments||[]).forEach(asgn => {
-      if (linkedIds.has(asgn.accountId) && (asgn.status === 'completed' || asgn.status === 'rewarded')) count++;
+      if ((asgn.status === 'completed' || asgn.status === 'rewarded')) {
+        if (asgn.gologinProfile !== undefined) {
+          if (asgn.gologinProfile === profileName) count++;
+        } else {
+          // Legacy: fall back to current account link
+          const acc = accounts.find(a => a.id === asgn.accountId);
+          if (acc && getAccGologins(acc).includes(profileName)) count++;
+        }
+      }
     });
   });
   return count;
@@ -5049,7 +5164,8 @@ function renderGologinPage() {
   }
 
   tbody.innerHTML = gologinProfiles.map(p => {
-    const linked = gologinLinkedAccounts(p.name);
+    const linkedAccs = accounts.filter(a => getAccGologins(a).includes(p.name));
+    const linked = linkedAccs.length;
     const totalTasks = gologinTotalTasks(p.name);
     const mb = typeof p.dataRemaining === 'number' ? p.dataRemaining : 490;
     const isLow = mb < 30;
@@ -5059,11 +5175,17 @@ function renderGologinPage() {
     const lowBadge = isLow
       ? `<span style="font-family:var(--mono);font-size:9px;font-weight:700;padding:2px 7px;border-radius:99px;background:var(--red-light);color:var(--red);border:1px solid var(--red-border);margin-left:7px;vertical-align:middle;">⚠ LOW DATA · Cannot assign tasks</span>`
       : '';
+    const linkedAccountsHtml = linkedAccs.length
+      ? linkedAccs.map(a => `<span style="display:inline-block;font-family:var(--mono);font-size:9.5px;padding:2px 7px;border-radius:99px;background:var(--jt-light);color:var(--jt);border:1px solid var(--jt-border);margin:1px;">${a.name.replace(/&/g,'&amp;')}</span>`).join('')
+      : `<span style="font-family:var(--mono);font-size:9.5px;color:var(--ink3);">None</span>`;
     return `
       <tr style="border-bottom:1px solid var(--border);transition:background 0.1s;${rowBg}" onmouseenter="this.style.background='var(--surface2)'" onmouseleave="this.style.background='${isLow ? 'rgba(248,113,113,0.05)' : ''}'">
         <td style="padding:11px 14px;font-family:var(--mono);font-size:13px;font-weight:600;color:var(--ink);">${(p.name||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}${lowBadge}</td>
         <td style="padding:11px 14px;text-align:right;font-family:var(--mono);font-size:13px;font-weight:700;color:${mbColor};">${mbDisplay}</td>
-        <td style="padding:11px 14px;text-align:right;font-family:var(--mono);font-size:13px;color:var(--jt);font-weight:600;">${linked}</td>
+        <td style="padding:11px 14px;font-family:var(--mono);font-size:13px;color:var(--jt);font-weight:600;cursor:pointer;" onclick="this.nextElementSibling && (this.nextElementSibling.style.display = this.nextElementSibling.style.display==='none'?'table-row':'none')"
+          title="Click to toggle linked accounts">
+          ${linked} <span style="font-size:9.5px;opacity:0.6;">▾</span>
+        </td>
         <td style="padding:11px 14px;text-align:right;font-family:var(--mono);font-size:13px;color:var(--ink2);">${totalTasks}</td>
         <td style="padding:11px 14px;text-align:center;">
           <div style="display:inline-flex;gap:6px;">
@@ -5071,7 +5193,14 @@ function renderGologinPage() {
             <button onclick="deleteGologinProfile('${p.id}')" style="font-family:var(--mono);font-size:11px;padding:5px 10px;border-radius:6px;border:1px solid var(--red-border);background:var(--red-light);color:var(--red);cursor:pointer;">✕</button>
           </div>
         </td>
+      </tr>
+      <tr style="display:none;background:var(--surface2);">
+        <td colspan="5" style="padding:8px 20px 12px;">
+          <div style="font-family:var(--mono);font-size:9.5px;color:var(--ink3);margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px;">Linked Accounts</div>
+          <div style="display:flex;flex-wrap:wrap;gap:4px;">${linkedAccountsHtml}</div>
+        </td>
       </tr>`;
+  }).join('');
   }).join('');
 }
 
@@ -7862,5 +7991,5 @@ if ('serviceWorker' in navigator) {
          font-size:18px;cursor:pointer;
          box-shadow:0 2px 12px rgba(13,27,62,0.22);
          align-items:center;justify-content:center;">↑</button>
-<script>// 27</script>
+<script>// 28</script>
 <protonpass-root-8df7 data-protonpass-role="root" data-protonpass-theme="dark"></protonpass-root-8df7></body></html>
