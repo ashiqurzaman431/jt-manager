@@ -1854,6 +1854,9 @@ select option { background: var(--surface3); color: var(--ink); }
     <button class="nav-btn" id="navEarnings" onclick="showPage('earnings')">
       <span class="nav-icon">📈</span> Earnings History
     </button>
+    <button class="nav-btn" id="navGologin" onclick="showPage('gologin')">
+      <span class="nav-icon">🌐</span> GoLogin
+    </button>
   </div>
 
   <!-- ════════════════════════════ -->
@@ -2422,6 +2425,37 @@ TaskRec01: task assigned, timer started.</div>
       <!-- Earnings table -->
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
         <div id="ehTable"><div class="empty-state" style="margin:0;border:none;border-radius:0;"><div class="es-icon">📊</div>No payout records in this range</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════ -->
+  <!-- PAGE: GOLOGIN MANAGEMENT    -->
+  <!-- ════════════════════════════ -->
+  <div class="page" id="page-gologin">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
+      <div class="sec-title" style="margin-bottom:0;">GoLogin Management</div>
+      <button class="btn-primary" style="padding:9px 16px;font-size:12.1px;" onclick="openAddGologinModal()">+ Add Profile</button>
+    </div>
+    <div id="gologinLowDataBanner" style="display:none;background:var(--red-light);border:1px solid var(--red-border);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:14px;font-family:var(--mono);font-size:12px;color:var(--red);font-weight:600;">
+      ⚠ One or more profiles have less than 30 MB remaining. Accounts using those profiles cannot be assigned new tasks.
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
+      <div style="overflow-x:auto;">
+        <table id="gologinTable" style="width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12.5px;">
+          <thead>
+            <tr style="background:var(--surface2);border-bottom:2px solid var(--border2);">
+              <th style="text-align:left;padding:10px 14px;color:var(--ink3);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;white-space:nowrap;">Profile</th>
+              <th style="text-align:right;padding:10px 14px;color:var(--ink3);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;white-space:nowrap;">Data Remaining</th>
+              <th style="text-align:right;padding:10px 14px;color:var(--ink3);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;white-space:nowrap;">Total JT Accounts</th>
+              <th style="text-align:right;padding:10px 14px;color:var(--ink3);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;white-space:nowrap;">Total Tasks</th>
+              <th style="text-align:center;padding:10px 14px;color:var(--ink3);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;white-space:nowrap;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="gologinTableBody">
+            <tr><td colspan="5" style="text-align:center;padding:32px;color:var(--ink3);">No GoLogin profiles yet</td></tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
@@ -4044,7 +4078,7 @@ TaskRec01: task assigned, timer started.</div>
       <div class="field"><label>Account Name</label><input type="text" id="accModalName" placeholder="e.g. Matteo67"></div>
       <div class="field"><label>Wallet Address</label><input type="text" id="accModalWallet" placeholder="0x..."></div>
       <div class="field"><label>Country</label><input type="text" id="accModalCountry" placeholder="e.g. Germany"></div>
-      <div class="field"><label>GoLogin Profile Code</label><input type="text" id="accModalGologin" placeholder="e.g. redmiroberts"></div>
+      <div class="field"><label>GoLogin Profile</label><select id="accModalGologin" style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:14.3px;padding:9px 10px;outline:none;width:100%;"><option value="">— None —</option></select></div>
       <div class="field">
         <label>Status</label>
         <select id="accModalStatus">
@@ -4303,6 +4337,27 @@ TaskRec01: task assigned, timer started.</div>
   </div>
 </div>
 
+<!-- MODAL: Add/Edit GoLogin Profile -->
+<div class="modal-overlay" id="gologinModal">
+  <div class="modal" style="max-width:400px;">
+    <div class="modal-title">
+      <span id="gologinModalTitle">Add GoLogin Profile</span>
+      <button class="modal-close" onclick="closeModal('gologinModal')">✕</button>
+    </div>
+    <div class="modal-fields">
+      <input type="hidden" id="gologinModalId">
+      <div class="field">
+        <label>Profile Name</label>
+        <input type="text" id="gologinModalName" placeholder="e.g. redmiroberts">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-primary" onclick="saveGologinProfile()">Save Profile</button>
+      <button class="btn-secondary" onclick="closeModal('gologinModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL: Edit Task -->
 <div class="modal-overlay" id="editTaskModal">
   <div class="modal" style="max-width:400px;">
@@ -4360,6 +4415,10 @@ let auditLog = [];
 /*EMBEDDED_WORDLIB_START*/
 let wordLibrary = [];
 /*EMBEDDED_WORDLIB_END*/
+
+/*EMBEDDED_GOLOGIN_START*/
+let gologinProfiles = [];
+/*EMBEDDED_GOLOGIN_END*/
 
 // ─────────────────────────────────────────
 // ─────────────────────────────────────────
@@ -4485,6 +4544,7 @@ function pushUndo(label) {
     accounts: JSON.parse(JSON.stringify(accounts)),
     tasks: JSON.parse(JSON.stringify(tasks)),
     globalSettings: JSON.parse(JSON.stringify(globalSettings)),
+    gologinProfiles: JSON.parse(JSON.stringify(gologinProfiles)),
   });
   if (_undoStack.length > UNDO_MAX) _undoStack.shift();
   updateUndoBtn();
@@ -4509,11 +4569,13 @@ window.undoLast = function() {
   accounts.length = 0; snap.accounts.forEach(a => accounts.push(a));
   tasks.length = 0; snap.tasks.forEach(t => tasks.push(t));
   Object.assign(globalSettings, snap.globalSettings);
+  if (snap.gologinProfiles) { gologinProfiles.length = 0; snap.gologinProfiles.forEach(p => gologinProfiles.push(p)); }
   updateUndoBtn();
   renderDashboard();
   renderAccList();
   taskPage = 0;
   renderTasks();
+  renderGologinPage();
   if (selectedAccId) renderAccDetail(selectedAccId);
   toast(`Undone: ${snap.label}`);
 };
@@ -4540,7 +4602,7 @@ window.setGoLoginFilter = function(profile) {
 // ─────────────────────────────────────────
 // NAVIGATION
 // ─────────────────────────────────────────
-const NAV_IDS = { dashboard: 'navDash', tasks: 'navTasks', accounts: 'navAccounts', earnings: 'navEarnings', auditlog: null };
+const NAV_IDS = { dashboard: 'navDash', tasks: 'navTasks', accounts: 'navAccounts', earnings: 'navEarnings', gologin: 'navGologin', auditlog: null };
 function showPage(id) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
@@ -4563,6 +4625,7 @@ function showPage(id) {
   }
   if (id === 'earnings') { populateEhAccountSelect(); renderEarningsHistory(); }
   if (id === 'auditlog') { renderBugHistory(); }
+  if (id === 'gologin') { renderGologinPage(); }
   // Action Center panel: only visible on Task Management tab
   setAcPanelVisibility(id === 'tasks');
   setWdPanelVisibility(id === 'tasks');
@@ -5763,8 +5826,10 @@ window.unarchiveTask = function(id) {
 window.assignToAllActive = function(taskId) {
   const t = tasks.find(t => t.id===taskId); if(!t) return;
   const alreadyAssigned = new Set((t.assignments||[]).map(a => a.accountId));
-  const eligible = accounts.filter(a => a.status !== 'dead' && !alreadyAssigned.has(a.id));
-  if (!eligible.length) { toast('All active accounts already assigned'); return; }
+  const eligible = accounts.filter(a => a.status !== 'dead' && !alreadyAssigned.has(a.id) && !isProfileLowData(a.gologin));
+  const skippedLowData = accounts.filter(a => a.status !== 'dead' && !alreadyAssigned.has(a.id) && isProfileLowData(a.gologin)).length;
+  if (!eligible.length && skippedLowData === 0) { toast('All active accounts already assigned'); return; }
+  if (!eligible.length) { toast(`⚠ All unassigned accounts blocked — GoLogin profile < 30 MB`); return; }
   pushUndo('Assign all → ' + t.title);
   if (!t.assignments) t.assignments = [];
   eligible.forEach(acc => {
@@ -5781,7 +5846,8 @@ window.assignToAllActive = function(taskId) {
   if (selectedAccId) renderAccDetail(selectedAccId);
   renderActionCenter();
   markUnsaved(true);
-  toast(`Assigned to ${eligible.length} account${eligible.length>1?'s':''}`);
+  const skipMsg = skippedLowData > 0 ? `, ${skippedLowData} skipped (low data)` : '';
+  toast(`Assigned to ${eligible.length} account${eligible.length>1?'s':''}${skipMsg}`);
 };
 
 window.openEditTaskModal = function(taskId) {
@@ -5830,7 +5896,8 @@ window.openAssignModal = function(taskId) {
   document.getElementById('assignModalTaskInfo').textContent = `Task: ${t.title} · Default: ${fmtUSDT(t.defaultReward)}`;
   document.getElementById('assignModalReward').value = '';
   const alreadyAssigned = new Set((t.assignments||[]).map(a => a.accountId));
-  const eligible = accounts.filter(a => a.status !== 'dead' && !alreadyAssigned.has(a.id));
+  const eligible = accounts.filter(a => a.status !== 'dead' && !alreadyAssigned.has(a.id) && !isProfileLowData(a.gologin));
+  const blockedByData = accounts.filter(a => a.status !== 'dead' && !alreadyAssigned.has(a.id) && isProfileLowData(a.gologin)).length;
 
   // Sort: never-assigned first, most recently assigned last
   // Find the latest assignedAt for each account across all tasks
@@ -5848,16 +5915,29 @@ window.openAssignModal = function(taskId) {
   });
 
   const sel = document.getElementById('assignModalAccSelect');
+  let noEligibleMsg = 'No eligible accounts (all assigned or dead)';
+  if (!eligible.length && blockedByData > 0) noEligibleMsg = `No eligible accounts — ${blockedByData} blocked (GoLogin profile < 30 MB)`;
   sel.innerHTML = eligible.length
     ? eligible.map(a => `<option value="${a.id}">${a.name} (${a.country||'—'}) · ${statusLabel(a.status)}</option>`).join('')
-    : '<option disabled>No eligible accounts (all assigned or dead)</option>';
+    : `<option disabled>${noEligibleMsg}</option>`;
   sel.selectedIndex = 0; // always start at top (oldest/never assigned)
+  // Show low-data notice below task info if any accounts were blocked
+  const infoEl = document.getElementById('assignModalTaskInfo');
+  if (blockedByData > 0 && infoEl) {
+    infoEl.innerHTML = `Task: ${t.title} · Default: ${fmtUSDT(t.defaultReward)}<br><span style="color:var(--red);font-size:10.5px;">⚠ ${blockedByData} account${blockedByData>1?'s':''} hidden — GoLogin profile has &lt; 30 MB data remaining</span>`;
+  }
   openModal('assignModal');
 };
 window.confirmAssign = function() {
   if (!assigningTaskId) return;
   const accId = document.getElementById('assignModalAccSelect').value;
   if (!accId) { toast('No eligible account to assign'); return; }
+  // Final guard: block if account's profile dropped below 30 MB since modal opened
+  const accCheck = accounts.find(a => a.id === accId);
+  if (accCheck && isProfileLowData(accCheck.gologin)) {
+    toast('⚠ Cannot assign — GoLogin profile has less than 30 MB remaining');
+    return;
+  }
   const customReward = document.getElementById('assignModalReward').value;
   const t = tasks.find(t => t.id===assigningTaskId); if(!t) return;
   const asgn = {
@@ -5892,7 +5972,7 @@ function renderAccList() {
   // Build GoLogin filter dropdown
   const glBar = document.getElementById('goLoginFilterBar');
   if (glBar) {
-    const profiles = [...new Set(accounts.map(a => a.gologin).filter(Boolean))].sort();
+    const profiles = gologinProfiles.map(p => p.name).sort();
     glBar.innerHTML = `<option value="all">All Profiles</option>` +
       profiles.map(p => `<option value="${p}">${p}</option>`).join('');
     glBar.value = goLoginFilter;
@@ -6187,7 +6267,7 @@ window.confirmStatusNoteModal = function() {
   asgn.status = newStatus;
   if (desc) asgn.statusNote = desc;
   task.updatedAt = now();
-  if (newStatus==='completed') asgn.completedAt = now();
+  if (newStatus==='completed') { asgn.completedAt = now(); deductGologinData(asgn.accountId, task.type); }
   if (newStatus==='rewarded') {
     asgn.rewardedAt = now();
     const rate = globalSettings.jmptRate || 0;
@@ -6215,6 +6295,7 @@ window.markActionComplete = function(taskId, asgnId) {
   pushUndo(`Status → completed (${task.title})`);
   asgn.status = 'completed';
   asgn.completedAt = now();
+  deductGologinData(asgn.accountId, task.type);
   if (selectedAccId) renderAccDetail(selectedAccId);
   taskPage = 0;
   renderTasks();
@@ -6272,6 +6353,7 @@ window.bulkUpdateStatus = function(accId, newStatus) {
     const asgn = (task.assignments||[]).find(a => a.id===asgnId); if(!asgn) return;
     if (newStatus==='completed' && asgn.status==='assigned') {
       asgn.status='completed'; asgn.completedAt=now();
+      deductGologinData(asgn.accountId, task.type);
     } else if (newStatus==='rewarded' && (asgn.status==='assigned'||asgn.status==='completed')) {
       asgn.status='rewarded';
       if(!asgn.completedAt) asgn.completedAt=now();
@@ -6328,6 +6410,7 @@ window.openAddAccountModal = function() {
   document.getElementById('accModalStatus').value = 'active';
   const devSel = document.getElementById('accModalDevice');
   if (devSel) devSel.value = '';
+  populateGologinSelect('accModalGologin', '');
   openModal('accModal');
 };
 window.openEditAccountModal = function(id) {
@@ -6338,6 +6421,7 @@ window.openEditAccountModal = function(id) {
   document.getElementById('accModalWallet').value = acc.walletAddress||'';
   document.getElementById('accModalCountry').value = acc.country||'';
   document.getElementById('accModalGologin').value = acc.gologin||'';
+  populateGologinSelect('accModalGologin', acc.gologin||'');
   document.getElementById('accModalStatus').value = acc.status||'active';
   const devSel = document.getElementById('accModalDevice');
   if (devSel) { ensureDeviceOptions(devSel, acc.device||''); }
@@ -6380,6 +6464,163 @@ window.saveAccount = function() {
   renderDashboard();
   toast(id ? 'Account updated' : 'Account added');
 };
+
+// ─────────────────────────────────────────
+// GOLOGIN MANAGEMENT
+// ─────────────────────────────────────────
+
+// Returns true if a named GoLogin profile has < 30 MB remaining
+// Also returns true for any account whose profile doesn't exist in the list (safety)
+function isProfileLowData(profileName) {
+  if (!profileName) return false; // no profile linked = not blocked
+  const profile = gologinProfiles.find(p => p.name === profileName);
+  if (!profile) return false; // profile not in managed list = not blocked
+  return (profile.dataRemaining || 0) < 30;
+}
+
+// Populate a <select> element with gologin profile options
+function populateGologinSelect(selectId, currentValue) {
+  const sel = document.getElementById(selectId);
+  if (!sel) return;
+  sel.innerHTML = '<option value="">— None —</option>' +
+    gologinProfiles.map(p => {
+      const lowData = isProfileLowData(p.name);
+      const label = p.name + (lowData ? ' ⚠ LOW DATA' : '');
+      return `<option value="${p.name}" ${p.name === currentValue ? 'selected' : ''}>${label}</option>`;
+    }).join('');
+}
+
+// Open Add modal
+window.openAddGologinModal = function() {
+  document.getElementById('gologinModalTitle').textContent = 'Add GoLogin Profile';
+  document.getElementById('gologinModalId').value = '';
+  document.getElementById('gologinModalName').value = '';
+  openModal('gologinModal');
+  setTimeout(() => document.getElementById('gologinModalName').focus(), 80);
+};
+
+// Open Edit modal
+window.openEditGologinModal = function(id) {
+  const p = gologinProfiles.find(x => x.id === id); if (!p) return;
+  document.getElementById('gologinModalTitle').textContent = 'Edit GoLogin Profile';
+  document.getElementById('gologinModalId').value = id;
+  document.getElementById('gologinModalName').value = p.name;
+  openModal('gologinModal');
+  setTimeout(() => { const el = document.getElementById('gologinModalName'); if(el){el.focus();el.select();} }, 80);
+};
+
+// Save (add or update)
+window.saveGologinProfile = function() {
+  const id = document.getElementById('gologinModalId').value;
+  const name = document.getElementById('gologinModalName').value.trim();
+  if (!name) { toast('Profile name is required'); return; }
+  const dup = gologinProfiles.find(p => p.name === name && p.id !== id);
+  if (dup) { toast('A profile with that name already exists'); return; }
+  if (id) {
+    const p = gologinProfiles.find(x => x.id === id);
+    if (p) {
+      const oldName = p.name;
+      p.name = name;
+      if (oldName !== name) {
+        accounts.forEach(a => { if (a.gologin === oldName) a.gologin = name; });
+      }
+      toast('Profile updated');
+    }
+  } else {
+    gologinProfiles.push({ id: uid(), name, dataRemaining: 490, createdAt: now() });
+    toast('Profile added');
+  }
+  closeModal('gologinModal');
+  renderGologinPage();
+  markUnsaved(true);
+};
+
+// Delete profile
+window.deleteGologinProfile = function(id) {
+  const p = gologinProfiles.find(x => x.id === id); if (!p) return;
+  const linkedCount = accounts.filter(a => a.gologin === p.name).length;
+  const msg = linkedCount
+    ? `Delete "${p.name}"? This profile is linked to ${linkedCount} account(s). Their GoLogin field will be cleared.`
+    : `Delete GoLogin profile "${p.name}"?`;
+  openConfirm(msg, () => {
+    accounts.forEach(a => { if (a.gologin === p.name) a.gologin = ''; });
+    const idx = gologinProfiles.findIndex(x => x.id === id);
+    if (idx !== -1) gologinProfiles.splice(idx, 1);
+    renderGologinPage();
+    markUnsaved(true);
+    toast('Profile deleted');
+  });
+};
+
+// Deduct data when a task is completed via this profile
+// YouTube = -12 MB, Google = -8 MB
+function deductGologinData(accountId, taskType) {
+  const acc = accounts.find(a => a.id === accountId);
+  if (!acc || !acc.gologin) return;
+  const profile = gologinProfiles.find(p => p.name === acc.gologin);
+  if (!profile) return;
+  const deduction = taskType === 'youtube' ? 12 : 8;
+  profile.dataRemaining = Math.max(0, (typeof profile.dataRemaining === 'number' ? profile.dataRemaining : 490) - deduction);
+}
+
+// Computed: accounts linked to a profile
+function gologinLinkedAccounts(profileName) {
+  return accounts.filter(a => a.gologin === profileName).length;
+}
+
+// Computed: total completed+rewarded tasks for accounts linked to a profile
+function gologinTotalTasks(profileName) {
+  const linkedIds = new Set(accounts.filter(a => a.gologin === profileName).map(a => a.id));
+  let count = 0;
+  tasks.forEach(task => {
+    (task.assignments||[]).forEach(asgn => {
+      if (linkedIds.has(asgn.accountId) && (asgn.status === 'completed' || asgn.status === 'rewarded')) count++;
+    });
+  });
+  return count;
+}
+
+// Render the GoLogin table page
+function renderGologinPage() {
+  const tbody = document.getElementById('gologinTableBody');
+  const banner = document.getElementById('gologinLowDataBanner');
+  if (!tbody) return;
+
+  // Show/hide the low-data banner
+  const anyLow = gologinProfiles.some(p => (p.dataRemaining || 0) < 30);
+  if (banner) banner.style.display = anyLow ? 'block' : 'none';
+
+  if (!gologinProfiles.length) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:32px;color:var(--ink3);font-family:var(--mono);font-size:12px;">No GoLogin profiles yet — click + Add Profile</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = gologinProfiles.map(p => {
+    const linked = gologinLinkedAccounts(p.name);
+    const totalTasks = gologinTotalTasks(p.name);
+    const mb = typeof p.dataRemaining === 'number' ? p.dataRemaining : 490;
+    const isLow = mb < 30;
+    const mbColor = mb > 200 ? 'var(--green)' : mb > 80 ? 'var(--amber)' : 'var(--red)';
+    const mbDisplay = mb >= 1024 ? (mb / 1024).toFixed(2) + ' GB' : mb.toFixed(1) + ' MB';
+    const rowBg = isLow ? 'background:rgba(248,113,113,0.05);' : '';
+    const lowBadge = isLow
+      ? `<span style="font-family:var(--mono);font-size:9px;font-weight:700;padding:2px 7px;border-radius:99px;background:var(--red-light);color:var(--red);border:1px solid var(--red-border);margin-left:7px;vertical-align:middle;">⚠ LOW DATA · Cannot assign tasks</span>`
+      : '';
+    return `
+      <tr style="border-bottom:1px solid var(--border);transition:background 0.1s;${rowBg}" onmouseenter="this.style.background='var(--surface2)'" onmouseleave="this.style.background='${isLow ? 'rgba(248,113,113,0.05)' : ''}'">
+        <td style="padding:11px 14px;font-family:var(--mono);font-size:13px;font-weight:600;color:var(--ink);">${escHtml(p.name)}${lowBadge}</td>
+        <td style="padding:11px 14px;text-align:right;font-family:var(--mono);font-size:13px;font-weight:700;color:${mbColor};">${mbDisplay}</td>
+        <td style="padding:11px 14px;text-align:right;font-family:var(--mono);font-size:13px;color:var(--jt);font-weight:600;">${linked}</td>
+        <td style="padding:11px 14px;text-align:right;font-family:var(--mono);font-size:13px;color:var(--ink2);">${totalTasks}</td>
+        <td style="padding:11px 14px;text-align:center;">
+          <div style="display:inline-flex;gap:6px;">
+            <button onclick="openEditGologinModal('${p.id}')" style="font-family:var(--mono);font-size:11px;padding:5px 10px;border-radius:6px;border:1px solid var(--border2);background:var(--jt-light);color:var(--jt);cursor:pointer;">✎ Edit</button>
+            <button onclick="deleteGologinProfile('${p.id}')" style="font-family:var(--mono);font-size:11px;padding:5px 10px;border-radius:6px;border:1px solid var(--red-border);background:var(--red-light);color:var(--red);cursor:pointer;">✕</button>
+          </div>
+        </td>
+      </tr>`;
+  }).join('');
+}
 
 // ─────────────────────────────────────────
 // PAYOUT MODAL
@@ -6520,7 +6761,8 @@ function buildSaveJSON() {
     auditLog: JSON.parse(JSON.stringify(auditLog)),
     bugLog: JSON.parse(JSON.stringify(bugLog)),
     bugHistory: JSON.parse(JSON.stringify(bugHistory)),
-    wordLibrary: JSON.parse(JSON.stringify(wordLibrary))
+    wordLibrary: JSON.parse(JSON.stringify(wordLibrary)),
+    gologinProfiles: JSON.parse(JSON.stringify(gologinProfiles))
   };
 }
 
@@ -6533,6 +6775,7 @@ function loadDataJson(payload) {
   }
   if (Array.isArray(payload.auditLog)) { auditLog.length = 0; auditLog.push(...payload.auditLog); }
   if (Array.isArray(payload.wordLibrary)) { wordLibrary.length = 0; wordLibrary.push(...payload.wordLibrary); }
+  if (Array.isArray(payload.gologinProfiles)) { gologinProfiles.length = 0; gologinProfiles.push(...payload.gologinProfiles); }
   // UHLV comparison: keep whichever source (HTML or JSON) has the higher UHLV.
   // If JSON uhlv > HTML UHLV → JSON wins, load its bugLog/bugHistory and update UHLV.
   // If JSON uhlv < HTML UHLV → HTML wins, keep current in-memory bugLog/bugHistory.
@@ -7021,6 +7264,11 @@ let auditLog = [];
     /\/\*EMBEDDED_WORDLIB_START\*\/[\s\S]*?\/\*EMBEDDED_WORDLIB_END\*\//,
     `/*EMBEDDED_WORDLIB_START*/\nlet wordLibrary = [];\n/*EMBEDDED_WORDLIB_END*/`
   );
+  const gologinJson = JSON.stringify(gologinProfiles, null, 2).replace(/</g,'\\u003c').replace(/>/g,'\\u003e');
+  src = src.replace(
+    /\/\*EMBEDDED_GOLOGIN_START\*\/[\s\S]*?\/\*EMBEDDED_GOLOGIN_END\*\//,
+    `/*EMBEDDED_GOLOGIN_START*/\nlet gologinProfiles = ${gologinJson};\n/*EMBEDDED_GOLOGIN_END*/`
+  );
   const bugLogJson = JSON.stringify(bugLog, null, 2);
   src = src.replace(
     /\/\*BUG_LOG_START\*\/[\s\S]*?\/\*BUG_LOG_END\*\//,
@@ -7090,6 +7338,10 @@ window.exportForAI = function exportForAI() {
     src = src.replace(
       /\/\*EMBEDDED_WORDLIB_START\*\/[\s\S]*?\/\*EMBEDDED_WORDLIB_END\*\//,
       '/*EMBEDDED_WORDLIB_START*/\nlet wordLibrary = [];\n/*EMBEDDED_WORDLIB_END*/'
+    );
+    src = src.replace(
+      /\/\*EMBEDDED_GOLOGIN_START\*\/[\s\S]*?\/\*EMBEDDED_GOLOGIN_END\*\//,
+      '/*EMBEDDED_GOLOGIN_START*/\nlet gologinProfiles = [];\n/*EMBEDDED_GOLOGIN_END*/'
     );
 
     src = src.replace(
@@ -7960,6 +8212,7 @@ window.acStepComplete = function(taskId, asgnId) {
   pushUndo(`Status → completed (${task.title})`);
   asgn.status = 'completed';
   asgn.completedAt = now();
+  deductGologinData(asgn.accountId, task.type);
 
   if (selectedAccId) renderAccDetail(selectedAccId);
   taskPage = 0;
@@ -9156,5 +9409,5 @@ if ('serviceWorker' in navigator) {
          font-size:18px;cursor:pointer;
          box-shadow:0 2px 12px rgba(13,27,62,0.22);
          align-items:center;justify-content:center;">↑</button>
-<script>// 26</script>
+<script>// 27</script>
 <protonpass-root-8df7 data-protonpass-role="root" data-protonpass-theme="dark"></protonpass-root-8df7></body></html>
