@@ -5012,15 +5012,24 @@ function populateGologinSelect(selectId, currentValue) {
 function renderAccModalGologinPills(profiles) {
   const container = document.getElementById('accModalGologinPills');
   if (!container) return;
-  if (!profiles.length) { container.innerHTML = '<span style="font-family:var(--mono);font-size:10.5px;color:var(--ink3);">None</span>'; return; }
-  container.innerHTML = profiles.map(name =>
-    `<span style="display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:10.5px;
-      padding:3px 8px;border-radius:99px;background:var(--jt-light);color:var(--jt);border:1px solid var(--jt-border);">
-      ${name.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
-      <span onclick="removeAccModalGologin('${name.replace(/'/g,"\\'")}')
-" style="cursor:pointer;font-size:13px;line-height:1;margin-left:2px;opacity:0.7;" title="Remove">×</span>
-    </span>`
-  ).join('');
+  if (!profiles.length) {
+    container.innerHTML = '<span style="font-family:var(--mono);font-size:10.5px;color:var(--ink3);">None</span>';
+    return;
+  }
+  container.innerHTML = '';
+  profiles.forEach(function(name) {
+    const pill = document.createElement('span');
+    pill.style.cssText = 'display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:10.5px;padding:3px 8px;border-radius:99px;background:var(--jt-light);color:var(--jt);border:1px solid var(--jt-border);';
+    const label = document.createTextNode(name);
+    const x = document.createElement('span');
+    x.textContent = '×';
+    x.style.cssText = 'cursor:pointer;font-size:13px;line-height:1;margin-left:2px;opacity:0.7;';
+    x.title = 'Remove';
+    x.onclick = function() { window.removeAccModalGologin(name); };
+    pill.appendChild(label);
+    pill.appendChild(x);
+    container.appendChild(pill);
+  });
 }
 
 window.removeAccModalGologin = function(name) {
@@ -5178,8 +5187,9 @@ function renderGologinPage() {
     const linkedAccountsHtml = linkedAccs.length
       ? linkedAccs.map(a => `<span style="display:inline-block;font-family:var(--mono);font-size:9.5px;padding:2px 7px;border-radius:99px;background:var(--jt-light);color:var(--jt);border:1px solid var(--jt-border);margin:1px;">${a.name.replace(/&/g,'&amp;')}</span>`).join('')
       : `<span style="font-family:var(--mono);font-size:9.5px;color:var(--ink3);">None</span>`;
+    const hoverReset = isLow ? 'rgba(248,113,113,0.05)' : '';
     return `
-      <tr style="border-bottom:1px solid var(--border);transition:background 0.1s;${rowBg}" onmouseenter="this.style.background='var(--surface2)'" onmouseleave="this.style.background='${isLow ? 'rgba(248,113,113,0.05)' : ''}'">
+      <tr style="border-bottom:1px solid var(--border);transition:background 0.1s;${rowBg}" onmouseenter="this.style.background='var(--surface2)'" onmouseleave="this.style.background='${hoverReset}'">
         <td style="padding:11px 14px;font-family:var(--mono);font-size:13px;font-weight:600;color:var(--ink);">${(p.name||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}${lowBadge}</td>
         <td style="padding:11px 14px;text-align:right;font-family:var(--mono);font-size:13px;font-weight:700;color:${mbColor};">${mbDisplay}</td>
         <td style="padding:11px 14px;font-family:var(--mono);font-size:13px;color:var(--jt);font-weight:600;cursor:pointer;" onclick="this.nextElementSibling && (this.nextElementSibling.style.display = this.nextElementSibling.style.display==='none'?'table-row':'none')"
@@ -5200,7 +5210,6 @@ function renderGologinPage() {
           <div style="display:flex;flex-wrap:wrap;gap:4px;">${linkedAccountsHtml}</div>
         </td>
       </tr>`;
-  }).join('');
   }).join('');
 }
 
