@@ -5574,7 +5574,7 @@ function initGIS() {
 function gisSignIn() {
   setLoginStatus('Opening Google sign-in…');
   if (!_gisTokenClient) { setLoginStatus('GIS not ready — try again in a moment.'); return; }
-  _gisTokenClient.requestAccessToken({ prompt: 'select_account consent', hint: '' });
+  _gisTokenClient.requestAccessToken({ prompt: 'consent' });
 }
 window.gisSignIn = gisSignIn;
 
