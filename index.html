@@ -1157,6 +1157,17 @@ select option { background: var(--surface3); color: var(--ink); }
 .acc-stat-mini-label { font-family:var(--mono); font-size:9.9px; color:var(--ink3); text-transform:uppercase; }
 .acc-stat-mini-val { font-family:var(--mono); font-size:14.3px; font-weight:700; color:var(--jt); }
 
+.acc-task-stats { display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:8px; margin:6px 0 10px; }
+.acc-task-stat { background:var(--surface3); border-radius:var(--radius-sm); padding:8px 10px; text-align:center; }
+.acc-task-stat-label { font-family:var(--mono); font-size:9px; color:var(--ink3); text-transform:uppercase; letter-spacing:0.3px; }
+.acc-task-stat-val { font-family:var(--mono); font-size:16px; font-weight:700; color:var(--ink); margin-top:2px; }
+.acc-task-stat-val.amber { color:var(--amber); }
+.acc-task-stat-val.blue { color:var(--jt); }
+.acc-task-stat-val.green { color:var(--green); }
+@media (max-width:520px) {
+  .acc-task-stats { grid-template-columns:1fr 1fr; }
+}
+
 .btn-edit-acc {
   width:100%; padding:9px; background:var(--jt-light); color:var(--jt);
   border:1px solid var(--jt-border); border-radius:var(--radius-sm);
@@ -1230,6 +1241,12 @@ select option { background: var(--surface3); color: var(--ink); }
 }
 .total-withdrawn-label { font-family:var(--mono); font-size:11px; color:var(--jt); }
 .total-withdrawn-val { font-family:var(--mono); font-size:15.4px; font-weight:500; color:var(--jt); }
+.history-date-header {
+  font-family:var(--mono); font-size:10.5px; font-weight:700; color:var(--ink3);
+  text-transform:uppercase; letter-spacing:0.6px;
+  margin:14px 0 6px; padding-bottom:4px; border-bottom:1px solid var(--border);
+}
+.history-date-header:first-of-type { margin-top:0; }
 
 /* ── MODAL ── */
 .modal-overlay {
@@ -1843,16 +1860,16 @@ select option { background: var(--surface3); color: var(--ink); }
   <!-- NAV -->
   <div class="nav">
     <button class="nav-btn" id="navDash" onclick="showPage('dashboard')">
-      <span class="nav-icon">⊞</span> Dashboard
+      <span class="nav-icon">⊞</span> Glance Board
     </button>
     <button class="nav-btn" id="navTasks" onclick="showPage('tasks')">
-      <span class="nav-icon">✦</span> Task Management
+      <span class="nav-icon">✦</span> Task Manager
     </button>
     <button class="nav-btn" id="navAccounts" onclick="showPage('accounts')">
-      <span class="nav-icon">◈</span> Account Management
+      <span class="nav-icon">◈</span> Jumptask
     </button>
     <button class="nav-btn" id="navEarnings" onclick="showPage('earnings')">
-      <span class="nav-icon">📈</span> Earnings History
+      <span class="nav-icon">📈</span> Earning Records
     </button>
     <button class="nav-btn" id="navGologin" onclick="showPage('gologin')">
       <span class="nav-icon">🌐</span> GoLogin
@@ -1879,7 +1896,7 @@ select option { background: var(--surface3); color: var(--ink); }
 
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
       <div class="sec-title" style="margin-bottom:0;">Earnings Summary</div>
-      <button class="btn-primary" style="font-size:11px;padding:8px 14px;" onclick="showPage('earnings')">📈 Earning History</button>
+      <button class="btn-primary" style="font-size:11px;padding:8px 14px;" onclick="showPage('earnings')">📈 Earning Records</button>
     </div>
     <div class="earnings-row">
       <div class="earnings-card">
@@ -2073,6 +2090,10 @@ select option { background: var(--surface3); color: var(--ink); }
           <input type="checkbox" id="typeBtnToday" onchange="setTaskTodayFilter(this.checked)" style="accent-color:var(--jt);width:13px;height:13px;">
           📅 Today only
         </label>
+        <label style="display:flex;align-items:center;gap:4px;font-family:var(--mono);font-size:11px;color:var(--ink3);cursor:pointer;white-space:nowrap;">
+          <input type="checkbox" id="typeBtnAssignedOnly" onchange="setTaskAssignedFilter(this.checked)" style="accent-color:var(--jt);width:13px;height:13px;">
+          ◷ Assigned only
+        </label>
       </div>
     </div>
 
@@ -2109,20 +2130,6 @@ select option { background: var(--surface3); color: var(--ink); }
     </div>
 
   </div>
-
-    <!-- Audit Log Button -->
-    <div style="margin-top:28px;margin-bottom:8px;">
-      <button onclick="showPage('auditlog')" style="width: 100%; padding: 14px 20px; background: rgb(255, 255, 255); border-color: var(--border); border-radius: var(--radius); box-shadow: var(--shadow); display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s; font-family: var(--mono);" onmouseover="this.style.borderColor='var(--jt-border)';this.style.boxShadow='var(--shadow-md)'" onmouseout="this.style.borderColor='var(--border)';this.style.boxShadow='var(--shadow)'">
-        <div style="display:flex;align-items:center;gap:10px;">
-          <div style="width:28px;height:28px;background:var(--jt-light);border:1px solid var(--jt-border);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;">🗂</div>
-          <div style="text-align:left;">
-            <div style="font-size:14px;font-weight:600;color:var(--ink);">Update History</div>
-            <div style="font-size:10px;color:var(--ink3);margin-top:1px;">AI-managed update history · Read-only</div>
-          </div>
-        </div>
-        <span style="font-size:16px;color:var(--ink3);">›</span>
-      </button>
-    </div>
 
   </div>
 
@@ -2187,8 +2194,11 @@ select option { background: var(--surface3); color: var(--ink); }
           <div class="acc-stat-mini"><div class="acc-stat-mini-label">Expected JMPT</div><div class="acc-stat-mini-val" style="color:var(--amber);font-weight:700;">0.0000 JMPT</div></div>
         </div>
         <div style="font-family:var(--mono);font-size:9.9px;color:var(--green);background:var(--green-light);border:1px solid var(--green-border);border-radius:6px;padding:6px 10px;margin-top:6px;">💸 If all rewarded: <strong>$ 0.06</strong> / <strong>0.0000 JMPT</strong></div>
-        <div style="font-family:var(--mono);font-size:9.9px;color:var(--ink3);margin:6px 0 10px;line-height:1.5;">
-          Tasks Done: <strong style="color:var(--ink)">3</strong>
+        <div class="acc-task-stats">
+          <div class="acc-task-stat"><div class="acc-task-stat-label">Running</div><div class="acc-task-stat-val amber">0</div></div>
+          <div class="acc-task-stat"><div class="acc-task-stat-label">Due Rewarded</div><div class="acc-task-stat-val blue">0</div></div>
+          <div class="acc-task-stat"><div class="acc-task-stat-label">Total Today</div><div class="acc-task-stat-val green">0</div></div>
+          <div class="acc-task-stat"><div class="acc-task-stat-label">All Time</div><div class="acc-task-stat-val">3</div></div>
         </div>
         <button class="btn-edit-acc" onclick="openEditAccountModal('ehsz5yr9cfhmpxno92l')">✎ Edit Account</button>
         <div class="btn-add-payout-acc" style="opacity:0.38;cursor:not-allowed;user-select:none;filter:grayscale(0.5);" title="Account must be Payout Ready">🔒 Not Payout Ready</div>
@@ -2362,7 +2372,7 @@ TaskRec01: task assigned, timer started.</div>
   <!-- ════════════════════════════ -->
   <div class="page" id="page-earnings">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-      <div class="sec-title" style="margin-bottom:0;">Earnings History</div>
+      <div class="sec-title" style="margin-bottom:0;">Earning Records</div>
     </div>
 
     <!-- Filter Controls -->
@@ -2463,24 +2473,6 @@ TaskRec01: task assigned, timer started.</div>
   <!-- ════════════════════════════ -->
   <!-- PAGE: AUDIT LOG              -->
   <!-- ════════════════════════════ -->
-  <div class="page active" id="page-auditlog">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
-      <div style="display:flex;align-items:center;gap:10px;">
-        <button onclick="showPage('dashboard')" style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);font-family:var(--mono);font-size:12px;color:var(--ink2);padding:6px 12px;cursor:pointer;">‹ Dashboard</button>
-        <div class="sec-title" style="margin-bottom:0;">Update History</div>
-      </div>
-      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-        <button id="btnExportForAI" onclick="exportForAI()" style="font-family:var(--mono);font-size:11.5px;padding:6px 14px;border-radius:var(--radius-sm);border:1px solid var(--jt-border);background:var(--jt-light);color:var(--jt);cursor:pointer;white-space:nowrap;">🤖 Export for AI</button>
-        <span style="font-family:var(--mono);font-size:10px;color:var(--ink3);background:var(--surface2);border:1px solid var(--border);border-radius:99px;padding:4px 12px;">🔒 Read-only · Managed by AI</span>
-        <span id="uhlvBadge" style="font-family:var(--mono);font-size:10px;color:var(--jt);background:var(--jt-light);border:1px solid var(--jt-border);border-radius:99px;padding:4px 12px;" title="Update History and Log Version — higher number wins on data load">UHLV: 33</span>
-      </div>
-    </div>
-    <div style="font-family:var(--mono);font-size:11.5px;color:var(--ink3);margin-bottom:18px;line-height:1.7;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;box-shadow:var(--shadow);">
-      This log is maintained by the AI. Every update that was reported and applied is recorded here permanently with its ID, cause, and fix details. You cannot edit or delete entries — only the AI can add to this log.
-    </div>
-    <div id="bugHistoryList" style="display:flex;flex-direction:column;gap:12px;">
-    </div>
-  </div>
 
 </div>
 
@@ -2889,17 +2881,10 @@ let gologinProfiles = [];
 // bugLog = array of { text, ts } entries
 // Bug banner shows when bugLog.length > 0
 // Only AI can clear bugLog entries
-// UHLV = Update History and Log Version
-// Increment UHLV any time bugLog or bugHistory is modified by AI
-// loadDataJson compares this vs JSON uhlv and keeps whichever is higher
 // ─────────────────────────────────────────
-let UHLV = 33;
 /*BUG_LOG_START*/
 let bugLog = [];
 /*BUG_LOG_END*/
-/*BUG_HISTORY_START*/
-let bugHistory = [];
-/*BUG_HISTORY_END*/
 
 /*
  * ============================================================
@@ -2910,60 +2895,27 @@ let bugHistory = [];
  * 1. ALWAYS read the full file first to understand the app
  *    context, purpose, and current state before doing anything.
  *
- * 2. ALWAYS read bugHistory (BUG_HISTORY_START block) in full
- *    BEFORE making any changes. Check every existing entry to
- *    ensure no fix is repeated, contradicted, or re-applied.
- *    If a requested change matches or conflicts with a previous
- *    update, flag it and do NOT reapply.
- *
- * 3. When resolving an update, add a new entry to bugHistory:
- *    id (UPDATE-XXX incrementing), title, report, cause, fix,
- *    date, status: "resolved". bugHistory entries MUST be
- *    ordered newest first (highest UPDATE-XXX at the top).
- *
- * 4. bugHistory panel is read-only for the user. Never make
- *    it editable. Only source edits can change it.
- *
- * 5. ANY time you update the code, you MUST replace the
+ * 2. ANY time you update the code, you MUST replace the
  *    incrementing comment at the very end of the file with
  *    the next number (e.g. // 15 → // 16). This is a hard
  *    requirement to force save detection.
  *
- * 6. BATCHING RULES:
+ * 3. BATCHING RULES:
  *    - Updates are done in batches of max 2 at a time.
  *    - If a 3rd update is directly related to the current
  *      batch's 2 updates, include it in the same batch.
  *    - Do NOT start implementing until user confirms.
  *
- * 7. UHLV (Update History and Log Version) RULES:
- *    - UHLV is a single integer, incremented by 1 any time
- *      bugLog or bugHistory is modified (add, edit, clear).
- *    - On data load, the app compares the HTML's UHLV against
- *      the loaded JSON's uhlv. Whichever is higher wins —
- *      that source's bugLog and bugHistory are kept.
- *    - Always update both the `let UHLV = N;` constant and
- *      the UHLV badge text in the Update History page header.
- *
- * 8. ALWAYS check bugLog first (BUG_LOG_START block).
+ * 4. ALWAYS check bugLog first (BUG_LOG_START block).
  *    If bugLog has entries:
  *    a. Read all entries carefully.
  *    b. Group them into batches of 2 (max), pairing related
  *       updates together where possible.
  *    c. Arrange batches in order of impact on the app
  *       (critical/breaking first, then functional, then UI).
- *    d. Read bugHistory to check if any update is already
- *       implemented — skip those.
- *    e. Present the batch list to the user and ask which
+ *    d. Present the batch list to the user and ask which
  *       batch to start with. Do NOT start implementing
  *       until user confirms.
- *
- * 9. EXPORT FOR AI WORKFLOW:
- *    - The user exports via "🤖 Export for AI" button in the
- *      Update History page header.
- *    - The exported HTML contains only bugLog + bugHistory
- *      baked in. All other data (accounts, tasks, auditLog,
- *      wordLibrary, globalSettings) is stripped/empty.
- *    - No Drive upload. No version bump. Pure local download.
  * ============================================================
  */
 
@@ -2979,6 +2931,7 @@ let taskAccountFilter = 'all'; // 'all' or an account id
 let taskAccountFilterExcept = false;
 let activeTagFilters = new Set(); // values: 'fresh' | 'today' | 'quicky'
 let taskTodayOnly = false;
+let taskAssignedOnly = false;
 const TASKS_PER_PAGE = 21;
 let taskPage = 0; // current page index (0-based)
 // taskSecondSort removed — merged into taskSort
@@ -3065,7 +3018,7 @@ window.setGoLoginFilter = function(profile) {
 // ─────────────────────────────────────────
 // NAVIGATION
 // ─────────────────────────────────────────
-const NAV_IDS = { dashboard: 'navDash', tasks: 'navTasks', accounts: 'navAccounts', earnings: 'navEarnings', gologin: 'navGologin', auditlog: null };
+const NAV_IDS = { dashboard: 'navDash', tasks: 'navTasks', accounts: 'navAccounts', earnings: 'navEarnings', gologin: 'navGologin' };
 function showPage(id) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
@@ -3087,7 +3040,6 @@ function showPage(id) {
     }
   }
   if (id === 'earnings') { populateEhAccountSelect(); renderEarningsHistory(); }
-  if (id === 'auditlog') { renderBugHistory(); }
   if (id === 'gologin') { renderGologinPage(); }
   // Action Center panel: only visible on Task Management tab
   setAcPanelVisibility(id === 'tasks');
@@ -3131,6 +3083,12 @@ function fmtDateTime(iso) {
   const d = new Date(iso);
   return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
     + ' ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
+}
+function fmtTime(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  if (isNaN(d)) return '—';
+  return d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
 }
 
 // FIX 3: Country name → emoji flag
@@ -3413,6 +3371,22 @@ function getCompletedTaskCount(accId) {
   return count;
 }
 
+// Returns {running, dueRewarded, totalToday, totalAllTime} for an account
+function getAccountTaskStats(accId) {
+  let running = 0, dueRewarded = 0, totalToday = 0, totalAllTime = 0;
+  const todayKey = todayISO();
+  tasks.forEach(task => {
+    (task.assignments||[]).forEach(asgn => {
+      if (asgn.accountId !== accId) return;
+      totalAllTime++;
+      if (asgn.status === 'assigned') running++;
+      if (asgn.status === 'completed') dueRewarded++;
+      if (getTaskDayKey(asgn.assignedAt) === todayKey) totalToday++;
+    });
+  });
+  return { running, dueRewarded, totalToday, totalAllTime };
+}
+
 function getLastTaskTime(accId) {
   let latest = null;
   tasks.forEach(task => {
@@ -3494,6 +3468,12 @@ window.setTaskTodayFilter = function(checked) {
   renderTasks();
 };
 
+window.setTaskAssignedFilter = function(checked) {
+  taskAssignedOnly = checked;
+  taskPage = 0;
+  renderTasks();
+};
+
 window.setTaskSortDropdown = function(s) {
   taskSort = s;
   taskPage = 0;
@@ -3569,6 +3549,10 @@ function renderTasks() {
   if (sortSel) sortSel.value = taskSort;
   const dirSel = document.getElementById('taskSortDirSelect');
   if (dirSel) dirSel.value = taskSortDir;
+  const todayCb2 = document.getElementById('typeBtnToday');
+  if (todayCb2) todayCb2.checked = taskTodayOnly;
+  const assignedCb = document.getElementById('typeBtnAssignedOnly');
+  if (assignedCb) assignedCb.checked = taskAssignedOnly;
   renderTaskAccountFilterBar();
   // Sync account dropdown value after population
   const accSel = document.getElementById('taskAccountFilterBar');
@@ -3588,6 +3572,10 @@ function renderTasks() {
     if (taskTypeFilter !== 'all' && t.type !== taskTypeFilter) return false;
     if (taskTodayOnly) {
       if (getTaskDayKey(t.createdAt) !== todayDayKey) return false;
+    }
+    if (taskAssignedOnly) {
+      const hasRunning = (t.assignments||[]).some(a => a.status === 'assigned');
+      if (!hasRunning) return false;
     }
     // Account filter: support normal and "except" mode
     if (taskAccountFilter !== 'all') {
@@ -3670,7 +3658,7 @@ function renderTasks() {
       if (hasAssigned) assignedCount++;
       if (getTaskDayKey(t.createdAt) === todayDayKey) todayCount++;
     });
-    const isFiltered = taskTypeFilter !== 'all' || taskAccountFilter !== 'all' || taskTodayOnly;
+    const isFiltered = taskTypeFilter !== 'all' || taskAccountFilter !== 'all' || taskTodayOnly || taskAssignedOnly;
     const totalLabel = isFiltered ? `${displayList.length} <span style="opacity:0.6;font-weight:400;">/ ${runningTasks.length}</span>` : `${runningTasks.length}`;
     countChipEl.innerHTML = `
       <div style="display:flex;gap:8px;flex-wrap:wrap;padding:8px 0 12px;">
@@ -4548,6 +4536,7 @@ function renderAccDetail(accId) {
   const balance = calcBalance(accId);
   const jmptBalance = calcJmptBalance(accId);
   const totalWithdrawn = (acc.payoutHistory||[]).reduce((s,p) => s + parseFloat(p.amount||0), 0);
+  const tStats = getAccountTaskStats(accId);
 
   // Expected = current balance + all active (assigned + completed) tasks
   // This shows what the account will have if every active task gets rewarded
@@ -4654,28 +4643,56 @@ function renderAccDetail(accId) {
     return toMs(b) - toMs(a);
   });
 
-  const historyHtml = historyItems.length ? `
+  const historyHtml = historyItems.length ? (() => {
+    const histItemMs = (item) => {
+      if (item.type === 'payout') {
+        const p = item.payout;
+        if (p.recordedAt) return new Date(p.recordedAt).getTime() || 0;
+        const d = p.date || '';
+        if (!d) return 0;
+        return new Date(d + 'T17:00:00+06:00').getTime() || 0;
+      }
+      const d = item.date || '';
+      if (!d) return 0;
+      return new Date(d).getTime() || 0;
+    };
+
+    const histGroups = [];
+    historyItems.forEach(item => {
+      const ms = histItemMs(item);
+      const dateKey = ms ? new Date(ms).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' }) : 'Unknown Date';
+      let group = histGroups.find(g => g.dateKey === dateKey);
+      if (!group) { group = { dateKey, items: [] }; histGroups.push(group); }
+      group.items.push(item);
+    });
+
+    return `
     <div class="total-withdrawn-bar">
       <span class="total-withdrawn-label">Total Withdrawn</span>
       <span class="total-withdrawn-val">${fmtUSDT(totalWithdrawn)}</span>
     </div>
-    ${historyItems.map(item => item.type==='task'
-      ? `<div class="history-item task-hist">
-          <div class="history-item-head"><div class="history-item-title">${item.task.title}</div><div class="history-item-amount">${fmtUSDT(item.asgn.reward||item.task.defaultReward)}${item.asgn.jmptEarned ? ` · <span style="color:var(--jt)">${fmtJmpt(item.asgn.jmptEarned)}</span>` : ''}</div></div>
-          <div class="history-item-meta">Rewarded · ${fmtDateTime(item.asgn.rewardedAt)} · <span style="text-transform:uppercase;font-size:9.9px;">${item.task.type}</span>${item.asgn.statusNote ? ` · 📝 ${item.asgn.statusNote}` : ''}</div>
-        </div>`
-      : `<div class="history-item payout-hist">
-          <div class="history-item-head">
-            <div class="history-item-title" style="display:flex;align-items:center;gap:6px;">
-              <span style="font-size:15px;">💸</span>
-              <span style="font-weight:700;color:var(--green);">${item.payout.note||'Payout Withdrawal'}</span>
+    ${histGroups.map(group => `
+      <div class="history-date-header">${group.dateKey}</div>
+      ${group.items.map(item => item.type==='task'
+        ? `<div class="history-item task-hist">
+            <div class="history-item-head"><div class="history-item-title">${item.task.title}</div><div class="history-item-amount">${fmtUSDT(item.asgn.reward||item.task.defaultReward)}${item.asgn.jmptEarned ? ` · <span style="color:var(--jt)">${fmtJmpt(item.asgn.jmptEarned)}</span>` : ''}</div></div>
+            <div class="history-item-meta">Rewarded · ${fmtTime(item.asgn.rewardedAt)} · <span style="text-transform:uppercase;font-size:9.9px;">${item.task.type}</span>${item.asgn.statusNote ? ` · 📝 ${item.asgn.statusNote}` : ''}</div>
+          </div>`
+        : `<div class="history-item payout-hist">
+            <div class="history-item-head">
+              <div class="history-item-title" style="display:flex;align-items:center;gap:6px;">
+                <span style="font-size:15px;">💸</span>
+                <span style="font-weight:700;color:var(--green);">${item.payout.note||'Payout Withdrawal'}</span>
+              </div>
+              <div class="history-item-amount" style="color:var(--green);font-size:15.4px;">-${fmtUSDT(item.payout.amount)}</div>
             </div>
-            <div class="history-item-amount" style="color:var(--green);font-size:15.4px;">-${fmtUSDT(item.payout.amount)}</div>
-          </div>
-          <div class="history-item-meta" style="color:var(--green);opacity:0.8;">Payout · ${fmtDate(item.payout.date+'T00:00:00')}${item.payout.jmptAmount ? ` · ${fmtJmpt(item.payout.jmptAmount)} JMPT` : ''}${item.payout.fee ? ` · Fee: ${fmtUSDT(item.payout.fee)}` : ''}</div>
-        </div>`
-    ).join('')}
-  ` : `<div class="empty-state"><div class="es-icon">📋</div>No history yet</div>`;
+            <div class="history-item-meta" style="color:var(--green);opacity:0.8;">Payout${item.payout.recordedAt ? ` · ${fmtTime(item.payout.recordedAt)}` : ''}${item.payout.jmptAmount ? ` · ${fmtJmpt(item.payout.jmptAmount)} JMPT` : ''}${item.payout.fee ? ` · Fee: ${fmtUSDT(item.payout.fee)}` : ''}</div>
+          </div>`
+      ).join('')}
+    `).join('')}
+  `;
+  })() : `<div class="empty-state"><div class="es-icon">📋</div>No history yet</div>`;
+
 
   document.getElementById('accDetailPanel').innerHTML = `
     <div class="acc-detail-inner">
@@ -4697,8 +4714,11 @@ function renderAccDetail(accId) {
           <div class="acc-stat-mini"><div class="acc-stat-mini-label">Expected JMPT</div><div class="acc-stat-mini-val" style="color:var(--amber);font-weight:700;">${fmtJmpt(expectedJmpt)}</div></div>
         </div>
         ${payoutIfRewarded}
-        <div style="font-family:var(--mono);font-size:9.9px;color:var(--ink3);margin:6px 0 10px;line-height:1.5;">
-          Tasks Done: <strong style="color:var(--ink)">${getCompletedTaskCount(accId)}</strong>
+        <div class="acc-task-stats">
+          <div class="acc-task-stat"><div class="acc-task-stat-label">Running</div><div class="acc-task-stat-val amber">${tStats.running}</div></div>
+          <div class="acc-task-stat"><div class="acc-task-stat-label">Due Rewarded</div><div class="acc-task-stat-val blue">${tStats.dueRewarded}</div></div>
+          <div class="acc-task-stat"><div class="acc-task-stat-label">Total Today</div><div class="acc-task-stat-val green">${tStats.totalToday}</div></div>
+          <div class="acc-task-stat"><div class="acc-task-stat-label">All Time</div><div class="acc-task-stat-val">${tStats.totalAllTime}</div></div>
         </div>
         <button class="btn-edit-acc" onclick="openEditAccountModal('${accId}')">✎ Edit Account</button>
         ${acc.status==='payout_ready'
@@ -5344,14 +5364,12 @@ function buildSaveJSON() {
   const ss = String(now.getSeconds()).padStart(2, '0');
   const savedAt = `${y}.${m}.${d}.${hh}.${mm}.${ss}`;
   return {
-    uhlv: UHLV,
     savedAt,
     accounts: JSON.parse(JSON.stringify(accounts)),
     tasks: JSON.parse(JSON.stringify(tasks)),
     globalSettings: Object.assign({}, globalSettings),
     auditLog: JSON.parse(JSON.stringify(auditLog)),
     bugLog: JSON.parse(JSON.stringify(bugLog)),
-    bugHistory: JSON.parse(JSON.stringify(bugHistory)),
     wordLibrary: JSON.parse(JSON.stringify(wordLibrary)),
     gologinProfiles: JSON.parse(JSON.stringify(gologinProfiles))
   };
@@ -5367,19 +5385,7 @@ function loadDataJson(payload) {
   if (Array.isArray(payload.auditLog)) { auditLog.length = 0; auditLog.push(...payload.auditLog); }
   if (Array.isArray(payload.wordLibrary)) { wordLibrary.length = 0; wordLibrary.push(...payload.wordLibrary); }
   if (Array.isArray(payload.gologinProfiles)) { gologinProfiles.length = 0; gologinProfiles.push(...payload.gologinProfiles); }
-  // UHLV comparison: keep whichever source (HTML or JSON) has the higher UHLV.
-  // If JSON uhlv > HTML UHLV → JSON wins, load its bugLog/bugHistory and update UHLV.
-  // If JSON uhlv < HTML UHLV → HTML wins, keep current in-memory bugLog/bugHistory.
-  // If equal or JSON has no uhlv → JSON wins (normal load behaviour).
-  const jsonUhlv = (typeof payload.uhlv === 'number') ? payload.uhlv : 0;
-  if (jsonUhlv >= UHLV) {
-    if (Array.isArray(payload.bugLog)) { bugLog.length = 0; bugLog.push(...payload.bugLog); }
-    if (Array.isArray(payload.bugHistory)) { bugHistory.length = 0; bugHistory.push(...payload.bugHistory); }
-    UHLV = jsonUhlv;
-  }
-  // else: HTML UHLV is higher — keep current bugLog/bugHistory, discard JSON's stale versions
-  const uhlvBadge = document.getElementById('uhlvBadge');
-  if (uhlvBadge) uhlvBadge.textContent = `UHLV: ${UHLV}`;
+  if (Array.isArray(payload.bugLog)) { bugLog.length = 0; bugLog.push(...payload.bugLog); }
   if (payload.savedAt) {
     const dv = document.getElementById('dvBadge');
     if (dv) dv.textContent = `DV: ${payload.savedAt}`;
@@ -5388,9 +5394,9 @@ function loadDataJson(payload) {
   renderBugLogEntries();
   renderDashboard();
   renderAccList();
+  renderAuditLog();
   taskPage = 0;
   renderTasks();
-  renderAuditLog();
   renderWordLibrary();
 }
 
@@ -5865,18 +5871,6 @@ let auditLog = [];
     /\/\*BUG_LOG_START\*\/[\s\S]*?\/\*BUG_LOG_END\*\//,
     `/*BUG_LOG_START*/\nlet bugLog = ${bugLogJson};\n/*BUG_LOG_END*/`
   );
-  const bugHistoryJson = JSON.stringify(bugHistory, null, 2);
-  src = src.replace(
-    /\/\*BUG_HISTORY_START\*\/[\s\S]*?\/\*BUG_HISTORY_END\*\//,
-    `/*BUG_HISTORY_START*/
-let bugHistory = [];
-/*BUG_HISTORY_END*/`
-  );
-  // Patch current UHLV into the saved HTML source
-  src = src.replace(
-    /let UHLV\s*=\s*\d+;/,
-    `let UHLV = ${UHLV};`
-  );
   return src;
 }
 
@@ -5899,91 +5893,6 @@ async function checkDriveVersion() {
   }
 }
 
-
-// ── Export for AI ─────────────────────────────────────────────────────────
-window.exportForAI = function exportForAI() {
-  const btn = document.getElementById('btnExportForAI');
-  if (btn) { btn.disabled = true; btn.textContent = '⏳ Exporting…'; }
-  try {
-    const bugLogJson     = JSON.stringify(bugLog, null, 2);
-    const bugHistoryJson = JSON.stringify(bugHistory, null, 2);
-
-    let src = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
-
-    src = src.replace(
-      /\/\*EMBEDDED_ACCOUNTS_START\*\/[\s\S]*?\/\*EMBEDDED_ACCOUNTS_END\*\//,
-      '/*EMBEDDED_ACCOUNTS_START*/\nlet accounts = [];\n/*EMBEDDED_ACCOUNTS_END*/'
-    );
-    src = src.replace(
-      /\/\*EMBEDDED_TASKS_START\*\/[\s\S]*?\/\*EMBEDDED_TASKS_END\*\//,
-      '/*EMBEDDED_TASKS_START*/\nlet tasks = [];\n/*EMBEDDED_TASKS_END*/'
-    );
-    src = src.replace(
-      /\/\*EMBEDDED_SETTINGS_START\*\/[\s\S]*?\/\*EMBEDDED_SETTINGS_END\*\//,
-      '/*EMBEDDED_SETTINGS_START*/\nlet globalSettings = { "jmptRate": 0, "defaultGoogleReward": 0.04, "defaultYoutubeReward": 0.02, "payoutThreshold": 0.5, "customDevices": [], "appVersion": "1.0" };\n/*EMBEDDED_SETTINGS_END*/'
-    );
-    src = src.replace(
-      /\/\*EMBEDDED_LOG_START\*\/[\s\S]*?\/\*EMBEDDED_LOG_END\*\//,
-      '/*EMBEDDED_LOG_START*/\nlet auditLog = [];\n/*EMBEDDED_LOG_END*/'
-    );
-    src = src.replace(
-      /\/\*EMBEDDED_WORDLIB_START\*\/[\s\S]*?\/\*EMBEDDED_WORDLIB_END\*\//,
-      '/*EMBEDDED_WORDLIB_START*/\nlet wordLibrary = [];\n/*EMBEDDED_WORDLIB_END*/'
-    );
-    src = src.replace(
-      /\/\*EMBEDDED_GOLOGIN_START\*\/[\s\S]*?\/\*EMBEDDED_GOLOGIN_END\*\//,
-      '/*EMBEDDED_GOLOGIN_START*/\nlet gologinProfiles = [];\n/*EMBEDDED_GOLOGIN_END*/'
-    );
-
-    src = src.replace(
-      /\/\*BUG_LOG_START\*\/[\s\S]*?\/\*BUG_LOG_END\*\//,
-      `/*BUG_LOG_START*/\nlet bugLog = ${bugLogJson};\n/*BUG_LOG_END*/`
-    );
-
-    src = src.replace(
-      /\/\*BUG_HISTORY_START\*\/[\s\S]*?\/\*BUG_HISTORY_END\*\//,
-      `/*BUG_HISTORY_START*/
-let bugHistory = [];
-/*BUG_HISTORY_END*/`
-    );
-
-    src = src.replace(
-      /let UHLV\s*=\s*\d+;/,
-      `let UHLV = ${UHLV};`
-    );
-
-    src = src.replace(
-      /(<div[^>]*id="tasksList"[^>]*>)[\s\S]*?(<\/div>\s*<!-- Default Reward)/,
-      '$1\n    </div>\n    <!-- Default Reward'
-    );
-    src = src.replace(
-      /(<div[^>]*id="bugHistoryList"[^>]*>)[\s\S]*?(<!-- \/app -->)/,
-      '$1\n    </div>\n  </div>\n\n</div>\n\n$2'
-    );
-
-    const d = new Date();
-    const y   = d.getFullYear();
-    const mo  = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    const hh  = String(d.getHours()).padStart(2, '0');
-    const mm  = String(d.getMinutes()).padStart(2, '0');
-    const ss  = String(d.getSeconds()).padStart(2, '0');
-    const filename = `JT_Manager_ForAI.${y}.${mo}.${day}.${hh}.${mm}.${ss}.html`;
-
-    const blob = new Blob([src], { type: 'text/html' });
-    const url  = URL.createObjectURL(blob);
-    const a    = document.createElement('a');
-    a.href = url; a.download = filename; a.click();
-    setTimeout(() => URL.revokeObjectURL(url), 2000);
-
-    toast(`🤖 Exported for AI → ${filename}`);
-  } catch (e) {
-    console.error('exportForAI error:', e);
-    toast('✗ Export failed: ' + e.message);
-  } finally {
-    if (btn) { btn.disabled = false; btn.textContent = '🤖 Export for AI'; }
-  }
-};
 
 // ── Get Latest from Drive ─────────────────────────────────────────────────
 window.driveGetLatest = async function() {
@@ -6813,44 +6722,6 @@ window.acStepComplete = function(taskId, asgnId) {
   markUnsaved(true);
   toast('✅ Flow completed');
 };
-
-function renderBugHistory() {
-  const el = document.getElementById('bugHistoryList');
-  if (!el) return;
-  if (!bugHistory || !bugHistory.length) {
-    el.innerHTML = `<div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:32px;text-align:center;box-shadow:var(--shadow);font-family:var(--mono);font-size:12px;color:var(--ink3);">No resolved bugs yet.</div>`;
-    return;
-  }
-  el.innerHTML = [...bugHistory].map(b => `
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
-      <div style="padding:12px 18px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
-        <div style="display:flex;align-items:center;gap:10px;">
-          <span style="font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;background:var(--jt-grad);border-radius:6px;padding:3px 10px;">${b.id}</span>
-          <span style="font-family:var(--mono);font-size:13px;font-weight:600;color:var(--ink);">${b.title}</span>
-        </div>
-        <div style="display:flex;align-items:center;gap:8px;">
-          <span style="font-family:var(--mono);font-size:9.5px;color:var(--ink3);">${b.date}</span>
-          <span style="font-family:var(--mono);font-size:9.5px;padding:2px 8px;border-radius:99px;background:var(--green-light);color:var(--green);border:1px solid var(--green-border);">✓ ${b.status}</span>
-        </div>
-      </div>
-      <div style="padding:14px 18px;display:flex;flex-direction:column;gap:10px;">
-        <div>
-          <div style="font-family:var(--mono);font-size:9.5px;color:var(--ink3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Reported</div>
-          <div style="font-family:var(--mono);font-size:12px;color:var(--ink2);line-height:1.6;">${b.report}</div>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-          <div style="background:var(--amber-light);border:1px solid var(--amber-border);border-radius:8px;padding:10px 12px;">
-            <div style="font-family:var(--mono);font-size:9.5px;color:var(--amber);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Root Cause</div>
-            <div style="font-family:var(--mono);font-size:11.5px;color:var(--ink);line-height:1.5;">${b.cause}</div>
-          </div>
-          <div style="background:var(--green-light);border:1px solid var(--green-border);border-radius:8px;padding:10px 12px;">
-            <div style="font-family:var(--mono);font-size:9.5px;color:var(--green);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Fix Applied</div>
-            <div style="font-family:var(--mono);font-size:11.5px;color:var(--ink);line-height:1.5;">${b.fix}</div>
-          </div>
-        </div>
-      </div>
-    </div>`).join('');
-}
 
 // ─────────────────────────────────────────
 // WORD DISPLAY PANEL
