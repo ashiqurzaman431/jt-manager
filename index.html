@@ -5538,6 +5538,7 @@ function initGIS() {
   _gisTokenClient = google.accounts.oauth2.initTokenClient({
     client_id: DRIVE_CLIENT_ID,
     scope: DRIVE_SCOPES,
+    prompt: 'select_account',
     callback: (response) => {
       if (response.error) {
         setLoginStatus('Auth error: ' + response.error);
