@@ -5504,7 +5504,7 @@ window.togglePanel = function(panelId) {
 // ─────────────────────────────────────────
 const APP_V_VERSION = '3.8';
 const DRIVE_CLIENT_ID = '122560609463-vvejkpk1phego89icu12410bq0bmeha7.apps.googleusercontent.com';
-const DRIVE_REDIRECT_ORIGIN = 'https://realershad67-ship-it.github.io';
+const DRIVE_REDIRECT_ORIGIN = 'https://ashiqurzaman431.github.io';
 const DRIVE_APP_FOLDER_NAME = 'JT MANAGER APP DATA';
 const DRIVE_SCOPES = 'https://www.googleapis.com/auth/drive.file';
 const DATA_FILE_PREFIX = 'JT_Manager_';
@@ -5538,7 +5538,6 @@ function initGIS() {
   _gisTokenClient = google.accounts.oauth2.initTokenClient({
     client_id: DRIVE_CLIENT_ID,
     scope: DRIVE_SCOPES,
-    prompt: 'select_account',
     callback: (response) => {
       if (response.error) {
         setLoginStatus('Auth error: ' + response.error);
@@ -5560,7 +5559,7 @@ function initGIS() {
 function gisSignIn() {
   setLoginStatus('Opening Google sign-in…');
   if (!_gisTokenClient) { setLoginStatus('GIS not ready — try again in a moment.'); return; }
-  _gisTokenClient.requestAccessToken({ prompt: 'select_account' });
+  _gisTokenClient.requestAccessToken({ prompt: 'consent' });
 }
 window.gisSignIn = gisSignIn;
 
