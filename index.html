@@ -5549,26 +5549,11 @@ function initGIS() {
       onSignedIn();
     },
   });
-  // Try silent token restore via stored hint.
-  // prompt:'' = no popup; if Google session is still alive the callback fires.
-  // If it doesn't fire within 2 s the session has expired — restore original
-  // callback and leave the login overlay visible for a manual sign-in click.
-  const hint = localStorage.getItem('gis_login_hint');
-  if (hint) {
-    let silentResolved = false;
-    const origCb = _gisTokenClient.callback;
-    _gisTokenClient.callback = (r) => {
-      silentResolved = true;
-      _gisTokenClient.callback = origCb;
-      origCb(r);
-    };
-    setTimeout(() => {
-      if (!silentResolved) {
-        _gisTokenClient.callback = origCb;
-      }
-    }, 2000);
-    _gisTokenClient.requestAccessToken({ hint, prompt: '' });
-  }
+  // Silent token restore (via stored login_hint) is intentionally disabled.
+  // It was auto-signing the user back in with whichever account was used
+  // last time, with no chance to pick a different account — every page
+  // load now requires an explicit "Sign in with Google" click, which
+  // shows the full account chooser (prompt: 'select_account consent').
 }
 
 function gisSignIn() {
