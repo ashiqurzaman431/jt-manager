@@ -3428,9 +3428,10 @@ window.setTaskSortDir = function(btn, dir) {
 
 window.setTaskAccountFilter = function(accId) {
   taskAccountFilter = accId;
-  taskAccountFilterExcept = false;
+  // Default to "except" mode: show tasks NOT assigned to the selected account
+  taskAccountFilterExcept = (accId !== 'all');
   const cb = document.getElementById('taskAccExceptCb');
-  if (cb) cb.checked = false;
+  if (cb) cb.checked = taskAccountFilterExcept;
   const lbl = document.getElementById('taskAccExceptLabel');
   if (lbl) lbl.style.display = (accId !== 'all') ? 'flex' : 'none';
   renderTaskAccountFilterBar();
@@ -3448,7 +3449,7 @@ function renderTaskAccountFilterBar() {
   if (!sel) return;
   const prev = taskAccountFilter;
   sel.innerHTML = ['<option value="all">All Accounts</option>',
-    ...accounts.map(a => `<option value="${a.id}">${a.name}</option>`)
+    ...accounts.filter(a => a.status !== 'dead').map(a => `<option value="${a.id}">${a.name}</option>`)
   ].join('');
   sel.value = prev;
 }
@@ -3637,11 +3638,12 @@ function renderTasks() {
       return (b.createdAt||'').localeCompare(a.createdAt||'');
     });
   } else {
-    // Archive: sort by archivedAt date descending (most recently archived first)
+    // Archive: group by archivedAt date descending, within each group sort A-Z by title
     list = [...list].sort((a, b) => {
-      const da = a.archivedAt || a.createdAt || '';
-      const db = b.archivedAt || b.createdAt || '';
-      return db.localeCompare(da);
+      const da = (a.archivedAt || a.createdAt || '').slice(0, 10);
+      const db = (b.archivedAt || b.createdAt || '').slice(0, 10);
+      if (da !== db) return db.localeCompare(da);
+      return (a.title || '').localeCompare(b.title || '', undefined, { numeric: true });
     });
   }
 
@@ -3904,6 +3906,7 @@ function renderTaskCard(task) {
       ${!task.archived ? `<button class="btn-primary" style="font-size:10.5px;padding:5px 10px;" onclick="openAssignModal('${task.id}')">+ Assign</button>` : ''}
       ${!task.archived ? `<button class="btn-primary" style="font-size:10.5px;padding:5px 10px;background:var(--green);box-shadow:0 2px 6px rgba(26,122,60,0.18);" onclick="assignToAllActive('${task.id}')">⚡ All</button>` : ''}
       ${!task.archived ? `<button class="btn-secondary" style="font-size:10.5px;padding:4px 8px;" onclick="openLinksModal('${task.id}')">🔗</button>` : ''}
+      <button class="btn-secondary" style="font-size:10.5px;padding:4px 8px;color:var(--red);border-color:var(--red-border);" onclick="openErrorModal('${task.id}')">⚠ Error</button>
       <button class="btn-secondary" style="font-size:10.5px;padding:4px 8px;" onclick="openEditTaskModal('${task.id}')">✎ Edit</button>
       ${task.previewButton && !task.archived ? `<button class="btn-secondary" style="font-size:10.5px;padding:4px 8px;color:var(--amber);border-color:var(--amber-border);" onclick="openTaskMediaModal('${task.id}')" title="${isYT ? 'View thumbnails' : 'View websites'}">${isYT ? 'View Thumbnails' : 'View Websites'}</button>` : ''}
       ${!task.archived && isYT ? `<button class="btn-secondary" style="font-size:10.5px;padding:4px 8px;color:var(--amber);border-color:var(--amber-border);" onclick="openThumbModal('${task.id}')" title="${task.thumbnail?'Change thumbnail':'Add thumbnail'}">${task.thumbnail?'🖼 Thumb':'📷 Thumb'}</button>` : ''}
@@ -3942,7 +3945,7 @@ function renderTaskCard(task) {
       <!-- Error badges -->
       ${errorBadgeRow}
       ${hasError ? (() => {
-        const visibleNotes = (task.errors||[]).filter(e=>e.note&&e.note.trim()).map(e=>`<div style="font-family:var(--mono);font-size:10px;color:#b45309;margin-top:2px;line-height:1.4;">⚠ ${e.note}</div>`).join('');
+        const visibleNotes = (task.errors||[]).filter(e=>e.note&&e.note.trim()).map(e=>`<div style="font-family:var(--mono);font-size:10px;color:var(--amber);margin-top:2px;line-height:1.4;">⚠ ${e.note}</div>`).join('');
         return visibleNotes ? `<div style="margin-top:4px;">${visibleNotes}</div>` : '';
       })() : ''}
       ${!hasError ? `
