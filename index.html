@@ -1671,8 +1671,9 @@ select option { background: var(--surface3); color: var(--ink); }
             <label>Add an update to the log</label>
             <textarea id="bugReportInput" placeholder="Describe the update…" style="min-height:80px;font-family:'Geist Mono',monospace;font-size:13px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:10px;color:var(--ink);resize:vertical;width:100%;outline:none;"></textarea>
           </div>
-          <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:6px;">
+          <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:6px;flex-wrap:wrap;">
             <button class="btn-secondary" onclick="closeModal('bugModal')">Close</button>
+            <button class="btn-secondary" style="background:rgba(108,142,246,0.10);color:var(--jt);border-color:var(--jt-border);" onclick="autoGenerateAIText()">🤖 Auto Generate AI Text</button>
             <button class="btn-primary" style="background:#d97706;box-shadow:0 2px 8px rgba(251,191,36,0.25);" onclick="submitBugReport()">🐛 Add to Log</button>
           </div>
         </div>
@@ -2938,27 +2939,11 @@ let bugLog = [];
  * 1. ALWAYS read the full file first to understand the app
  *    context, purpose, and current state before doing anything.
  *
- * 2. ANY time you update the code, you MUST replace the
- *    incrementing comment at the very end of the file with
- *    the next number (e.g. // 15 → // 16). This is a hard
- *    requirement to force save detection.
- *
- * 3. BATCHING RULES:
- *    - Updates are done in batches of max 2 at a time.
- *    - If a 3rd update is directly related to the current
- *      batch's 2 updates, include it in the same batch.
- *    - Do NOT start implementing until user confirms.
- *
- * 4. ALWAYS check bugLog first (BUG_LOG_START block).
- *    If bugLog has entries:
- *    a. Read all entries carefully.
- *    b. Group them into batches of 2 (max), pairing related
- *       updates together where possible.
- *    c. Arrange batches in order of impact on the app
- *       (critical/breaking first, then functional, then UI).
- *    d. Present the batch list to the user and ask which
- *       batch to start with. Do NOT start implementing
- *       until user confirms.
+ * 2. This file is maintained in a GitHub repository. When
+ *    returning updated code, always output the complete
+ *    index.html file — never partial snippets — so it can
+ *    be committed directly to the repository without manual
+ *    merging.
  * ============================================================
  */
 
@@ -7787,6 +7772,52 @@ window.submitBugReport = function() {
   toast('📋 Update added to log');
 };
 
+window.autoGenerateAIText = function() {
+  // Only include fresh and refresh_bug — skip done and applied
+  const entries = bugLog.filter(e => {
+    const s = e.status || 'fresh';
+    return s === 'fresh' || s === 'refresh_bug';
+  });
+
+  if (!entries.length) {
+    toast('No fresh updates to generate text from.');
+    return;
+  }
+
+  // Build the numbered list
+  const lines = entries.map((e, i) => {
+    const isRefresh = (e.status || 'fresh') === 'refresh_bug';
+    const suffix = isRefresh
+      ? ' this update was done but the user noticed it wasnt implemented correctly and demanded for recheck and refix if needed.'
+      : '';
+    return `${i + 1}. ${e.text}${suffix}`;
+  });
+
+  // Build full prompt using the fixed template
+  const prompt =
+`this is my latest file. I need plan for this changes on the file. Read the file and Include every lines where needs to make changes, other infos too, why needs to be make changes and etc more. Because if you could not finish it. I would send that to another Ai the plan, and he will just do it without any need to analyze again thus saving tokens. Got it? 
+Plan needs for these changes:
+${lines.join('\n')}
+
+Create a Markdown file of the Plan and Create a ID of the Plan by Date and Timestamp.`;
+
+  // Copy to clipboard
+  navigator.clipboard.writeText(prompt).then(() => {
+    toast('🤖 AI text copied to clipboard!');
+  }).catch(() => {
+    // Fallback for environments where clipboard API is unavailable
+    const ta = document.createElement('textarea');
+    ta.value = prompt;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    toast('🤖 AI text copied to clipboard!');
+  });
+};
+
 renderBugState();
 
 renderDashboard();
@@ -8040,5 +8071,5 @@ if ('serviceWorker' in navigator) {
          font-size:18px;cursor:pointer;
          box-shadow:0 2px 12px rgba(13,27,62,0.22);
          align-items:center;justify-content:center;">↑</button>
-<script>// 30</script>
+<script>// 31</script>
 <protonpass-root-8df7 data-protonpass-role="root" data-protonpass-theme="dark"></protonpass-root-8df7></body></html>
