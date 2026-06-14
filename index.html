@@ -116,6 +116,7 @@ body {
 .bug-status-applied { background: rgba(108,142,246,0.15); color: #6c8ef6; border: 1px solid rgba(108,142,246,0.40); }
 .bug-status-done    { background: rgba(52,211,153,0.15);  color: #34d399; border: 1px solid rgba(52,211,153,0.40); }
 .bug-status-refresh { background: rgba(248,113,113,0.15); color: #f87171; border: 1px solid rgba(248,113,113,0.40); }
+.bug-status-added   { background: rgba(168,85,247,0.12);  color: #a855f7; border: 1px solid rgba(168,85,247,0.30); }
 .bug-mark-btn {
   font-family: var(--mono); font-size: 9.5px; font-weight: 600;
   padding: 3px 9px; border-radius: 99px; cursor: pointer;
@@ -124,6 +125,7 @@ body {
 }
 .bug-mark-btn:hover { border-color: var(--jt); color: var(--jt); background: var(--jt-light); }
 .bug-mark-btn.active-mark { border-color: var(--jt); color: var(--jt); background: var(--jt-light); font-weight: 700; }
+.bug-entry-text:hover { background:rgba(108,142,246,0.08); }
 
 /* ── PINNED IN-PROGRESS BANNER ── */
 .pinned-inprogress-banner {
@@ -1398,6 +1400,20 @@ select option { background: var(--surface3); color: var(--ink); }
   animation:dotpulse 1.4s infinite;
 }
 .unsaved-dot.visible { display:inline-block; }
+/* Floating unsaved-changes badge — stays visible while scrolled */
+.unsaved-float {
+  position:fixed; bottom:20px; right:20px; z-index:500;
+  display:none; align-items:center; gap:8px;
+  background:#fff8f0; border:1px solid #d97706; color:#b45309;
+  font-family:var(--mono); font-size:12px; font-weight:600;
+  padding:8px 14px; border-radius:99px;
+  box-shadow:0 6px 20px rgba(217,119,6,0.25);
+  animation:dotpulse 1.4s infinite;
+}
+.unsaved-float.visible { display:flex; }
+.unsaved-float .dot {
+  width:8px; height:8px; border-radius:50%; background:#d97706; flex-shrink:0;
+}
 
 /* conflict warning bar */
 .conflict-bar {
@@ -1540,6 +1556,11 @@ select option { background: var(--surface3); color: var(--ink); }
   <div class="conflict-bar" id="conflictBar">
     <span id="conflictMsg">⚠ A newer version exists in Drive and you have unsaved changes.</span>
     <button onclick="document.getElementById('conflictBar').classList.remove('visible')">Dismiss</button>
+  </div>
+
+  <!-- FLOATING UNSAVED-CHANGES INDICATOR (always visible, even when scrolled) -->
+  <div class="unsaved-float" id="unsavedFloat" title="Unsaved changes — use Save to Drive">
+    <span class="dot"></span> Unsaved changes
   </div>
 
   <!-- TOP BAR -->
@@ -1985,7 +2006,7 @@ select option { background: var(--surface3); color: var(--ink); }
         </div>
         <div class="field">
           <label>Task Title / Description</label>
-          <input type="text" id="newTaskTitle" placeholder="e.g. Watch video and like, Search and click...">
+          <input type="text" id="newTaskTitle" inputmode="numeric" placeholder="e.g. Watch video and like, Search and click...">
         </div>
         <div class="field" style="flex-direction:row;align-items:center;gap:8px;margin-top:4px;">
           <label style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:12px;color:var(--ink2);cursor:pointer;">
@@ -2868,7 +2889,7 @@ TaskRec01: task assigned, timer started.</div>
     <div class="modal-fields">
       <div class="field">
         <label>Task Title / ID</label>
-        <input type="text" id="editTaskModalTitle" placeholder="e.g. 6877">
+        <input type="text" id="editTaskModalTitle" inputmode="numeric" placeholder="e.g. 6877">
       </div>
       <div class="field">
         <label>Type</label>
@@ -3612,7 +3633,20 @@ function renderTasks() {
 
   // Build base list: unified list (archived/error hidden by checkboxes) + all other filters
   let list = tasks.filter(t => {
-    // Archived: hide if hideArchived is checked; archived tasks never go through other filters
+    // Search filters (title search + range search) — apply to ALL tasks
+    // (including archived) FIRST so search works on archived tasks too.
+    const titleQ = (window._taskTitleSearch || '').trim().toLowerCase();
+    const rangeFrom = window._taskRangeFrom;
+    const rangeTo = window._taskRangeTo;
+    if (titleQ) {
+      if (!(t.title||'').toLowerCase().startsWith(titleQ)) return false;
+    }
+    if (rangeFrom !== null && rangeTo !== null) {
+      const num = parseFloat(t.title);
+      if (isNaN(num) || num < rangeFrom || num > rangeTo) return false;
+    }
+
+    // Archived: hide if hideArchived is checked; archived tasks skip all other filters below
     if (t.archived) {
       return !hideArchived; // show only if user unchecked the hide box
     }
@@ -3637,17 +3671,6 @@ function renderTasks() {
         || (activeTagFilters.has('today') && isTagToday(t))
         || (activeTagFilters.has('quicky') && isTagQuicky(t));
       if (!matchTag) return false;
-    }
-    // Search filters (title search + range search) — both must pass if set
-    const titleQ = (window._taskTitleSearch || '').trim().toLowerCase();
-    const rangeFrom = window._taskRangeFrom;
-    const rangeTo = window._taskRangeTo;
-    if (titleQ) {
-      if (!(t.title||'').toLowerCase().startsWith(titleQ)) return false;
-    }
-    if (rangeFrom !== null && rangeTo !== null) {
-      const num = parseFloat(t.title);
-      if (isNaN(num) || num < rangeFrom || num > rangeTo) return false;
     }
     return true;
   });
@@ -3855,6 +3878,9 @@ function renderTaskCard(task) {
         padding:10px 16px;margin-bottom:8px;display:flex;align-items:center;gap:10px;opacity:0.55;">
         <span style="font-size:15px;flex-shrink:0;">📦</span>
         <div style="flex:1;min-width:0;">
+          <div style="font-family:var(--mono);font-size:13px;color:var(--ink);font-weight:700;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+            ${task.title || '(untitled)'}
+          </div>
           <span style="font-family:var(--mono);font-size:11px;color:var(--ink3);">
             Task has been archived at <strong style="color:var(--ink2);">${archivedDateStr}</strong>
           </span>
@@ -5874,6 +5900,8 @@ function markUnsaved(val) {
   _hasUnsaved = val;
   const dot = document.getElementById('unsavedDot');
   if (dot) dot.classList.toggle('visible', val);
+  const dotFloat = document.getElementById('unsavedFloat');
+  if (dotFloat) dotFloat.classList.toggle('visible', val);
 }
 
 // ── Drive status dot ──────────────────────────────────────────────────────
@@ -7650,10 +7678,10 @@ function renderBugState() {
   const banner = document.getElementById('bugLockBanner');
   const btn = document.getElementById('bugReportBtn');
   const countEl = document.getElementById('bugBannerCount');
-  // Count only fresh + refresh_bug for "pending" badge
+  // Count fresh + refresh_bug + added for "pending" badge
   const pendingCount = bugLog.filter(e => {
     const s = e.status || 'fresh';
-    return s === 'fresh' || s === 'refresh_bug';
+    return s === 'fresh' || s === 'refresh_bug' || s === 'added';
   }).length;
   const hasBugs = bugLog.length > 0;
   if (banner) banner.style.display = hasBugs ? 'flex' : 'none';
@@ -7678,7 +7706,8 @@ function bugStatusLabel(status) {
     fresh:       '🆕 Fresh Bug',
     applied:     '✅ Applied',
     done:        '✔ Done',
-    refresh_bug: '🔁 Refresh Bug'
+    refresh_bug: '🔁 Refresh Bug',
+    added:       '📌 Added'
   }[status] || '🆕 Fresh Bug';
 }
 
@@ -7699,7 +7728,16 @@ function renderBugLogEntries() {
     el.innerHTML = '<div style="font-family:\'DM Mono\',monospace;font-size:12px;color:var(--ink3);text-align:center;padding:8px 0;">No updates logged yet.</div>';
     return;
   }
-  el.innerHTML = bugLog.map((b, i) => {
+  // Sort by lastEdited (most recently edited/changed first). Entries without
+  // lastEdited (legacy) fall back to their original order (treated as oldest).
+  const sorted = bugLog.map((b, i) => ({ entry: b, origIndex: i }))
+    .sort((a, b) => {
+      const ta = a.entry.lastEdited ? new Date(a.entry.lastEdited).getTime() : 0;
+      const tb = b.entry.lastEdited ? new Date(b.entry.lastEdited).getTime() : 0;
+      if (tb !== ta) return tb - ta;
+      return a.origIndex - b.origIndex;
+    });
+  el.innerHTML = sorted.map(({ entry: b, origIndex: i }, displayIdx) => {
     const status = b.status || 'fresh';
     const id = b.id || ('legacy_' + i);
     const countdown = status === 'done' ? bugCountdown(b.doneAt) : '';
@@ -7708,26 +7746,30 @@ function renderBugLogEntries() {
       fresh:       'rgba(251,191,36,0.06)',
       applied:     'rgba(108,142,246,0.06)',
       done:        'rgba(52,211,153,0.06)',
-      refresh_bug: 'rgba(248,113,113,0.07)'
+      refresh_bug: 'rgba(248,113,113,0.07)',
+      added:       'rgba(168,85,247,0.07)'
     }[status] || 'rgba(251,191,36,0.06)';
     const entryBorder = {
       fresh:       'rgba(251,191,36,0.22)',
       applied:     'rgba(108,142,246,0.22)',
       done:        'rgba(52,211,153,0.22)',
-      refresh_bug: 'rgba(248,113,113,0.28)'
+      refresh_bug: 'rgba(248,113,113,0.28)',
+      added:       'rgba(168,85,247,0.28)'
     }[status] || 'rgba(251,191,36,0.22)';
     return `
       <div style="background:${entryBg};border:1px solid ${entryBorder};border-radius:8px;padding:10px 12px;">
         <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:6px;">
-          <span style="font-family:'Geist Mono',monospace;font-size:9px;color:var(--ink3);opacity:0.7;">#${i+1} · ${b.ts}</span>
+          <span style="font-family:'Geist Mono',monospace;font-size:9px;color:var(--ink3);opacity:0.7;">#${displayIdx+1} · ${b.ts}</span>
           <span class="bug-status-badge bug-status-${status === 'refresh_bug' ? 'refresh' : status}">${bugStatusLabel(status)}</span>
+          ${b.planId ? `<span style="font-family:var(--mono);font-size:9px;color:#a855f7;opacity:0.85;border:1px solid rgba(168,85,247,0.3);border-radius:99px;padding:1px 8px;">Plan ID: ${b.planId}</span>` : ''}
           ${countdown ? `<span style="font-family:var(--mono);font-size:9px;color:var(--green);opacity:0.8;">${countdown}</span>` : ''}
         </div>
-        <div style="font-family:'Geist Mono',monospace;font-size:12px;color:var(--ink2);line-height:1.5;margin-bottom:8px;">${b.text}</div>
+        <div class="bug-entry-text" id="bugEntryText_${id}" style="font-family:'Geist Mono',monospace;font-size:12px;color:var(--ink2);line-height:1.5;margin-bottom:8px;cursor:pointer;border-radius:6px;padding:4px 6px;transition:background 0.15s;" onclick="copyBugEntryText('${id}')" title="Click to copy this text">${b.text}</div>
         <div style="display:flex;gap:5px;flex-wrap:wrap;">
           <button class="bug-mark-btn ${status==='applied'?'active-mark':''}" onclick="markBugEntry('${id}','applied')">✅ Applied</button>
           <button class="bug-mark-btn ${status==='done'?'active-mark':''}" onclick="markBugEntry('${id}','done')">✔ Done</button>
           <button class="bug-mark-btn ${status==='refresh_bug'?'active-mark':''}" onclick="markBugEntry('${id}','refresh_bug')" style="${status==='refresh_bug'?'border-color:var(--red);color:var(--red);background:var(--red-light);':''}">🔁 Refresh Bug</button>
+          <button class="bug-mark-btn" onclick="startEditBugEntry('${id}')">✏ Edit</button>
         </div>
       </div>`;
   }).join('');
@@ -7737,14 +7779,66 @@ window.markBugEntry = function(id, status) {
   const entry = bugLog.find(e => e.id === id || ('legacy_' + bugLog.indexOf(e)) === id);
   if (!entry) return;
   entry.status = status;
+  entry.lastEdited = new Date().toISOString();
   if (status === 'done') entry.doneAt = new Date().toISOString();
   // Ensure entry has an id for future calls
   if (!entry.id) entry.id = uid();
   renderBugLogEntries();
   renderBugState();
   markUnsaved(true);
-  const labels = { applied: 'Applied', done: 'Done', refresh_bug: 'Refresh Bug' };
+  const labels = { applied: 'Applied', done: 'Done', refresh_bug: 'Refresh Bug', added: 'Added' };
   toast('Marked: ' + (labels[status] || status));
+};
+
+window.copyBugEntryText = function(id) {
+  const entry = bugLog.find(e => e.id === id || ('legacy_' + bugLog.indexOf(e)) === id);
+  if (!entry) return;
+  const text = entry.text;
+  navigator.clipboard.writeText(text).then(() => {
+    toast('📋 Entry text copied to clipboard!');
+  }).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    toast('📋 Entry text copied to clipboard!');
+  });
+};
+
+window.startEditBugEntry = function(id) {
+  const entry = bugLog.find(e => e.id === id || ('legacy_' + bugLog.indexOf(e)) === id);
+  if (!entry) return;
+  const container = document.getElementById('bugEntryText_' + id);
+  if (!container) return;
+  const escaped = entry.text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  container.innerHTML = `
+    <textarea id="bugEditArea_${id}" style="width:100%;min-height:70px;font-family:'Geist Mono',monospace;font-size:12px;color:var(--ink);background:var(--surface3);border:1px solid var(--border2);border-radius:6px;padding:6px;resize:vertical;outline:none;">${escaped}</textarea>
+    <div style="display:flex;gap:6px;margin-top:6px;">
+      <button class="bug-mark-btn" onclick="saveEditBugEntry('${id}')" style="border-color:var(--jt);color:var(--jt);">💾 Save</button>
+      <button class="bug-mark-btn" onclick="renderBugLogEntries()">✕ Cancel</button>
+    </div>`;
+  container.onclick = null;
+  const ta = document.getElementById('bugEditArea_' + id);
+  if (ta) { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }
+};
+
+window.saveEditBugEntry = function(id) {
+  const entry = bugLog.find(e => e.id === id || ('legacy_' + bugLog.indexOf(e)) === id);
+  if (!entry) return;
+  const ta = document.getElementById('bugEditArea_' + id);
+  if (!ta) return;
+  const newText = ta.value.trim();
+  if (!newText) { toast('Entry text cannot be empty'); return; }
+  entry.text = newText;
+  entry.lastEdited = new Date().toISOString();
+  renderBugLogEntries();
+  renderBugState();
+  markUnsaved(true);
+  toast('✏ Update edited');
 };
 
 window.openBugModal = function() {
@@ -7763,7 +7857,7 @@ window.submitBugReport = function() {
     String(now.getDate()).padStart(2,'0') + ' ' +
     String(now.getHours()).padStart(2,'0') + ':' +
     String(now.getMinutes()).padStart(2,'0');
-  bugLog.push({ id: uid(), text, ts, status: 'fresh' });
+  bugLog.push({ id: uid(), text, ts, status: 'fresh', lastEdited: now.toISOString() });
   document.getElementById('bugReportInput').value = '';
   document.getElementById('bugModalTitle').textContent = '📋 Updates (' + bugLog.length + ')';
   renderBugLogEntries();
@@ -7773,7 +7867,7 @@ window.submitBugReport = function() {
 };
 
 window.autoGenerateAIText = function() {
-  // Only include fresh and refresh_bug — skip done and applied
+  // Only include fresh and refresh_bug — skip done, applied, and already-added
   const entries = bugLog.filter(e => {
     const s = e.status || 'fresh';
     return s === 'fresh' || s === 'refresh_bug';
@@ -7793,29 +7887,51 @@ window.autoGenerateAIText = function() {
     return `${i + 1}. ${e.text}${suffix}`;
   });
 
-  // Build full prompt using the fixed template
+  // Generate the Plan ID locally: YEAR.MONTH.DAY.HH.MM.SS
+  const now = new Date();
+  const planId = now.getFullYear() + '.' +
+    String(now.getMonth()+1).padStart(2,'0') + '.' +
+    String(now.getDate()).padStart(2,'0') + '.' +
+    String(now.getHours()).padStart(2,'0') + '.' +
+    String(now.getMinutes()).padStart(2,'0') + '.' +
+    String(now.getSeconds()).padStart(2,'0');
+
+  // Build full prompt using the fixed template — Plan ID is provided, not requested
   const prompt =
 `this is my latest file. I need plan for this changes on the file. Read the file and Include every lines where needs to make changes, other infos too, why needs to be make changes and etc more. Because if you could not finish it. I would send that to another Ai the plan, and he will just do it without any need to analyze again thus saving tokens. Got it? 
 Plan needs for these changes:
 ${lines.join('\n')}
 
-Create a Markdown file of the Plan and Create a ID of the Plan by Date and Timestamp.`;
+Create a Markdown file of the Plan. Use this Plan ID for the plan (do not generate a new one): ${planId}`;
 
   // Copy to clipboard
-  navigator.clipboard.writeText(prompt).then(() => {
-    toast('🤖 AI text copied to clipboard!');
-  }).catch(() => {
-    // Fallback for environments where clipboard API is unavailable
-    const ta = document.createElement('textarea');
-    ta.value = prompt;
-    ta.style.position = 'fixed';
-    ta.style.opacity = '0';
-    document.body.appendChild(ta);
-    ta.select();
-    document.execCommand('copy');
-    document.body.removeChild(ta);
-    toast('🤖 AI text copied to clipboard!');
+  const doCopy = () => {
+    navigator.clipboard.writeText(prompt).then(() => {
+      toast('🤖 AI text copied to clipboard!');
+    }).catch(() => {
+      // Fallback for environments where clipboard API is unavailable
+      const ta = document.createElement('textarea');
+      ta.value = prompt;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      toast('🤖 AI text copied to clipboard!');
+    });
+  };
+  doCopy();
+
+  // Mark the included entries as "Added" with this Plan ID, and bump lastEdited
+  entries.forEach(e => {
+    e.status = 'added';
+    e.planId = planId;
+    e.lastEdited = now.toISOString();
   });
+  renderBugLogEntries();
+  renderBugState();
+  markUnsaved(true);
 };
 
 renderBugState();
