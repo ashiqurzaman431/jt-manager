@@ -107,6 +107,45 @@ body {
 .tag-today-btn.tag-filter-active  { background: rgba(251,191,36,0.15); color: #fbbf24; border-color: rgba(251,191,36,0.35); }
 .tag-quicky-btn.tag-filter-active { background: rgba(167,139,250,0.15); color: #a78bfa; border-color: rgba(167,139,250,0.35); }
 
+/* ── BUG LOG STATUS BADGES ── */
+.bug-status-badge {
+  display: inline-block; font-family: var(--mono); font-size: 9px; font-weight: 700;
+  padding: 2px 8px; border-radius: 99px; letter-spacing: 0.3px; flex-shrink: 0;
+}
+.bug-status-fresh   { background: rgba(251,191,36,0.15);  color: #fbbf24; border: 1px solid rgba(251,191,36,0.40); }
+.bug-status-applied { background: rgba(108,142,246,0.15); color: #6c8ef6; border: 1px solid rgba(108,142,246,0.40); }
+.bug-status-done    { background: rgba(52,211,153,0.15);  color: #34d399; border: 1px solid rgba(52,211,153,0.40); }
+.bug-status-refresh { background: rgba(248,113,113,0.15); color: #f87171; border: 1px solid rgba(248,113,113,0.40); }
+.bug-mark-btn {
+  font-family: var(--mono); font-size: 9.5px; font-weight: 600;
+  padding: 3px 9px; border-radius: 99px; cursor: pointer;
+  border: 1px solid var(--border2); background: var(--surface2);
+  color: var(--ink3); transition: all 0.12s; white-space: nowrap;
+}
+.bug-mark-btn:hover { border-color: var(--jt); color: var(--jt); background: var(--jt-light); }
+.bug-mark-btn.active-mark { border-color: var(--jt); color: var(--jt); background: var(--jt-light); font-weight: 700; }
+
+/* ── PINNED IN-PROGRESS BANNER ── */
+.pinned-inprogress-banner {
+  margin-bottom: 14px;
+  background: linear-gradient(135deg, rgba(251,191,36,0.09), rgba(251,191,36,0.04));
+  border: 1.5px solid rgba(251,191,36,0.35);
+  border-radius: var(--radius); padding: 12px 14px 8px;
+  box-shadow: 0 2px 14px rgba(217,119,6,0.10);
+}
+.pinned-inprogress-label {
+  font-family: var(--mono); font-size: 9.5px; font-weight: 700;
+  color: var(--amber); text-transform: uppercase; letter-spacing: 0.9px;
+  margin-bottom: 10px; display: flex; align-items: center; gap: 6px;
+}
+.pinned-task-overlay {
+  background: rgba(251,191,36,0.05);
+  border: 1.5px solid rgba(251,191,36,0.25);
+  border-left: 4px solid var(--amber);
+  border-radius: var(--radius-sm);
+  margin-bottom: 8px; overflow: hidden;
+}
+
 /* ── Task card tag badges ── */
 .task-tag-badge {
   display: inline-block;
@@ -2016,11 +2055,7 @@ select option { background: var(--surface3); color: var(--ink); }
       </div>
     </div>
 
-    <!-- Task Tabs -->
-    <div class="task-tabs">
-      <button class="task-tab active" id="tabRunning" onclick="switchTaskTab('running')">⚡ Running Tasks</button>
-      <button class="task-tab" id="tabArchive" onclick="switchTaskTab('archive')">📦 Archive</button>
-    </div>
+    <!-- Task Tabs removed — unified list with Hide Archived checkbox below -->
 
     <!-- Task Count Chips -->
     <div id="taskCountChips">
@@ -2093,6 +2128,14 @@ select option { background: var(--surface3); color: var(--ink); }
         <label style="display:flex;align-items:center;gap:4px;font-family:var(--mono);font-size:11px;color:var(--ink3);cursor:pointer;white-space:nowrap;">
           <input type="checkbox" id="typeBtnAssignedOnly" onchange="setTaskAssignedFilter(this.checked)" style="accent-color:var(--jt);width:13px;height:13px;">
           ◷ Assigned only
+        </label>
+        <label style="display:flex;align-items:center;gap:4px;font-family:var(--mono);font-size:11px;color:var(--ink3);cursor:pointer;white-space:nowrap;">
+          <input type="checkbox" id="hideArchivedCb" checked onchange="setHideArchived(this.checked)" style="accent-color:var(--jt);width:13px;height:13px;">
+          📦 Hide archived
+        </label>
+        <label style="display:flex;align-items:center;gap:4px;font-family:var(--mono);font-size:11px;color:var(--ink3);cursor:pointer;white-space:nowrap;">
+          <input type="checkbox" id="hideErrorTaskCb" checked onchange="setHideErrorTask(this.checked)" style="accent-color:var(--jt);width:13px;height:13px;">
+          ⚠ Hide errors
         </label>
       </div>
     </div>
@@ -2760,7 +2803,7 @@ TaskRec01: task assigned, timer started.</div>
       <span>⚠ Confirm</span>
       <button class="modal-close" onclick="confirmModalCancel()">✕</button>
     </div>
-    <div style="font-family:var(--mono);font-size:13.2px;color:var(--ink);margin-bottom:20px;line-height:1.6;" id="confirmMsg">Archive this task? It will move to the archive tab.</div>
+    <div style="font-family:var(--mono);font-size:13.2px;color:var(--ink);margin-bottom:20px;line-height:1.6;" id="confirmMsg">Archive this task? It will remain in the list (hidden by default when "Hide archived" is checked).</div>
     <div class="modal-actions">
       <button class="btn-danger" style="padding:9px 18px;font-size:12.1px;" onclick="confirmModalOk()">Yes, confirm</button>
       <button class="btn-secondary" onclick="confirmModalCancel()">Cancel</button>
@@ -2924,6 +2967,8 @@ let bugLog = [];
 // ─────────────────────────────────────────
 let selectedAccId = null;
 let activeTaskTab = 'running';
+let hideArchived = true;    // archived tasks hidden by default
+let hideErrorTask = true;   // tasks with errors hidden by default
 let taskTypeFilter = 'all';
 let taskSort = 'unassigned';
 let taskSortDir = 'asc'; // 'asc' | 'desc' — for alpha/newest sorts
@@ -3402,10 +3447,19 @@ function getLastTaskTime(accId) {
 // ─────────────────────────────────────────
 // TASK MANAGEMENT
 // ─────────────────────────────────────────
+// Archive tab removed — unified list. activeTaskTab kept for legacy compat.
 window.switchTaskTab = function(tab) {
-  activeTaskTab = tab;
-  document.getElementById('tabRunning').classList.toggle('active', tab==='running');
-  document.getElementById('tabArchive').classList.toggle('active', tab==='archive');
+  // no-op: tabs removed, unified list used instead
+};
+
+window.setHideArchived = function(val) {
+  hideArchived = val;
+  taskPage = 0;
+  renderTasks();
+};
+
+window.setHideErrorTask = function(val) {
+  hideErrorTask = val;
   taskPage = 0;
   renderTasks();
 };
@@ -3538,11 +3592,11 @@ function countAsgns(task, status) {
 }
 
 function renderTasks() {
-  // Show/hide sort dropdowns — only for running tab
+  // Always show sort and direction bars (unified list, no archive tab)
   const sortBar = document.getElementById('taskSortBar');
-  if (sortBar) sortBar.style.display = activeTaskTab === 'running' ? 'flex' : 'none';
+  if (sortBar) sortBar.style.display = 'flex';
   const sortDirBar = document.getElementById('taskSortDirBar');
-  if (sortDirBar) sortDirBar.style.display = activeTaskTab === 'running' ? 'flex' : 'none';
+  if (sortDirBar) sortDirBar.style.display = 'flex';
   // Sync dropdown values to state
   const typeSel = document.getElementById('taskTypeFilterBar');
   if (typeSel) typeSel.value = taskTypeFilter;
@@ -3554,6 +3608,10 @@ function renderTasks() {
   if (todayCb2) todayCb2.checked = taskTodayOnly;
   const assignedCb = document.getElementById('typeBtnAssignedOnly');
   if (assignedCb) assignedCb.checked = taskAssignedOnly;
+  const hideArchCb = document.getElementById('hideArchivedCb');
+  if (hideArchCb) hideArchCb.checked = hideArchived;
+  const hideErrCb = document.getElementById('hideErrorTaskCb');
+  if (hideErrCb) hideErrCb.checked = hideErrorTask;
   renderTaskAccountFilterBar();
   // Sync account dropdown value after population
   const accSel = document.getElementById('taskAccountFilterBar');
@@ -3567,9 +3625,14 @@ function renderTasks() {
   const todayStr = todayISO();
   const todayDayKey = todayStr; // same value — todayISO() already uses the 5pm cutoff
 
-  // Build base list: tab filter + type filter + today filter + account filter + search
+  // Build base list: unified list (archived/error hidden by checkboxes) + all other filters
   let list = tasks.filter(t => {
-    if (activeTaskTab === 'running' ? t.archived : !t.archived) return false;
+    // Archived: hide if hideArchived is checked; archived tasks never go through other filters
+    if (t.archived) {
+      return !hideArchived; // show only if user unchecked the hide box
+    }
+    // Error tasks: hide if hideErrorTask is checked
+    if (hideErrorTask && (t.errors||[]).length > 0) return false;
     if (taskTypeFilter !== 'all' && t.type !== taskTypeFilter) return false;
     if (taskTodayOnly) {
       if (getTaskDayKey(t.createdAt) !== todayDayKey) return false;
@@ -3604,48 +3667,42 @@ function renderTasks() {
     return true;
   });
 
-  if (activeTaskTab === 'running') {
-    list = [...list].sort((a, b) => {
-      // Status-based sorts
-      if (taskSort === 'assigned')      { const d = countAsgns(b,'assigned')  - countAsgns(a,'assigned');  if(d!==0) return d; }
-      if (taskSort === 'completed')     { const d = countAsgns(b,'completed') - countAsgns(a,'completed'); if(d!==0) return d; }
-      if (taskSort === 'rewarded')      { const d = countAsgns(b,'rewarded')  - countAsgns(a,'rewarded');  if(d!==0) return d; }
-      if (taskSort === 'unassigned' || taskSort === 'unassigned_only') {
-        const totalAccCount2 = accounts.length;
-        const assignedA2 = new Set((a.assignments||[]).map(x => x.accountId));
-        const assignedB2 = new Set((b.assignments||[]).map(x => x.accountId));
-        const unassignedA2 = Math.max(0, totalAccCount2 - assignedA2.size);
-        const unassignedB2 = Math.max(0, totalAccCount2 - assignedB2.size);
-        const d2 = unassignedB2 - unassignedA2;
-        if(d2!==0) return d2;
-      }
-      // Primary sorts — respect taskSortDir for alpha and newest
-      if (taskSort === 'last-edited') {
-        const aT = new Date(a.updatedAt || a.createdAt || 0).getTime();
-        const bT = new Date(b.updatedAt || b.createdAt || 0).getTime();
-        const cmp = bT - aT;
-        return taskSortDir === 'desc' ? -cmp : cmp;
-      }
-      if (taskSort === 'alpha') {
-        const cmp = (a.title||a.id||'').localeCompare(b.title||b.id||'');
-        return taskSortDir === 'desc' ? -cmp : cmp;
-      }
-      if (taskSort === 'newest') {
-        const cmp = (b.createdAt||'').localeCompare(a.createdAt||'');
-        return taskSortDir === 'desc' ? -cmp : cmp; // desc = oldest first
-      }
-      // Default (unassigned): fall through to newest
-      return (b.createdAt||'').localeCompare(a.createdAt||'');
-    });
-  } else {
-    // Archive: group by archivedAt date descending, within each group sort A-Z by title
-    list = [...list].sort((a, b) => {
-      const da = (a.archivedAt || a.createdAt || '').slice(0, 10);
-      const db = (b.archivedAt || b.createdAt || '').slice(0, 10);
-      if (da !== db) return db.localeCompare(da);
-      return (a.title || '').localeCompare(b.title || '', undefined, { numeric: true });
-    });
-  }
+  // Sort — always use running-tab sort (unified list)
+  list = [...list].sort((a, b) => {
+    // Archived tasks always go to bottom
+    if (a.archived && !b.archived) return 1;
+    if (!a.archived && b.archived) return -1;
+    // Status-based sorts (only for non-archived)
+    if (taskSort === 'assigned')      { const d = countAsgns(b,'assigned')  - countAsgns(a,'assigned');  if(d!==0) return d; }
+    if (taskSort === 'completed')     { const d = countAsgns(b,'completed') - countAsgns(a,'completed'); if(d!==0) return d; }
+    if (taskSort === 'rewarded')      { const d = countAsgns(b,'rewarded')  - countAsgns(a,'rewarded');  if(d!==0) return d; }
+    if (taskSort === 'unassigned' || taskSort === 'unassigned_only') {
+      const totalAccCount2 = accounts.length;
+      const assignedA2 = new Set((a.assignments||[]).map(x => x.accountId));
+      const assignedB2 = new Set((b.assignments||[]).map(x => x.accountId));
+      const unassignedA2 = Math.max(0, totalAccCount2 - assignedA2.size);
+      const unassignedB2 = Math.max(0, totalAccCount2 - assignedB2.size);
+      const d2 = unassignedB2 - unassignedA2;
+      if(d2!==0) return d2;
+    }
+    // Primary sorts — respect taskSortDir for alpha and newest
+    if (taskSort === 'last-edited') {
+      const aT = new Date(a.updatedAt || a.createdAt || 0).getTime();
+      const bT = new Date(b.updatedAt || b.createdAt || 0).getTime();
+      const cmp = bT - aT;
+      return taskSortDir === 'desc' ? -cmp : cmp;
+    }
+    if (taskSort === 'alpha') {
+      const cmp = (a.title||a.id||'').localeCompare(b.title||b.id||'');
+      return taskSortDir === 'desc' ? -cmp : cmp;
+    }
+    if (taskSort === 'newest') {
+      const cmp = (b.createdAt||'').localeCompare(a.createdAt||'');
+      return taskSortDir === 'desc' ? -cmp : cmp;
+    }
+    // Default (unassigned): fall through to newest
+    return (b.createdAt||'').localeCompare(a.createdAt||'');
+  });
 
   // Task count chips — counts reflect the current filtered view
   const countChipEl = document.getElementById('taskCountChips');
@@ -3673,31 +3730,28 @@ function renderTasks() {
   }
 
   if (!list.length) {
-    document.getElementById('tasksList').innerHTML = `<div class="empty-state"><div class="es-icon">${activeTaskTab==='running'?'✦':'📦'}</div>${activeTaskTab==='running'?'No running tasks yet':'Archive is empty'}</div>`;
+    document.getElementById('tasksList').innerHTML = `<div class="empty-state"><div class="es-icon">✦</div>No tasks found</div>`;
     return;
   }
 
-  // For archive tab, build date-separated groups
-  if (activeTaskTab === 'archive') {
-    let html = '';
-    let lastDateKey = null;
-    list.forEach(task => {
-      const dateKey = (task.archivedAt || task.createdAt || '').slice(0, 10);
-      const dateLabel = dateKey ? fmtDate(dateKey + 'T00:00:00') : 'Unknown date';
-      if (dateKey !== lastDateKey) {
-        lastDateKey = dateKey;
-        html += `<div style="display:flex;align-items:center;gap:10px;margin:18px 0 10px;${html===''?'margin-top:4px':''}">
-          <div style="font-family:var(--mono);font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:0.8px;white-space:nowrap;">📦 ${dateLabel}</div>
-          <div style="flex:1;height:1px;background:var(--border);"></div>
+  // Build pinned in-progress banner for account filter (Change 2)
+  let pinnedHtml = '';
+  if (taskAccountFilter !== 'all') {
+    const inProgressForAcc = tasks.filter(t =>
+      !t.archived &&
+      (t.assignments||[]).some(a => a.accountId === taskAccountFilter && a.status === 'assigned')
+    );
+    if (inProgressForAcc.length) {
+      const accName = (accounts.find(a => a.id === taskAccountFilter)||{}).name || 'Selected Account';
+      pinnedHtml = `
+        <div class="pinned-inprogress-banner">
+          <div class="pinned-inprogress-label">◷ ${accName} — Currently In Progress (${inProgressForAcc.length})</div>
+          ${inProgressForAcc.map(t => `<div class="pinned-task-overlay">${renderTaskCard(t)}</div>`).join('')}
         </div>`;
-      }
-      html += renderTaskCard(task);
-    });
-    document.getElementById('tasksList').innerHTML = html;
-    return;
+    }
   }
 
-  document.getElementById('tasksList').innerHTML = (() => {
+  document.getElementById('tasksList').innerHTML = pinnedHtml + (() => {
     const totalPages = Math.max(1, Math.ceil(list.length / TASKS_PER_PAGE));
     if (taskPage >= totalPages) taskPage = totalPages - 1;
     const pagedList = list.slice(taskPage * TASKS_PER_PAGE, (taskPage + 1) * TASKS_PER_PAGE);
@@ -3806,6 +3860,23 @@ window.addTaskError = function() {
 // Self-audit system — REMOVED (UPDATE-029)
 
 function renderTaskCard(task) {
+  // Archived tasks: show minimal row only
+  if (task.archived) {
+    const archivedDateStr = task.archivedAt
+      ? fmtDateTime(task.archivedAt)
+      : (task.updatedAt ? fmtDateTime(task.updatedAt) : (task.createdAt ? fmtDateTime(task.createdAt) : 'Unknown date'));
+    return `
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);
+        padding:10px 16px;margin-bottom:8px;display:flex;align-items:center;gap:10px;opacity:0.55;">
+        <span style="font-size:15px;flex-shrink:0;">📦</span>
+        <div style="flex:1;min-width:0;">
+          <span style="font-family:var(--mono);font-size:11px;color:var(--ink3);">
+            Task has been archived at <strong style="color:var(--ink2);">${archivedDateStr}</strong>
+          </span>
+        </div>
+      </div>`;
+  }
+
   const asgns = (task.assignments||[]);
   const assignedCount   = countAsgns(task, 'assigned');
   const completedCount  = countAsgns(task, 'completed');
@@ -4346,9 +4417,66 @@ window.saveTaskReward = function() {
   closeModal('rewardModal'); taskPage = 0; renderTasks(); toast('Reward updated');
 };
 
+// Shared: actually write the assignment record and refresh UI
+function _doAssign(taskId, accId, customReward) {
+  const t = tasks.find(t => t.id===taskId); if(!t) return;
+  const accCheck = accounts.find(a => a.id === accId); if(!accCheck) return;
+  if (accCheck && isAccAllProfilesLow(accCheck)) {
+    toast('⚠ Cannot assign — GoLogin profile has less than 30 MB remaining');
+    return;
+  }
+  const asgn = {
+    id: uid(),
+    accountId: accId,
+    gologinProfile: getAccGologins(accCheck)[0] || '',
+    status: 'assigned',
+    reward: (customReward !== undefined && customReward !== '') ? parseFloat(customReward) : t.defaultReward,
+    assignedAt: now(),
+    completedAt: null,
+    rewardedAt: null,
+    _acTimerStart: Date.now(),
+    acDescription: 'TaskRec01: task assigned, timer started.'
+  };
+  if (!t.assignments) t.assignments = [];
+  t.assignments.push(asgn);
+  taskPage = 0;
+  renderTasks();
+  if (selectedAccId) renderAccDetail(selectedAccId);
+  renderActionCenter();
+  markUnsaved(true);
+  toast('Task assigned → ' + accCheck.name);
+}
+
 window.openAssignModal = function(taskId) {
   assigningTaskId = taskId;
   const t = tasks.find(t => t.id===taskId); if(!t) return;
+
+  // ── Auto-assign when a specific account is selected in the task filter ──
+  if (taskAccountFilter !== 'all') {
+    const accId = taskAccountFilter;
+    const accCheck = accounts.find(a => a.id === accId);
+    const alreadyAssigned = (t.assignments||[]).some(a => a.accountId === accId);
+    if (alreadyAssigned) {
+      toast('⚠ ' + (accCheck ? accCheck.name : 'Account') + ' is already assigned to this task');
+      assigningTaskId = null;
+      return;
+    }
+    if (!accCheck || accCheck.status === 'dead') {
+      toast('⚠ Selected account is dead or not found');
+      assigningTaskId = null;
+      return;
+    }
+    if (isAccAllProfilesLow(accCheck)) {
+      toast('⚠ Cannot assign — GoLogin profile has less than 30 MB remaining');
+      assigningTaskId = null;
+      return;
+    }
+    _doAssign(taskId, accId, undefined);
+    assigningTaskId = null;
+    return;
+  }
+
+  // ── Normal modal flow when "All Accounts" is selected ──
   document.getElementById('assignModalTaskInfo').textContent = `Task: ${t.title} · Default: ${fmtUSDT(t.defaultReward)}`;
   document.getElementById('assignModalReward').value = '';
   const alreadyAssigned = new Set((t.assignments||[]).map(a => a.accountId));
@@ -4392,48 +4520,22 @@ window.openAssignModal = function(taskId) {
   sel.innerHTML = eligible.length
     ? eligible.map(a => `<option value="${a.id}">${a.name} (${a.country||'—'}) · ${statusLabel(a.status)}</option>`).join('')
     : `<option disabled>${noEligibleMsg}</option>`;
-  sel.selectedIndex = 0; // always start at top (oldest/never assigned)
-  // Show low-data notice below task info if any accounts were blocked
+  sel.selectedIndex = 0;
   const infoEl = document.getElementById('assignModalTaskInfo');
   if (blockedByData > 0 && infoEl) {
     infoEl.innerHTML = `Task: ${t.title} · Default: ${fmtUSDT(t.defaultReward)}<br><span style="color:var(--red);font-size:10.5px;">⚠ ${blockedByData} account${blockedByData>1?'s':''} hidden — GoLogin profile has &lt; 30 MB data remaining</span>`;
   }
   openModal('assignModal');
 };
+
 window.confirmAssign = function() {
   if (!assigningTaskId) return;
   const accId = document.getElementById('assignModalAccSelect').value;
   if (!accId) { toast('No eligible account to assign'); return; }
-  // Final guard: block if account's profile dropped below 30 MB since modal opened
-  const accCheck = accounts.find(a => a.id === accId);
-  if (accCheck && isAccAllProfilesLow(accCheck)) {
-    toast('⚠ Cannot assign — GoLogin profile has less than 30 MB remaining');
-    return;
-  }
   const customReward = document.getElementById('assignModalReward').value;
-  const t = tasks.find(t => t.id===assigningTaskId); if(!t) return;
-  const asgn = {
-    id: uid(),
-    accountId: accId,
-    gologinProfile: getAccGologins(accCheck)[0] || '',
-    status: 'assigned',
-    reward: customReward!=='' ? parseFloat(customReward) : t.defaultReward,
-    assignedAt: now(),
-    completedAt: null,
-    rewardedAt: null,
-    _acTimerStart: Date.now(),
-    acDescription: 'TaskRec01: task assigned, timer started.'
-  };
-  if (!t.assignments) t.assignments = [];
-  t.assignments.push(asgn);
   closeModal('assignModal');
+  _doAssign(assigningTaskId, accId, customReward);
   assigningTaskId = null;
-  taskPage = 0;
-  renderTasks();
-  if (selectedAccId) renderAccDetail(selectedAccId);
-  renderActionCenter();
-  markUnsaved(true);
-  toast('Task assigned');
 };
 
 // ─────────────────────────────────────────
@@ -7545,13 +7647,32 @@ document.addEventListener('drop', function(e) {
   markUnsaved(true);
 });
 
+function purgeDoneBugEntries() {
+  // Auto-delete entries marked "done" after 72 hours
+  const before = bugLog.length;
+  const cutoff = 72 * 60 * 60 * 1000;
+  bugLog = bugLog.filter(e => {
+    if (e.status === 'done' && e.doneAt) {
+      return (Date.now() - new Date(e.doneAt).getTime()) < cutoff;
+    }
+    return true;
+  });
+  if (bugLog.length !== before) markUnsaved(true);
+}
+
 function renderBugState() {
+  purgeDoneBugEntries();
   const banner = document.getElementById('bugLockBanner');
   const btn = document.getElementById('bugReportBtn');
   const countEl = document.getElementById('bugBannerCount');
+  // Count only fresh + refresh_bug for "pending" badge
+  const pendingCount = bugLog.filter(e => {
+    const s = e.status || 'fresh';
+    return s === 'fresh' || s === 'refresh_bug';
+  }).length;
   const hasBugs = bugLog.length > 0;
   if (banner) banner.style.display = hasBugs ? 'flex' : 'none';
-  if (countEl) countEl.textContent = bugLog.length;
+  if (countEl) countEl.textContent = pendingCount;
   if (btn) {
     if (hasBugs) {
       btn.innerHTML = '📋 ' + bugLog.length + ' Update' + (bugLog.length !== 1 ? 's' : '');
@@ -7567,19 +7688,79 @@ function renderBugState() {
   }
 }
 
+function bugStatusLabel(status) {
+  return {
+    fresh:       '🆕 Fresh Bug',
+    applied:     '✅ Applied',
+    done:        '✔ Done',
+    refresh_bug: '🔁 Refresh Bug'
+  }[status] || '🆕 Fresh Bug';
+}
+
+function bugCountdown(doneAt) {
+  if (!doneAt) return '';
+  const elapsed = Date.now() - new Date(doneAt).getTime();
+  const remaining = 72 * 60 * 60 * 1000 - elapsed;
+  if (remaining <= 0) return 'Deleting soon…';
+  const h = Math.floor(remaining / 3600000);
+  const m = Math.floor((remaining % 3600000) / 60000);
+  return `Auto-deletes in ${h}h ${m}m`;
+}
+
 function renderBugLogEntries() {
   const el = document.getElementById('bugLogEntries');
   if (!el) return;
   if (!bugLog.length) {
-    el.innerHTML = '<div style="font-family:\'DM Mono\',monospace;font-size:12px;color:var(--ink3);text-align:center;padding:8px 0;">No bugs reported yet.</div>';
-  } else {
-    el.innerHTML = bugLog.map((b, i) => `
-      <div style="background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.22);border-radius:8px;padding:10px 12px;">
-        <div style="font-family:'Geist Mono',monospace;font-size:9px;color:#fbbf24;margin-bottom:4px;opacity:0.7;">#${i+1} · ${b.ts}</div>
-        <div style="font-family:'Geist Mono',monospace;font-size:12px;color:var(--ink2);line-height:1.5;">${b.text}</div>
-      </div>`).join('');
+    el.innerHTML = '<div style="font-family:\'DM Mono\',monospace;font-size:12px;color:var(--ink3);text-align:center;padding:8px 0;">No updates logged yet.</div>';
+    return;
   }
+  el.innerHTML = bugLog.map((b, i) => {
+    const status = b.status || 'fresh';
+    const id = b.id || ('legacy_' + i);
+    const countdown = status === 'done' ? bugCountdown(b.doneAt) : '';
+    // Entry bg tint by status
+    const entryBg = {
+      fresh:       'rgba(251,191,36,0.06)',
+      applied:     'rgba(108,142,246,0.06)',
+      done:        'rgba(52,211,153,0.06)',
+      refresh_bug: 'rgba(248,113,113,0.07)'
+    }[status] || 'rgba(251,191,36,0.06)';
+    const entryBorder = {
+      fresh:       'rgba(251,191,36,0.22)',
+      applied:     'rgba(108,142,246,0.22)',
+      done:        'rgba(52,211,153,0.22)',
+      refresh_bug: 'rgba(248,113,113,0.28)'
+    }[status] || 'rgba(251,191,36,0.22)';
+    return `
+      <div style="background:${entryBg};border:1px solid ${entryBorder};border-radius:8px;padding:10px 12px;">
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:6px;">
+          <span style="font-family:'Geist Mono',monospace;font-size:9px;color:var(--ink3);opacity:0.7;">#${i+1} · ${b.ts}</span>
+          <span class="bug-status-badge bug-status-${status === 'refresh_bug' ? 'refresh' : status}">${bugStatusLabel(status)}</span>
+          ${countdown ? `<span style="font-family:var(--mono);font-size:9px;color:var(--green);opacity:0.8;">${countdown}</span>` : ''}
+        </div>
+        <div style="font-family:'Geist Mono',monospace;font-size:12px;color:var(--ink2);line-height:1.5;margin-bottom:8px;">${b.text}</div>
+        <div style="display:flex;gap:5px;flex-wrap:wrap;">
+          <button class="bug-mark-btn ${status==='applied'?'active-mark':''}" onclick="markBugEntry('${id}','applied')">✅ Applied</button>
+          <button class="bug-mark-btn ${status==='done'?'active-mark':''}" onclick="markBugEntry('${id}','done')">✔ Done</button>
+          <button class="bug-mark-btn ${status==='refresh_bug'?'active-mark':''}" onclick="markBugEntry('${id}','refresh_bug')" style="${status==='refresh_bug'?'border-color:var(--red);color:var(--red);background:var(--red-light);':''}">🔁 Refresh Bug</button>
+        </div>
+      </div>`;
+  }).join('');
 }
+
+window.markBugEntry = function(id, status) {
+  const entry = bugLog.find(e => e.id === id || ('legacy_' + bugLog.indexOf(e)) === id);
+  if (!entry) return;
+  entry.status = status;
+  if (status === 'done') entry.doneAt = new Date().toISOString();
+  // Ensure entry has an id for future calls
+  if (!entry.id) entry.id = uid();
+  renderBugLogEntries();
+  renderBugState();
+  markUnsaved(true);
+  const labels = { applied: 'Applied', done: 'Done', refresh_bug: 'Refresh Bug' };
+  toast('Marked: ' + (labels[status] || status));
+};
 
 window.openBugModal = function() {
   document.getElementById('bugModalTitle').textContent = '📋 Updates (' + bugLog.length + ')';
@@ -7597,7 +7778,7 @@ window.submitBugReport = function() {
     String(now.getDate()).padStart(2,'0') + ' ' +
     String(now.getHours()).padStart(2,'0') + ':' +
     String(now.getMinutes()).padStart(2,'0');
-  bugLog.push({ text, ts });
+  bugLog.push({ id: uid(), text, ts, status: 'fresh' });
   document.getElementById('bugReportInput').value = '';
   document.getElementById('bugModalTitle').textContent = '📋 Updates (' + bugLog.length + ')';
   renderBugLogEntries();
@@ -7859,5 +8040,5 @@ if ('serviceWorker' in navigator) {
          font-size:18px;cursor:pointer;
          box-shadow:0 2px 12px rgba(13,27,62,0.22);
          align-items:center;justify-content:center;">↑</button>
-<script>// 28</script>
+<script>// 30</script>
 <protonpass-root-8df7 data-protonpass-role="root" data-protonpass-theme="dark"></protonpass-root-8df7></body></html>
