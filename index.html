@@ -1402,7 +1402,7 @@ select option { background: var(--surface3); color: var(--ink); }
 .unsaved-dot.visible { display:inline-block; }
 /* Floating unsaved-changes badge — stays visible while scrolled */
 .unsaved-float {
-  position:fixed; bottom:20px; right:20px; z-index:500;
+  position:fixed; bottom:65px; right:20px; z-index:500;
   display:none; align-items:center; gap:8px;
   background:#fff8f0; border:1px solid #d97706; color:#b45309;
   font-family:var(--mono); font-size:12px; font-weight:600;
@@ -1413,6 +1413,11 @@ select option { background: var(--surface3); color: var(--ink); }
 .unsaved-float.visible { display:flex; }
 .unsaved-float .dot {
   width:8px; height:8px; border-radius:50%; background:#d97706; flex-shrink:0;
+}
+
+.task-archived {
+  opacity: 0.65;
+  border-left: 3px solid #d97706 !important;
 }
 
 /* conflict warning bar */
@@ -2566,7 +2571,15 @@ TaskRec01: task assigned, timer started.</div>
     </div>
     <button onclick="(function(){var p=document.getElementById('driveLogPanel');p.style.display=p.style.display==='none'?'block':'none';})()" style="font-family:var(--mono);font-size:10px;padding:4px 10px;border-radius:99px;border:1px solid var(--border2);background:var(--surface3);color:var(--ink2);cursor:pointer;white-space:nowrap;">📋 Log</button>
   </div>
-  <button id="undoBtn" onclick="undoLast()" style="display: none; align-items: center; gap: 6px; padding: 9px 16px; border-radius: var(--radius-sm); border: 1px solid var(--border2); background: rgb(255, 255, 255); color: var(--ink2); font-family: var(--mono); font-size: 12.1px; font-weight: 600; cursor: pointer; white-space: nowrap;" title="Undo: Status → completed (6854)">↩ Undo (6)</button>
+  <div id="saveBarUnsaved" style="display:none;align-items:center;gap:6px;
+  font-family:var(--mono);font-size:11.5px;font-weight:600;color:#b45309;
+  background:#fff8f0;border:1px solid #d97706;padding:6px 12px;
+  border-radius:99px;white-space:nowrap;">
+    <span style="width:7px;height:7px;border-radius:50%;background:#d97706;
+      display:inline-block;flex-shrink:0;"></span>
+    Unsaved changes
+  </div>
+  <button id="undoBtn" onclick="undoLast()" style="display: none; align-items: center; gap: 6px; padding: 9px 16px; border-radius: var(--radius-sm); border: 1px solid var(--amber-border); background: var(--amber-light); color: var(--amber); font-family: var(--mono); font-size: 12.1px; font-weight: 600; cursor: pointer; white-space: nowrap;" title="">↩ Undo</button>
   <button class="btn-save" id="btnSave">
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
     Save to Drive
@@ -2825,7 +2838,7 @@ TaskRec01: task assigned, timer started.</div>
       <span>⚠ Confirm</span>
       <button class="modal-close" onclick="confirmModalCancel()">✕</button>
     </div>
-    <div style="font-family:var(--mono);font-size:13.2px;color:var(--ink);margin-bottom:20px;line-height:1.6;" id="confirmMsg">Archive this task? It will remain in the list (hidden by default when "Hide archived" is checked).</div>
+    <div style="font-family:var(--mono);font-size:13.2px;color:var(--ink);margin-bottom:20px;line-height:1.6;" id="confirmMsg">Archive this task? It will be hidden. Uncheck "📦 Hide archived" in the task filters to view archived tasks.</div>
     <div class="modal-actions">
       <button class="btn-danger" style="padding:9px 18px;font-size:12.1px;" onclick="confirmModalOk()">Yes, confirm</button>
       <button class="btn-secondary" onclick="confirmModalCancel()">Cancel</button>
@@ -3874,8 +3887,8 @@ function renderTaskCard(task) {
       ? fmtDateTime(task.archivedAt)
       : (task.updatedAt ? fmtDateTime(task.updatedAt) : (task.createdAt ? fmtDateTime(task.createdAt) : 'Unknown date'));
     return `
-      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);
-        padding:10px 16px;margin-bottom:8px;display:flex;align-items:center;gap:10px;opacity:0.55;">
+      <div class="task-archived" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);
+        padding:10px 16px;margin-bottom:8px;display:flex;align-items:center;gap:10px;">
         <span style="font-size:15px;flex-shrink:0;">📦</span>
         <div style="flex:1;min-width:0;">
           <div style="font-family:var(--mono);font-size:13px;color:var(--ink);font-weight:700;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
@@ -4336,9 +4349,11 @@ window.bulkTaskTypeChanged = function() {
 };
 
 window.archiveTask = function(id) {
-  openConfirm('Archive this task? It will move to the archive tab.', () => {
-    const t = tasks.find(t => t.id===id); if(t) { t.archived=true; t.archivedAt=now(); }
-    taskPage = 0; renderTasks(); toast('Task archived');
+  const t = tasks.find(t => t.id===id);
+  openConfirm('Archive this task? It will be hidden. Uncheck "📦 Hide archived" in the task filters to view archived tasks.', () => {
+    pushUndo('Archive task ' + (t ? t.title : id));
+    if(t) { t.archived=true; t.archivedAt=now(); }
+    taskPage = 0; renderTasks(); markUnsaved(true); toast('Task archived');
   });
 };
 
@@ -4355,8 +4370,10 @@ window.deleteTask = function(id) {
   });
 };
 window.unarchiveTask = function(id) {
-  const t = tasks.find(t => t.id===id); if(t) t.archived=false;
-  taskPage = 0; renderTasks(); toast('Task restored');
+  const t = tasks.find(t => t.id===id);
+  pushUndo('Restore task ' + (t ? t.title : id));
+  if(t) t.archived=false;
+  taskPage = 0; renderTasks(); markUnsaved(true); toast('Task restored');
 };
 
 window.assignToAllActive = function(taskId) {
@@ -5902,6 +5919,8 @@ function markUnsaved(val) {
   if (dot) dot.classList.toggle('visible', val);
   const dotFloat = document.getElementById('unsavedFloat');
   if (dotFloat) dotFloat.classList.toggle('visible', val);
+  const saveBarUnsaved = document.getElementById('saveBarUnsaved');
+  if (saveBarUnsaved) saveBarUnsaved.style.display = val ? 'flex' : 'none';
 }
 
 // ── Drive status dot ──────────────────────────────────────────────────────
@@ -8181,7 +8200,7 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
-<button id="taskScrollTopBtn" onclick="document.getElementById('pageContent') ? document.getElementById('pageContent').scrollTo({top:0,behavior:'smooth'}) : window.scrollTo({top:0,behavior:'smooth'})" title="Back to top" style="display:none;position:fixed;bottom:80px;right:16px;z-index:200;
+<button id="taskScrollTopBtn" onclick="document.getElementById('pageContent') ? document.getElementById('pageContent').scrollTo({top:0,behavior:'smooth'}) : window.scrollTo({top:0,behavior:'smooth'})" title="Back to top" style="display:none;position:fixed;bottom:130px;right:16px;z-index:200;
          width:38px;height:38px;border-radius:50%;
          background:var(--jt-grad);color:#fff;border:none;
          font-size:18px;cursor:pointer;
