@@ -1205,6 +1205,27 @@ select option { background: var(--surface3); color: var(--ink); }
 .acc-task-stat-val.amber { color:var(--amber); }
 .acc-task-stat-val.blue { color:var(--jt); }
 .acc-task-stat-val.green { color:var(--green); }
+
+/* ── Session Target Section ── */
+.sess-section { background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius-sm); padding:10px 12px; margin:10px 0; }
+.sess-section-title { font-family:var(--mono); font-size:9.9px; color:var(--ink3); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px; font-weight:600; }
+.sess-target-row { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+.sess-target-input { font-family:var(--mono); font-size:13px; font-weight:700; background:var(--surface3); border:1px solid var(--border); border-radius:6px; color:var(--ink); padding:5px 10px; width:80px; text-align:center; }
+.sess-target-input:focus { outline:none; border-color:var(--jt); box-shadow:var(--glow); }
+.sess-target-save { font-family:var(--mono); font-size:11px; font-weight:600; background:var(--jt-light); color:var(--jt); border:1px solid var(--jt-border); border-radius:6px; padding:5px 12px; cursor:pointer; }
+.sess-target-save:hover { background:var(--jt); color:#fff; }
+.sess-status-row { display:flex; align-items:center; gap:8px; margin-bottom:8px; flex-wrap:wrap; }
+.sess-badge { font-family:var(--mono); font-size:10px; font-weight:700; border-radius:99px; padding:2px 10px; border:1px solid; }
+.sess-badge.limited { background:rgba(108,142,246,0.12); color:var(--jt); border-color:var(--jt-border); }
+.sess-badge.limitless { background:rgba(156,163,175,0.10); color:#9ca3af; border-color:rgba(156,163,175,0.22); }
+.sess-progress { font-family:var(--mono); font-size:12px; font-weight:700; color:var(--green); }
+.sess-history { margin-top:8px; display:flex; flex-direction:column; gap:4px; }
+.sess-history-item { font-family:var(--mono); font-size:9.9px; color:var(--ink3); background:var(--surface3); border-radius:5px; padding:5px 8px; line-height:1.5; }
+.sess-history-item strong { color:var(--ink2); }
+/* Green gradient overlay when session target achieved */
+@keyframes sessAchieved { 0%,100%{background-position:0% 50%} 50%{background-position:100% 50%} }
+.sess-achieved-overlay { background: linear-gradient(270deg, rgba(52,211,153,0.18), rgba(52,211,153,0.06), rgba(52,211,153,0.18)); background-size:400% 400%; animation:sessAchieved 3s ease infinite; border-color:rgba(52,211,153,0.35) !important; }
+.sess-achieved-badge { font-family:var(--mono); font-size:10px; font-weight:700; color:var(--green); background:rgba(52,211,153,0.12); border:1px solid rgba(52,211,153,0.3); border-radius:99px; padding:2px 10px; }
 @media (max-width:520px) {
   .acc-task-stats { grid-template-columns:1fr 1fr; }
 }
@@ -4467,6 +4488,7 @@ function _doAssign(taskId, accId, customReward) {
   };
   if (!t.assignments) t.assignments = [];
   t.assignments.push(asgn);
+  sessOnTaskAssigned(asgn.accountId);
   taskPage = 0;
   renderTasks();
   if (selectedAccId) renderAccDetail(selectedAccId);
@@ -4661,6 +4683,157 @@ window.selectAcc = function(id) {
   renderAccDetail(id);
 };
 
+// ── Session Target ────────────────────────────────────────────────────────
+// sessionTargets[accId] = { value: number, sessions: [...last3] }
+// session = { type:'LIMITED'|'LIMITLESS', target:number, completed:number,
+//             startDt:isoStr, endDt:isoStr|null }
+
+function sessGetData(accId) {
+  const acc = accounts.find(a => a.id === accId);
+  if (!acc.sessionData) acc.sessionData = { value: 0, sessions: [] };
+  return acc.sessionData;
+}
+
+function sessFmtDt(isoStr) {
+  if (!isoStr) return '';
+  const d = new Date(isoStr);
+  const pad = n => String(n).padStart(2,'0');
+  return `${d.getFullYear()}.${pad(d.getMonth()+1)}.${pad(d.getDate())}.${pad(d.getHours())}.${pad(d.getMinutes())}.${pad(d.getSeconds())}`;
+}
+
+function sessSessionName(session) {
+  const type = session.type;
+  const start = sessFmtDt(session.startDt);
+  const end = session.endDt ? sessFmtDt(session.endDt) : sessFmtDt(now());
+  return `${type}.${start}.to.${end}`;
+}
+
+function sessSaveTarget(accId) {
+  const input = document.getElementById(`sessInput_${accId}`);
+  if (!input) return;
+  const newVal = parseInt(input.value) || 0;
+  const sd = sessGetData(accId);
+  const oldVal = sd.value;
+
+  // Close out current active session before changing
+  if (sd.activeSess) {
+    sd.activeSess.endDt = now();
+    sd.sessions.unshift(sd.activeSess);
+    if (sd.sessions.length > 3) sd.sessions = sd.sessions.slice(0, 3);
+    sd.activeSess = null;
+  }
+
+  sd.value = newVal;
+  sd.achieved = false;
+
+  // Start new session
+  if (newVal === 0) {
+    // Limitless session
+    sd.activeSess = { type:'LIMITLESS', target:0, completed:0, startDt:now(), endDt:null };
+  } else {
+    // Limited session
+    sd.activeSess = { type:'LIMITED', target:newVal, completed:0, startDt:now(), endDt:null };
+  }
+
+  markUnsaved(true);
+  renderAccDetail(accId);
+  toast(newVal === 0 ? '🔄 Session set to Limitless' : `🎯 Session target set to ${newVal}`);
+}
+
+function sessOnTaskCompleted(accId) {
+  // Called when a task for this account is marked completed
+  const sd = sessGetData(accId);
+  if (!sd.activeSess) {
+    // No active session — start limitless
+    sd.activeSess = { type:'LIMITLESS', target:0, completed:0, startDt:now(), endDt:null };
+    sd.value = 0;
+  }
+
+  // Reset target if user was completing without setting new target (limitless drift)
+  // Per spec: if tasks completed without setting new value → session target resets automatically
+  // This is handled by the fact that assigning a task resets the "pending" target
+  // and completing increments the counter
+
+  sd.activeSess.completed += 1;
+
+  // Check achievement for LIMITED sessions
+  if (sd.activeSess.type === 'LIMITED' && sd.activeSess.completed >= sd.activeSess.target) {
+    sd.achieved = true;
+    // Show notification
+    setTimeout(() => toast(`🎯 Session Target Achieved! (${sd.activeSess.target} tasks)`), 100);
+  }
+}
+
+function sessOnTaskAssigned(accId) {
+  // Per spec: session target resets when a task is assigned
+  // This means if achieved overlay is showing and user assigns more tasks without
+  // setting new target → limitless session starts
+  const sd = sessGetData(accId);
+  if (sd.achieved) {
+    // Auto-transition to limitless
+    if (sd.activeSess) {
+      sd.activeSess.endDt = now();
+      sd.sessions.unshift(sd.activeSess);
+      if (sd.sessions.length > 3) sd.sessions = sd.sessions.slice(0, 3);
+    }
+    sd.activeSess = { type:'LIMITLESS', target:0, completed:0, startDt:now(), endDt:null };
+    sd.value = 0;
+    sd.achieved = false;
+  }
+}
+
+function sessRenderSection(accId) {
+  const sd = sessGetData(accId);
+  const val = sd.value || 0;
+  const achieved = sd.achieved || false;
+  const activeSess = sd.activeSess;
+  const sessions = sd.sessions || [];
+
+  const isLimited = activeSess && activeSess.type === 'LIMITED';
+  const completed = activeSess ? activeSess.completed : 0;
+  const target = activeSess ? activeSess.target : val;
+
+  const statusBadge = activeSess
+    ? `<span class="sess-badge ${activeSess.type.toLowerCase()}">${activeSess.type}</span>`
+    : `<span class="sess-badge limitless">NO SESSION</span>`;
+
+  const progressHtml = isLimited
+    ? `<span class="sess-progress">${completed}/${target}</span>`
+    : completed > 0 ? `<span class="sess-progress" style="color:var(--ink2);">${completed} completed</span>` : '';
+
+  const achievedBadge = achieved
+    ? `<span class="sess-achieved-badge">✓ TARGET ACHIEVED</span>`
+    : '';
+
+  const historyHtml = sessions.length
+    ? `<div class="sess-history">
+        ${sessions.map(s => `
+          <div class="sess-history-item">
+            <strong>${s.type}</strong> · ${s.completed} tasks${s.type==='LIMITED'?` / ${s.target} target`:''}
+            <div style="opacity:0.7;font-size:9px;margin-top:2px;">${sessSessionName(s)}</div>
+          </div>`).join('')}
+       </div>`
+    : '';
+
+  return `
+    <div class="sess-section ${achieved ? 'sess-achieved-overlay' : ''}" id="sessSection_${accId}">
+      <div class="sess-section-title">🎯 Session Target</div>
+      <div class="sess-target-row">
+        <input type="number" min="0" class="sess-target-input" id="sessInput_${accId}" value="${val}" placeholder="0">
+        <button class="sess-target-save" onclick="sessSaveTarget('${accId}')">Set</button>
+        <span style="font-family:var(--mono);font-size:9.9px;color:var(--ink3);">0 = limitless</span>
+      </div>
+      <div class="sess-status-row">
+        ${statusBadge}
+        ${progressHtml}
+        ${achievedBadge}
+      </div>
+      ${historyHtml}
+    </div>`;
+}
+
+window.sessSaveTarget = sessSaveTarget;
+
 function renderAccDetail(accId) {
   const acc = accounts.find(a => a.id===accId);
   if (!acc) return;
@@ -4853,6 +5026,7 @@ function renderAccDetail(accId) {
           <div class="acc-task-stat"><div class="acc-task-stat-label">Total Today</div><div class="acc-task-stat-val green">${tStats.totalToday}</div></div>
           <div class="acc-task-stat"><div class="acc-task-stat-label">All Time</div><div class="acc-task-stat-val">${tStats.totalAllTime}</div></div>
         </div>
+        ${sessRenderSection(accId)}
         <button class="btn-edit-acc" onclick="openEditAccountModal('${accId}')">✎ Edit Account</button>
         ${acc.status==='payout_ready'
           ? `<button class="btn-add-payout-acc" onclick="openPayoutModal('${accId}')">💸 Add Payout</button>`
@@ -4902,7 +5076,7 @@ window.confirmStatusNoteModal = function() {
   asgn.status = newStatus;
   if (desc) asgn.statusNote = desc;
   task.updatedAt = now();
-  if (newStatus==='completed') { asgn.completedAt = now(); deductGologinData(asgn.accountId, task.type); }
+  if (newStatus==='completed') { asgn.completedAt = now(); deductGologinData(asgn.accountId, task.type); sessOnTaskCompleted(asgn.accountId); }
   if (newStatus==='rewarded') {
     asgn.rewardedAt = now();
     const rate = globalSettings.jmptRate || 0;
@@ -6738,9 +6912,22 @@ function renderActionCenter() {
           <div class="ac-flow-title" title="${task.title}">${task.title}</div>
         </div>
         <div class="ac-flow-meta">
-          <span>${accFlag} ${accNameClean}</span>
+          <span style="font-size:13px;font-weight:700;color:var(--ink);">${accFlag} ${accNameClean}</span>
           <span>·</span>
           <span style="color:var(--green);font-weight:600;">${rewardStr}</span>
+        </div>
+        <div class="ac-flow-meta" style="margin-top:3px;gap:6px;">
+          ${(() => {
+            const sd = sessGetData(acc.id);
+            const activeSess = sd.activeSess;
+            if (!activeSess) return `<span style="font-family:var(--mono);font-size:9.9px;color:var(--ink3);">NO SESSION</span>`;
+            const type = activeSess.type;
+            const badge = `<span class="sess-badge ${type.toLowerCase()}" style="font-size:9px;">${type}</span>`;
+            if (type === 'LIMITED') {
+              return badge + `<span style="font-family:var(--mono);font-size:10px;color:var(--green);font-weight:700;">${activeSess.completed}/${activeSess.target}</span>`;
+            }
+            return badge + (activeSess.completed > 0 ? `<span style="font-family:var(--mono);font-size:10px;color:var(--ink3);">${activeSess.completed} done</span>` : '');
+          })()}
         </div>
         <div class="ac-timer">
           <span class="ac-timer-label">⏱ ELAPSED</span>
@@ -6835,6 +7022,7 @@ window.acStepComplete = function(taskId, asgnId) {
   asgn.status = 'completed';
   asgn.completedAt = now();
   deductGologinData(asgn.accountId, task.type);
+  sessOnTaskCompleted(asgn.accountId);
 
   if (selectedAccId) renderAccDetail(selectedAccId);
   taskPage = 0;
