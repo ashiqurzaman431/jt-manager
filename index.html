@@ -3403,6 +3403,7 @@ async function tsDoUpload(num) {
     const b64 = await tsBlobToBase64(slot.file);
     const result = await fetch(TS_SCRIPT_URL, {
       method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
       body: JSON.stringify({ action: 'uploadImage', filename: `${num}.jpg`, imageBase64: b64, mimeType: 'image/jpeg' })
     }).then(r => r.json());
     clearInterval(fakeInterval);
@@ -3524,13 +3525,10 @@ function tsCloseModal() { /* no-op — tsShowModal uses native confirm */ }
 // ═══════════════════════════════════════════
 
 // ─────────────────────────────────────────
-function tsUpdateVerDisplay(filename) {
+function tsUpdateVerDisplay() {
   const el = document.getElementById('tsVerDisplay');
   if (!el) return;
-  if (!filename) { el.textContent = TS_APP_VERSION; return; }
-  const m = filename.match(/Taskshot_V\d+\.(\d{4})\.(\d{2})\.(\d{2})\.(\d{2})\.(\d{2})\.(\d{2})/);
-  if (m) el.textContent = `${TS_APP_VERSION} · ${m[1]}.${m[2]}.${m[3]} ${m[4]}:${m[5]}`;
-  else el.textContent = TS_APP_VERSION;
+  el.textContent = TS_APP_VERSION;
 }
 
 // TASKSHOT INIT (called from JTM DOMContentLoaded)
@@ -3538,7 +3536,7 @@ function tsUpdateVerDisplay(filename) {
 function tsInit() {
   tsRenderSlots();
   tsUpdateStats();
-  tsUpdateVerDisplay(tsCurrentFilename);
+  tsUpdateVerDisplay();
 }
 
 // ─────────────────────────────────────────
