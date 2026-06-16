@@ -1551,6 +1551,86 @@ select option { background: var(--surface3); color: var(--ink); }
   padding:12px 18px; align-items:center; gap:12px;
 }
 #driveNewFileBanner.visible { display:flex; }
+
+/* ═══════════════════════════════════════════
+   TASKSHOT — scoped styles
+   ═══════════════════════════════════════════ */
+#page-taskshot {
+  --ts-accent: #5b52e8;
+  --ts-accent2: #00aa88;
+  --ts-danger: #e03c3c;
+  --ts-text2: #6b729a;
+  --ts-slot-bg: #ffffff;
+  --ts-slot-border: #dde1ed;
+}
+#page-taskshot .slot {
+  background: var(--ts-slot-bg);
+  border: 1.5px solid var(--ts-slot-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: tsSlotIn .22s ease;
+  position: relative;
+  cursor: pointer;
+  transition: border-color .15s, box-shadow .15s;
+  user-select: none;
+  box-shadow: var(--shadow);
+}
+#page-taskshot .slot:hover { border-color: #b0b6d4; box-shadow: 0 3px 12px rgba(30,34,64,.10); }
+#page-taskshot .slot.active { border-color: var(--ts-accent2); box-shadow: 0 0 0 2px rgba(0,170,136,.15), 0 3px 14px rgba(0,170,136,.10); }
+#page-taskshot .slot.active .slot-title { color: var(--ts-accent2); }
+#page-taskshot .slot.hidden-by-search { display: none; }
+#page-taskshot .active-badge {
+  display: none; position: absolute; top: 7px; right: 7px;
+  background: var(--ts-accent2); color: #fff; font-size: 8px; font-weight: 700;
+  letter-spacing: .7px; padding: 2px 6px; border-radius: 20px;
+  text-transform: uppercase; font-family: var(--mono); z-index: 2;
+}
+#page-taskshot .slot.active .active-badge { display: block; }
+#page-taskshot .slot-title { font-family: var(--mono); font-size: 20px; font-weight: 700; color: var(--ink); padding: 12px 12px 8px; letter-spacing: -.5px; line-height: 1; transition: color .15s; }
+#page-taskshot .slot-drop {
+  margin: 0 9px 9px; border: 1.5px dashed var(--ts-slot-border);
+  border-radius: 7px; height: 105px; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; cursor: pointer;
+  transition: all .2s; position: relative; overflow: hidden;
+  gap: 5px; color: var(--ink3); font-size: 11px;
+}
+#page-taskshot .slot-drop:hover { border-color: var(--ts-accent); color: var(--ts-accent); }
+#page-taskshot .slot-drop.drag-over { border-color: var(--ts-accent2); background: rgba(0,170,136,.05); }
+#page-taskshot .slot-drop .drop-icon { font-size: 20px; opacity: .55; }
+#page-taskshot .slot-drop input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+#page-taskshot .slot-drop.has-preview { border-style: solid; border-color: var(--ts-accent); padding: 0; }
+#page-taskshot .slot-drop.has-preview img { width: 100%; height: 100%; object-fit: cover; display: block; }
+#page-taskshot .grace-overlay {
+  display: none; position: absolute; inset: 0; background: rgba(0,0,0,.52);
+  align-items: center; justify-content: center; flex-direction: column; gap: 2px; z-index: 3;
+}
+#page-taskshot .grace-overlay.show { display: flex; }
+#page-taskshot .grace-num { font-family: var(--mono); font-size: 36px; font-weight: 700; color: #ff5555; line-height: 1; animation: tsGracePulse 1s ease-in-out infinite; }
+#page-taskshot .grace-label { font-size: 9px; color: #ffaaaa; letter-spacing: .5px; text-transform: uppercase; }
+#page-taskshot .slot-progress { height: 3px; background: var(--border); margin: 0 9px 7px; border-radius: 2px; overflow: hidden; display: none; }
+#page-taskshot .slot-progress.active { display: block; }
+#page-taskshot .slot-progress-bar { height: 100%; background: var(--ts-accent2); width: 0%; transition: width .25s ease; }
+#page-taskshot .slot-footer { padding: 0 9px 9px; display: flex; gap: 5px; align-items: center; min-height: 28px; }
+#page-taskshot .slot-status { font-size: 10px; color: var(--ink3); flex: 1; line-height: 1.3; }
+#page-taskshot .slot-status.uploading { color: var(--ts-accent2); }
+#page-taskshot .slot-status.conflict { color: var(--ts-danger); font-weight: 600; }
+#page-taskshot .slot-status.grace { color: var(--ts-danger); }
+#page-taskshot .slot.vanishing { animation: tsSlotOut .35s ease forwards; }
+#page-taskshot .history-item {
+  background: var(--surface2); border: 1px solid var(--border); border-radius: 7px;
+  padding: 7px 11px; display: flex; align-items: center; justify-content: space-between;
+  font-family: var(--mono); font-size: 12px;
+}
+#page-taskshot .history-item .h-num { color: var(--ts-accent2); }
+#page-taskshot .history-item .h-del { background: none; border: none; color: var(--ink3); cursor: pointer; font-size: 14px; line-height: 1; padding: 2px 4px; border-radius: 4px; }
+#page-taskshot .history-item .h-del:hover { background: #fdf0f0; color: var(--ts-danger); }
+@keyframes tsSlotIn { from { opacity: 0; transform: scale(.94); } to { opacity: 1; transform: scale(1); } }
+@keyframes tsSlotOut { to { opacity: 0; transform: scale(.88); } }
+@keyframes tsGracePulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+@keyframes tsBadgePop { from{transform:scale(0)} to{transform:scale(1)} }
+
 </style>
 </head>
 <body>
@@ -1958,8 +2038,8 @@ select option { background: var(--surface3); color: var(--ink); }
     <button class="nav-btn" id="navEarnings" onclick="showPage('earnings')">
       <span class="nav-icon">📈</span> Earning Records
     </button>
-    <button class="nav-btn" id="navGologin" onclick="showPage('gologin')">
-      <span class="nav-icon">🌐</span> GoLogin
+    <button class="nav-btn" id="navTaskshot" onclick="showPage('taskshot')">
+      <span class="nav-icon">📸</span> TaskShot
     </button>
   </div>
 
@@ -2257,10 +2337,6 @@ select option { background: var(--surface3); color: var(--ink); }
         <div style="padding:8px 12px;border-bottom:1px solid var(--border);">
           <input type="text" id="accSearchInput" oninput="renderAccList()" placeholder="🔍 Search accounts…" style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:12.1px;padding:7px 10px;outline:none;">
         </div>
-        <div style="padding:6px 12px 4px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px;">
-          <span style="font-family:var(--mono);font-size:10px;color:var(--ink3);white-space:nowrap;">GoLogin</span>
-          <select id="goLoginFilterBar" onchange="setGoLoginFilter(this.value)" style="font-family:var(--mono);font-size:11.5px;padding:4px 8px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--surface2);color:var(--ink);cursor:pointer;outline:none;flex:1;"><option value="all">All Profiles</option></select>
-        </div>
         <div class="acc-list-items" id="accListItems"><div style="padding:24px;text-align:center;font-family:var(--mono);font-size:12.1px;color:var(--ink3);">No accounts yet</div></div>
       </div><!-- /acc-list-panel -->
 
@@ -2273,7 +2349,6 @@ select option { background: var(--surface3); color: var(--ink); }
           <div class="info-row"><div class="info-label">Name</div><div class="info-val">DeshiKaloo</div></div>
           <div class="info-row"><div class="info-label">Wallet</div><div class="info-val wallet">—</div></div>
           <div class="info-row"><div class="info-label">Country</div><div class="info-val">🇧🇩 Bangladesh</div></div>
-          <div class="info-row"><div class="info-label">GoLogin</div><div class="info-val">realershad67</div></div>
           <div class="info-row"><div class="info-label">Device</div><div class="info-val"><span style="font-family:var(--mono);font-size:11px;background:var(--purple-light);color:var(--purple);border:1px solid var(--purple-border);border-radius:99px;padding:2px 10px;">VIVO</span></div></div>
           <div class="info-row"><div class="info-label">Status</div><div class="info-val"><span class="acc-status-pill silent">Silent</span></div></div>
           
@@ -2531,35 +2606,82 @@ TaskRec01: task assigned, timer started.</div>
   </div>
 
   <!-- ════════════════════════════ -->
-  <!-- PAGE: GOLOGIN MANAGEMENT    -->
+  <!-- PAGE: TASKSHOT               -->
   <!-- ════════════════════════════ -->
-  <div class="page" id="page-gologin">
+  <div class="page" id="page-taskshot">
+    <!-- Header bar -->
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
-      <div class="sec-title" style="margin-bottom:0;">GoLogin Management</div>
-      <button class="btn-primary" style="padding:9px 16px;font-size:12.1px;" onclick="openAddGologinModal()">+ Add Profile</button>
-    </div>
-    <div id="gologinLowDataBanner" style="display:none;background:var(--red-light);border:1px solid var(--red-border);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:14px;font-family:var(--mono);font-size:12px;color:var(--red);font-weight:600;">
-      ⚠ One or more profiles have less than 30 MB remaining. Accounts using those profiles cannot be assigned new tasks.
-    </div>
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
-      <div style="overflow-x:auto;">
-        <table id="gologinTable" style="width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12.5px;">
-          <thead>
-            <tr style="background:var(--surface2);border-bottom:2px solid var(--border2);">
-              <th style="text-align:left;padding:10px 14px;color:var(--ink3);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;white-space:nowrap;">Profile</th>
-              <th style="text-align:right;padding:10px 14px;color:var(--ink3);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;white-space:nowrap;">Data Remaining</th>
-              <th style="text-align:right;padding:10px 14px;color:var(--ink3);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;white-space:nowrap;">Total JT Accounts</th>
-              <th style="text-align:right;padding:10px 14px;color:var(--ink3);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;white-space:nowrap;">Total Tasks</th>
-              <th style="text-align:center;padding:10px 14px;color:var(--ink3);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;white-space:nowrap;">Actions</th>
-            </tr>
-          </thead>
-          <tbody id="gologinTableBody">
-            <tr><td colspan="5" style="text-align:center;padding:32px;color:var(--ink3);">No GoLogin profiles yet</td></tr>
-          </tbody>
-        </table>
+      <div class="sec-title" style="margin-bottom:0;">📸 TaskShot Uploader</div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <span id="tsVerDisplay" style="font-family:var(--mono);font-size:10px;color:var(--ink3);"></span>
+        <button class="btn-secondary" style="font-size:11px;padding:5px 12px;" onclick="tsGetLatestVersion()">☁️ Get Latest</button>
+        <button class="btn-secondary" style="font-size:11px;padding:5px 12px;" onclick="tsPanelToggle('tsHistoryPanel')">📋 History</button>
       </div>
     </div>
+
+    <!-- Controls -->
+    <div style="padding:12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:14px;display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;">
+      <div style="display:flex;flex-direction:column;gap:4px;">
+        <label style="font-size:10px;color:var(--ink3);font-weight:600;text-transform:uppercase;letter-spacing:.5px;">Single Slot</label>
+        <div style="display:flex;gap:7px;">
+          <input type="number" id="tsSingleNum" placeholder="e.g. 42" min="1" max="9999"
+            onkeydown="if(event.key==='Enter')tsAddSingleSlot()"
+            style="width:85px;background:var(--surface);border:1px solid var(--border2);color:var(--ink);padding:7px 10px;border-radius:var(--radius-sm);font-family:var(--mono);font-size:12px;outline:none;">
+          <button class="btn-primary" style="font-size:11px;padding:6px 12px;" onclick="tsAddSingleSlot()">Add</button>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px;">
+        <label style="font-size:10px;color:var(--ink3);font-weight:600;text-transform:uppercase;letter-spacing:.5px;">Bulk Range</label>
+        <div style="display:flex;gap:7px;align-items:center;">
+          <input type="number" id="tsBulkStart" placeholder="From" min="1" max="9999"
+            style="width:72px;background:var(--surface);border:1px solid var(--border2);color:var(--ink);padding:7px 10px;border-radius:var(--radius-sm);font-family:var(--mono);font-size:12px;outline:none;">
+          <span style="color:var(--ink3);font-size:12px;">→</span>
+          <input type="number" id="tsBulkEnd" placeholder="To" min="1" max="9999"
+            style="width:72px;background:var(--surface);border:1px solid var(--border2);color:var(--ink);padding:7px 10px;border-radius:var(--radius-sm);font-family:var(--mono);font-size:12px;outline:none;">
+          <button class="btn-primary" style="font-size:11px;padding:6px 12px;" onclick="tsAddBulkSlots()">Add Range</button>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px;">
+        <label style="font-size:10px;color:var(--ink3);font-weight:600;text-transform:uppercase;letter-spacing:.5px;">Find Slot</label>
+        <input type="text" id="tsFindSlot" placeholder="Type slot number…" oninput="tsFilterSlots()" autocomplete="off"
+          style="width:155px;background:var(--surface);border:1px solid var(--border2);color:var(--ink);padding:7px 10px;border-radius:var(--radius-sm);font-family:var(--mono);font-size:12px;outline:none;">
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px;">
+        <label style="font-size:10px;color:var(--ink3);font-weight:600;text-transform:uppercase;letter-spacing:.5px;">Remove Unused</label>
+        <button class="btn-secondary" style="font-size:11px;padding:6px 12px;color:var(--red);border-color:var(--red-border);" onclick="tsRemoveAllUnused()">🗑 Remove All Waiting</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px;">
+        <label style="font-size:10px;color:var(--ink3);font-weight:600;text-transform:uppercase;letter-spacing:.5px;">Sort</label>
+        <select id="tsSortSelect" onchange="tsRenderSlots()"
+          style="background:var(--surface);border:1px solid var(--border2);color:var(--ink);padding:7px 10px;border-radius:var(--radius-sm);font-family:var(--mono);font-size:12px;cursor:pointer;outline:none;">
+          <option value="asc">01 → 9999</option>
+          <option value="desc">9999 → 01</option>
+          <option value="latest">Latest Added First</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Stat Bar -->
+    <div style="display:flex;gap:20px;font-size:11px;color:var(--ink3);margin-bottom:12px;flex-wrap:wrap;">
+      Slots: <b id="tsStatSlots" style="color:var(--ink);">0</b>
+      &nbsp;·&nbsp; Pending: <b id="tsStatPending" style="color:var(--ink);">0</b>
+      &nbsp;·&nbsp; Uploading: <b id="tsStatUploading" style="color:var(--ink);">0</b>
+      &nbsp;·&nbsp; Done this session: <b id="tsStatDone" style="color:var(--ink);">0</b>
+    </div>
+
+    <!-- Slot Grid -->
+    <div id="tsSlotsWrap" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:14px;"></div>
+
+    <!-- History Panel (inline) -->
+    <div id="tsHistoryPanel" style="display:none;margin-top:14px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2);">
+      <div style="padding:12px 14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;font-weight:600;font-size:13px;">
+        <span>📋 Upload History</span>
+        <button class="btn-secondary" style="font-size:11px;padding:4px 10px;" onclick="tsPanelToggle('tsHistoryPanel')">✕ Close</button>
+      </div>
+      <div id="tsHistoryList" style="padding:12px;display:flex;flex-direction:column;gap:6px;max-height:300px;overflow-y:auto;"></div>
+    </div>
   </div>
+
 
   <!-- ════════════════════════════ -->
   <!-- PAGE: AUDIT LOG              -->
@@ -2615,13 +2737,6 @@ TaskRec01: task assigned, timer started.</div>
       <div class="field"><label>Account Name</label><input type="text" id="accModalName" placeholder="e.g. Matteo67"></div>
       <div class="field"><label>Wallet Address</label><input type="text" id="accModalWallet" placeholder="0x..."></div>
       <div class="field"><label>Country</label><input type="text" id="accModalCountry" placeholder="e.g. Germany"></div>
-      <div class="field"><label>GoLogin Profiles</label>
-        <div id="accModalGologinPills" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:6px;min-height:24px;"></div>
-        <select id="accModalGologin" style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:14.3px;padding:9px 10px;outline:none;width:100%;">
-          <option value="">— Add a profile —</option>
-        </select>
-        <input type="hidden" id="accModalGologinData" value="[]">
-      </div>
       <div class="field">
         <label>Status</label>
         <select id="accModalStatus">
@@ -2880,31 +2995,6 @@ TaskRec01: task assigned, timer started.</div>
   </div>
 </div>
 
-<!-- MODAL: Add/Edit GoLogin Profile -->
-<div class="modal-overlay" id="gologinModal">
-  <div class="modal" style="max-width:400px;">
-    <div class="modal-title">
-      <span id="gologinModalTitle">Add GoLogin Profile</span>
-      <button class="modal-close" onclick="closeModal('gologinModal')">✕</button>
-    </div>
-    <div class="modal-fields">
-      <input type="hidden" id="gologinModalId">
-      <div class="field">
-        <label>Profile Name</label>
-        <input type="text" id="gologinModalName" placeholder="e.g. redmiroberts">
-      </div>
-      <div class="field">
-        <label>Data Remaining (MB)</label>
-        <input type="number" id="gologinModalData" placeholder="490" step="any" min="0">
-      </div>
-    </div>
-    <div class="modal-actions">
-      <button class="btn-primary" onclick="saveGologinProfile()">Save Profile</button>
-      <button class="btn-secondary" onclick="closeModal('gologinModal')">Cancel</button>
-    </div>
-  </div>
-</div>
-
 <!-- MODAL: Edit Task -->
 <div class="modal-overlay" id="editTaskModal">
   <div class="modal" style="max-width:400px;">
@@ -2963,9 +3053,6 @@ let auditLog = [];
 let wordLibrary = [];
 /*EMBEDDED_WORDLIB_END*/
 
-/*EMBEDDED_GOLOGIN_START*/
-let gologinProfiles = [];
-/*EMBEDDED_GOLOGIN_END*/
 
 // ─────────────────────────────────────────
 // ─────────────────────────────────────────
@@ -3024,7 +3111,20 @@ let thumbBase64 = null;
 let thumbModalBase64 = null;
 let accSort = 'default';
 let pendingStatusChange = null;
-let goLoginFilter = 'all'; // 'all' or a specific gologin profile name
+
+// ─────────────────────────────────────────
+// TASKSHOT STATE
+// ─────────────────────────────────────────
+const TS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyo34enQilLbnStzvHhuoOKDizY95T7TiFu_cGus1f_kONh61Kh8CIyTSkcUCq8_9dUaQ/exec';
+const TS_APP_VERSION = 'V6';
+let tsSlots          = [];
+let tsActiveSlotNum  = null;
+let tsUploadQueue    = [];
+let tsActiveUploads  = 0;
+const TS_MAX_CONCURRENT = 5;
+let tsSessionDone    = 0;
+let tsHistory        = [];
+let tsCurrentFilename = null;
 
 // ─────────────────────────────────────────
 // UNDO STACK (FIX 21)
@@ -3038,7 +3138,6 @@ function pushUndo(label) {
     accounts: JSON.parse(JSON.stringify(accounts)),
     tasks: JSON.parse(JSON.stringify(tasks)),
     globalSettings: JSON.parse(JSON.stringify(globalSettings)),
-    gologinProfiles: JSON.parse(JSON.stringify(gologinProfiles)),
   });
   if (_undoStack.length > UNDO_MAX) _undoStack.shift();
   updateUndoBtn();
@@ -3063,13 +3162,11 @@ window.undoLast = function() {
   accounts.length = 0; snap.accounts.forEach(a => accounts.push(a));
   tasks.length = 0; snap.tasks.forEach(t => tasks.push(t));
   Object.assign(globalSettings, snap.globalSettings);
-  if (snap.gologinProfiles) { gologinProfiles.length = 0; snap.gologinProfiles.forEach(p => gologinProfiles.push(p)); }
   updateUndoBtn();
   renderDashboard();
   renderAccList();
   taskPage = 0;
   renderTasks();
-  renderGologinPage();
   if (selectedAccId) renderAccDetail(selectedAccId);
   toast(`Undone: ${snap.label}`);
 };
@@ -3086,17 +3183,10 @@ window.setAccSortDropdown = function(s) {
   renderAccList();
 };
 
-window.setGoLoginFilter = function(profile) {
-  goLoginFilter = profile;
-  const sel = document.getElementById('goLoginFilterBar');
-  if (sel) sel.value = profile;
-  renderAccList();
-};
-
 // ─────────────────────────────────────────
 // NAVIGATION
 // ─────────────────────────────────────────
-const NAV_IDS = { dashboard: 'navDash', tasks: 'navTasks', accounts: 'navAccounts', earnings: 'navEarnings', gologin: 'navGologin' };
+const NAV_IDS = { dashboard: 'navDash', tasks: 'navTasks', accounts: 'navAccounts', earnings: 'navEarnings', taskshot: 'navTaskshot' };
 function showPage(id) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
@@ -3118,7 +3208,7 @@ function showPage(id) {
     }
   }
   if (id === 'earnings') { populateEhAccountSelect(); renderEarningsHistory(); }
-  if (id === 'gologin') { renderGologinPage(); }
+  if (id === 'taskshot') { tsRenderSlots(); }
   // Action Center panel: only visible on Task Management tab
   setAcPanelVisibility(id === 'tasks');
   setWdPanelVisibility(id === 'tasks');
@@ -4391,16 +4481,13 @@ window.unarchiveTask = function(id) {
 window.assignToAllActive = function(taskId) {
   const t = tasks.find(t => t.id===taskId); if(!t) return;
   const alreadyAssigned = new Set((t.assignments||[]).map(a => a.accountId));
-  const eligible = accounts.filter(a => a.status !== 'dead' && !alreadyAssigned.has(a.id) && !isAccAllProfilesLow(a));
-  const skippedLowData = accounts.filter(a => a.status !== 'dead' && !alreadyAssigned.has(a.id) && isAccAllProfilesLow(a)).length;
-  if (!eligible.length && skippedLowData === 0) { toast('All active accounts already assigned'); return; }
-  if (!eligible.length) { toast(`⚠ All unassigned accounts blocked — GoLogin profile < 30 MB`); return; }
+  const eligible = accounts.filter(a => a.status !== 'dead' && !alreadyAssigned.has(a.id));
+  if (!eligible.length) { toast('All active accounts already assigned'); return; }
   pushUndo('Assign all → ' + t.title);
   if (!t.assignments) t.assignments = [];
   eligible.forEach(acc => {
     t.assignments.push({
       id: uid(), accountId: acc.id,
-      gologinProfile: getAccGologins(acc)[0] || '',
       status: 'assigned',
       reward: t.defaultReward, assignedAt: now(),
       completedAt: null, rewardedAt: null,
@@ -4413,8 +4500,7 @@ window.assignToAllActive = function(taskId) {
   if (selectedAccId) renderAccDetail(selectedAccId);
   renderActionCenter();
   markUnsaved(true);
-  const skipMsg = skippedLowData > 0 ? `, ${skippedLowData} skipped (low data)` : '';
-  toast(`Assigned to ${eligible.length} account${eligible.length>1?'s':''}${skipMsg}`);
+  toast(`Assigned to ${eligible.length} account${eligible.length>1?'s':''}`);
 };
 
 window.openEditTaskModal = function(taskId) {
@@ -4461,14 +4547,9 @@ window.saveTaskReward = function() {
 function _doAssign(taskId, accId, customReward) {
   const t = tasks.find(t => t.id===taskId); if(!t) return;
   const accCheck = accounts.find(a => a.id === accId); if(!accCheck) return;
-  if (accCheck && isAccAllProfilesLow(accCheck)) {
-    toast('⚠ Cannot assign — GoLogin profile has less than 30 MB remaining');
-    return;
-  }
   const asgn = {
     id: uid(),
     accountId: accId,
-    gologinProfile: getAccGologins(accCheck)[0] || '',
     status: 'assigned',
     reward: (customReward !== undefined && customReward !== '') ? parseFloat(customReward) : t.defaultReward,
     assignedAt: now(),
@@ -4507,11 +4588,6 @@ window.openAssignModal = function(taskId) {
       assigningTaskId = null;
       return;
     }
-    if (isAccAllProfilesLow(accCheck)) {
-      toast('⚠ Cannot assign — GoLogin profile has less than 30 MB remaining');
-      assigningTaskId = null;
-      return;
-    }
     _doAssign(taskId, accId, undefined);
     assigningTaskId = null;
     return;
@@ -4521,8 +4597,7 @@ window.openAssignModal = function(taskId) {
   document.getElementById('assignModalTaskInfo').textContent = `Task: ${t.title} · Default: ${fmtUSDT(t.defaultReward)}`;
   document.getElementById('assignModalReward').value = '';
   const alreadyAssigned = new Set((t.assignments||[]).map(a => a.accountId));
-  const eligible = accounts.filter(a => a.status !== 'dead' && !alreadyAssigned.has(a.id) && !isAccAllProfilesLow(a));
-  const blockedByData = accounts.filter(a => a.status !== 'dead' && !alreadyAssigned.has(a.id) && isAccAllProfilesLow(a)).length;
+  const eligible = accounts.filter(a => a.status !== 'dead' && !alreadyAssigned.has(a.id));
 
   // Sort: most recently assigned first — but if the top account has a task currently
   // in progress (status === 'assigned'), demote it so the next available account shows first
@@ -4556,16 +4631,11 @@ window.openAssignModal = function(taskId) {
   }
 
   const sel = document.getElementById('assignModalAccSelect');
-  let noEligibleMsg = 'No eligible accounts (all assigned or dead)';
-  if (!eligible.length && blockedByData > 0) noEligibleMsg = `No eligible accounts — ${blockedByData} blocked (GoLogin profile < 30 MB)`;
+  const noEligibleMsg = 'No eligible accounts (all assigned or dead)';
   sel.innerHTML = eligible.length
     ? eligible.map(a => `<option value="${a.id}">${a.name} (${a.country||'—'}) · ${statusLabel(a.status)}</option>`).join('')
     : `<option disabled>${noEligibleMsg}</option>`;
   sel.selectedIndex = 0;
-  const infoEl = document.getElementById('assignModalTaskInfo');
-  if (blockedByData > 0 && infoEl) {
-    infoEl.innerHTML = `Task: ${t.title} · Default: ${fmtUSDT(t.defaultReward)}<br><span style="color:var(--red);font-size:10.5px;">⚠ ${blockedByData} account${blockedByData>1?'s':''} hidden — GoLogin profile has &lt; 30 MB data remaining</span>`;
-  }
   openModal('assignModal');
 };
 
@@ -4585,15 +4655,6 @@ window.confirmAssign = function() {
 function renderAccList() {
   document.getElementById('accCount').textContent = accounts.length;
 
-  // Build GoLogin filter dropdown
-  const glBar = document.getElementById('goLoginFilterBar');
-  if (glBar) {
-    const profiles = gologinProfiles.map(p => p.name).sort();
-    glBar.innerHTML = `<option value="all">All Profiles</option>` +
-      profiles.map(p => `<option value="${p}">${p}</option>`).join('');
-    glBar.value = goLoginFilter;
-  }
-
   // Sync acc sort dropdown
   const accSortSel = document.getElementById('accSortSelect');
   if (accSortSel) accSortSel.value = accSort;
@@ -4601,9 +4662,8 @@ function renderAccList() {
   const searchQ = (document.getElementById('accSearchInput') ? document.getElementById('accSearchInput').value : '').toLowerCase().trim();
 
   let filteredAccounts = accounts.filter(a => {
-    if (goLoginFilter !== 'all' && !getAccGologins(a).includes(goLoginFilter)) return false;
     if (searchQ) {
-      const hay = [a.name, a.country, getAccGologins(a).join(' '), a.walletAddress, a.notes, a.device].join(' ').toLowerCase();
+      const hay = [a.name, a.country, a.walletAddress, a.notes, a.device].join(' ').toLowerCase();
       if (!hay.includes(searchQ)) return false;
     }
     return true;
@@ -4999,7 +5059,6 @@ function renderAccDetail(accId) {
           <div class="info-row"><div class="info-label">Name</div><div class="info-val">${acc.name}</div></div>
           <div class="info-row"><div class="info-label">Wallet</div><div class="info-val wallet">${acc.walletAddress||'—'}</div></div>
           <div class="info-row"><div class="info-label">Country</div><div class="info-val">${countryFlag(acc.country) ? countryFlag(acc.country)+' ' : ''}${acc.country||'—'}</div></div>
-          <div class="info-row"><div class="info-label">GoLogin</div><div class="info-val">${getAccGologins(acc).length ? getAccGologins(acc).map(n => `<span style="display:inline-block;font-family:var(--mono);font-size:10.5px;padding:2px 8px;border-radius:99px;background:var(--jt-light);color:var(--jt);border:1px solid var(--jt-border);margin:1px 2px;">${n}</span>`).join('') : '—'}</div></div>
           ${acc.device ? `<div class="info-row"><div class="info-label">Device</div><div class="info-val"><span style="font-family:var(--mono);font-size:11px;background:var(--purple-light);color:var(--purple);border:1px solid var(--purple-border);border-radius:99px;padding:2px 10px;">${acc.device}</span></div></div>` : ''}
           <div class="info-row"><div class="info-label">Status</div><div class="info-val"><span class="acc-status-pill ${acc.status}">${statusLabel(acc.status)}</span></div></div>
           ${acc.notes ? `<div class="info-row"><div class="info-label">Notes</div><div class="info-val" style="font-size:12.1px;color:var(--ink3);">${acc.notes}</div></div>` : ''}
@@ -5067,7 +5126,7 @@ window.confirmStatusNoteModal = function() {
   asgn.status = newStatus;
   if (desc) asgn.statusNote = desc;
   task.updatedAt = now();
-  if (newStatus==='completed') { asgn.completedAt = now(); deductGologinData(asgn.accountId, task.type); sessOnTaskCompleted(asgn.accountId); }
+  if (newStatus==='completed') { asgn.completedAt = now(); sessOnTaskCompleted(asgn.accountId); }
   if (newStatus==='rewarded') {
     asgn.rewardedAt = now();
     const rate = globalSettings.jmptRate || 0;
@@ -5095,7 +5154,6 @@ window.markActionComplete = function(taskId, asgnId) {
   pushUndo(`Status → completed (${task.title})`);
   asgn.status = 'completed';
   asgn.completedAt = now();
-  deductGologinData(asgn.accountId, task.type);
   if (selectedAccId) renderAccDetail(selectedAccId);
   taskPage = 0;
   renderTasks();
@@ -5153,7 +5211,6 @@ window.bulkUpdateStatus = function(accId, newStatus) {
     const asgn = (task.assignments||[]).find(a => a.id===asgnId); if(!asgn) return;
     if (newStatus==='completed' && asgn.status==='assigned') {
       asgn.status='completed'; asgn.completedAt=now();
-      deductGologinData(asgn.accountId, task.type);
     } else if (newStatus==='rewarded' && (asgn.status==='assigned'||asgn.status==='completed')) {
       asgn.status='rewarded';
       if(!asgn.completedAt) asgn.completedAt=now();
@@ -5207,11 +5264,9 @@ window.openAddAccountModal = function() {
   document.getElementById('accModalTitle').textContent = 'Add Account';
   document.getElementById('accModalId').value = '';
   ['accModalName','accModalWallet','accModalCountry','accModalNotes'].forEach(id => document.getElementById(id).value='');
-  document.getElementById('accModalGologinData').value = '[]';
   document.getElementById('accModalStatus').value = 'active';
   const devSel = document.getElementById('accModalDevice');
   if (devSel) devSel.value = '';
-  populateGologinSelect('accModalGologin', '');
   openModal('accModal');
 };
 window.openEditAccountModal = function(id) {
@@ -5221,8 +5276,6 @@ window.openEditAccountModal = function(id) {
   document.getElementById('accModalName').value = acc.name||'';
   document.getElementById('accModalWallet').value = acc.walletAddress||'';
   document.getElementById('accModalCountry').value = acc.country||'';
-  document.getElementById('accModalGologinData').value = JSON.stringify(getAccGologins(acc));
-  populateGologinSelect('accModalGologin', '');
   document.getElementById('accModalStatus').value = acc.status||'active';
   const devSel = document.getElementById('accModalDevice');
   if (devSel) { ensureDeviceOptions(devSel, acc.device||''); }
@@ -5238,7 +5291,6 @@ window.saveAccount = function() {
     name,
     walletAddress: document.getElementById('accModalWallet').value.trim(),
     country: document.getElementById('accModalCountry').value.trim(),
-    gologins: JSON.parse(document.getElementById('accModalGologinData').value || '[]'),
     status: document.getElementById('accModalStatus').value,
     device: deviceSel ? deviceSel.value : '',
     notes: document.getElementById('accModalNotes').value.trim(),
@@ -5267,269 +5319,554 @@ window.saveAccount = function() {
 };
 
 // ─────────────────────────────────────────
-// GOLOGIN MANAGEMENT
+// TASKSHOT ENGINE
+// ─────────────────────────────────────────
+// ═══════════════════════════════════════════
+//  CONFIG
+// ═══════════════════════════════════════════
+// TS_SCRIPT_URL defined in state block above
+// TS_APP_VERSION defined in state block above
+const DRIVE_CHECK_INTERVAL = 2 * 60 * 1000; // 2 minutes
+
+// ═══════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════
+// tsSlots defined in JTM state block
+// tsActiveSlotNum defined in JTM state block
+// tsUploadQueue defined in JTM state block
+// tsActiveUploads defined in JTM state block
+// TS_MAX_CONCURRENT defined in JTM state block
+// tsSessionDone defined in JTM state block
+// tsCurrentFilename defined in JTM state block
+
+
+// ═══════════════════════════════════════════
+// NOTIFICATION SYSTEM: removed — using JT Manager toast()
+// ═══════════════════════════════════════════
+function tsGetLog() { return []; }
+function tsSaveLog(log) { /* no-op: log not persisted */ }
+
+
+
+
+
+
+// online/offline events: handled by JT Manager
+
+
+// ═══════════════════════════════════════════
+//  DRIVE VERSION CHECK — every 2 minutes, check only
+// ═══════════════════════════════════════════
+
+
+async function tsGetLatestVersion() {
+  tsDoLoadLatest();
+}
+
+async function tsDoLoadLatest() {
+  if (!navigator.onLine) { toast('Cannot fetch — you are offline.'); return; }
+  toast('Fetching latest history from Drive...');
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 30000);
+
+  try {
+    const result = await fetch(TS_SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'getLatest', appVersion: TS_APP_VERSION }),
+      signal: controller.signal
+    }).then(r => r.json());
+    clearTimeout(timeout);
+
+    if (!result.ok) {
+      toast('No saved version found in Drive.');
+      return;
+    }
+
+    // Merge history from Drive into local tsHistory
+    if (result.history) { tsMergeHistory(result.history); markUnsaved(true); }
+    tsCurrentFilename = result.filename || tsCurrentFilename;
+    tsUpdateVerDisplay(tsCurrentFilename);
+    toast(`History synced from Drive: ${result.filename || 'unknown'}`);
+    tsRenderSlots();
+
+  } catch (err) {
+    clearTimeout(timeout);
+    if (err.name === 'AbortError') toast('Fetch timed out after 30s. Try again.');
+    else toast(`Failed to fetch: ${err.message}`);
+  }
+}
+
+// ═══════════════════════════════════════════
+//  SLOT MANAGEMENT
+// ═══════════════════════════════════════════
+function tsSlotExists(num) { return tsSlots.some(s => s.num === num); }
+
+function tsAddSingleSlot() {
+  const val = parseInt(document.getElementById('tsSingleNum').value);
+  if (!val || val < 1) { toast('Enter a valid slot number.'); return; }
+  if (tsIsInHistory(val)) { toast(`Slot #${val} was already uploaded.`); return; }
+  if (tsSlotExists(val)) { toast(`Slot #${val} already exists.`); return; }
+  tsSlots.push({ num: val, status: 'empty', file: null, previewURL: null, graceTimer: null, graceInterval: null, graceCount: 5, addedAt: Date.now() });
+  document.getElementById('tsSingleNum').value = '';
+  markUnsaved(true);
+  tsRenderSlots();
+  tsSetActiveSlot(val);
+}
+
+function tsAddBulkSlots() {
+  const s = parseInt(document.getElementById('tsBulkStart').value);
+  const e = parseInt(document.getElementById('tsBulkEnd').value);
+  if (!s || !e || s < 1 || e < 1) { toast('Enter valid start and end numbers.'); return; }
+  if (s > e) { toast('Start must be ≤ end.'); return; }
+  let added = 0, skipped = 0, firstNew = null;
+  for (let n = s; n <= e; n++) {
+    if (tsIsInHistory(n) || tsSlotExists(n)) { skipped++; continue; }
+    tsSlots.push({ num: n, status: 'empty', file: null, previewURL: null, graceTimer: null, graceInterval: null, graceCount: 5, addedAt: Date.now() + added });
+    if (firstNew === null) firstNew = n;
+    added++;
+  }
+  document.getElementById('tsBulkStart').value = '';
+  document.getElementById('tsBulkEnd').value = '';
+  if (added > 0) { markUnsaved(true); tsRenderSlots(); }
+  if (added > 0) toast(`Added ${added} slot(s).${skipped > 0 ? ` Skipped ${skipped} (exist or uploaded).` : ''}`, 'success');
+  else toast(`No new tsSlots added. All ${skipped} already exist or were uploaded.`);
+  if (firstNew !== null) tsSetActiveSlot(firstNew);
+}
+
+// ═══════════════════════════════════════════
+//  SORT & FILTER
+// ═══════════════════════════════════════════
+function tsGetSortedSlots() {
+  const mode = document.getElementById('tsSortSelect').value;
+  return [...tsSlots].sort((a, b) => {
+    if (mode === 'asc') return a.num - b.num;
+    if (mode === 'desc') return b.num - a.num;
+    return b.addedAt - a.addedAt;
+  });
+}
+
+function tsFilterSlots() {
+  const q = document.getElementById('tsFindSlot').value.trim();
+  document.querySelectorAll('.slot').forEach(el => {
+    // Sequential prefix match: "85" matches 8520 but NOT 5820 or 8x5x
+    el.classList.toggle('hidden-by-search', !(!q || el.dataset.num.startsWith(q)));
+  });
+}
+
+// ═══════════════════════════════════════════
+//  RENDER
+// ═══════════════════════════════════════════
+function tsRenderSlots() {
+  const wrap = document.getElementById('tsSlotsWrap');
+  const sorted = tsGetSortedSlots();
+  if (sorted.length === 0) {
+    wrap.innerHTML = `<div class="empty-state"><div class="icon">📂</div><p>No tsSlots yet.<br>Add a single slot or a bulk range above.</p></div>`;
+    tsUpdateStats(); return;
+  }
+  wrap.innerHTML = sorted.map(s => tsBuildSlotHTML(s)).join('');
+  if (tsActiveSlotNum !== null) {
+    const el = document.getElementById(`slot-${tsActiveSlotNum}`);
+    if (el) el.classList.add('active');
+  }
+  sorted.forEach(s => {
+    const el = document.getElementById(`slot-${s.num}`);
+    if (!el) return;
+    const drop = el.querySelector('.slot-drop');
+    const fileInput = el.querySelector('input[type="file"]');
+    drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('drag-over'); });
+    drop.addEventListener('dragleave', () => drop.classList.remove('drag-over'));
+    drop.addEventListener('drop', e => {
+      e.preventDefault(); drop.classList.remove('drag-over');
+      const f = e.dataTransfer.files[0];
+      if (f && f.type.startsWith('image/')) tsHandleImage(s.num, f);
+    });
+    if (fileInput) {
+      fileInput.addEventListener('click', e => { e.stopPropagation(); tsSetActiveSlot(s.num); });
+      fileInput.addEventListener('change', e => { const f = e.target.files[0]; if (f) tsHandleImage(s.num, f); });
+    }
+  });
+  tsFilterSlots();
+  tsUpdateStats();
+}
+
+function tsBuildSlotHTML(s) {
+  let dropInner = '', progressHTML = '', footerHTML = '';
+  if (s.status === 'empty') {
+    dropInner = `<div class="drop-icon">🖼️</div><div>Click or paste</div><input type="file" accept="image/*">`;
+    footerHTML = `<div class="slot-status">Waiting</div>
+      <button class="btn-remove-slot" onclick="tsRemoveWaitingSlot(${s.num}, event)" title="Remove slot">✕</button>`;
+  } else if (s.status === 'grace') {
+    dropInner = `<img src="${s.previewURL}" alt="preview">
+      <div class="grace-overlay show">
+        <div class="grace-num" id="graceNum-${s.num}">${s.graceCount}</div>
+        <div class="grace-label">uploading in</div>
+      </div>`;
+    footerHTML = `<div class="slot-status grace">Uploading in ${s.graceCount}s...</div>
+      <button class="btn-cancel-grace" onclick="tsCancelGrace(${s.num})">Cancel</button>`;
+  } else if (s.status === 'uploading') {
+    dropInner = `<img src="${s.previewURL}" alt="preview">`;
+    progressHTML = `<div class="slot-progress active"><div class="slot-progress-bar" id="prog-${s.num}"></div></div>`;
+    footerHTML = `<div class="slot-status uploading">Uploading...</div>`;
+  } else if (s.status === 'conflict') {
+    dropInner = `<img src="${s.previewURL}" alt="preview">`;
+    footerHTML = `<div class="slot-status conflict">⚠️ Exists in Drive</div>`;
+  }
+  return `
+    <div class="slot" id="slot-${s.num}" data-num="${s.num}" onclick="tsSlotClicked(${s.num}, event)">
+      <div class="active-badge">● Active</div>
+      <div class="slot-title">#${String(s.num).padStart(2,'0')}</div>
+      <div class="slot-drop ${s.previewURL ? 'has-preview' : ''}" id="drop-${s.num}">${dropInner}</div>
+      ${progressHTML}
+      <div class="slot-footer">${footerHTML}</div>
+    </div>`;
+}
+
+function tsUpdateStats() {
+  document.getElementById('tsStatSlots').textContent = tsSlots.length;
+  document.getElementById('tsStatPending').textContent = tsSlots.filter(s => s.status === 'empty').length;
+  document.getElementById('tsStatUploading').textContent = tsSlots.filter(s => s.status === 'uploading' || s.status === 'grace').length;
+  document.getElementById('tsStatDone').textContent = tsSessionDone;
+}
+
+// ═══════════════════════════════════════════
+//  ACTIVE SLOT
+// ═══════════════════════════════════════════
+function tsSlotClicked(num, e) {
+  if (e && (e.target.classList.contains('btn-cancel-grace') || e.target.tagName === 'INPUT')) return;
+  tsSetActiveSlot(num);
+}
+
+function tsSetActiveSlot(num) {
+  const slot = tsSlots.find(s => s.num === num);
+  if (!slot || slot.status === 'uploading' || slot.status === 'grace') return;
+  if (tsActiveSlotNum !== null && tsActiveSlotNum !== num) {
+    const prev = document.getElementById(`slot-${tsActiveSlotNum}`);
+    if (prev) prev.classList.remove('active');
+  }
+  // Always set — no toggle-off. Last clicked is always the active target.
+  tsActiveSlotNum = num;
+  const el = document.getElementById(`slot-${num}`);
+  if (el) el.classList.add('active');
+}
+
+function tsActivateNextSlot(afterNum) {
+  // If the user had a different slot selected (not the one that just finished), keep it
+  if (tsActiveSlotNum !== null && tsActiveSlotNum !== afterNum) {
+    const current = tsSlots.find(s => s.num === tsActiveSlotNum && s.status === 'empty');
+    if (current) { tsSetActiveSlot(tsActiveSlotNum); return; }
+  }
+  // Otherwise advance: find next empty slot after the finished one, then wrap to first
+  const allSorted = tsGetSortedSlots();
+  const idx = allSorted.findIndex(s => s.num === afterNum);
+  for (let i = idx + 1; i < allSorted.length; i++) {
+    if (allSorted[i].status === 'empty') { tsSetActiveSlot(allSorted[i].num); return; }
+  }
+  const firstEmpty = allSorted.find(s => s.status === 'empty');
+  if (firstEmpty) tsSetActiveSlot(firstEmpty.num);
+  else tsActiveSlotNum = null;
+}
+
+// ═══════════════════════════════════════════
+//  PASTE
+// ═══════════════════════════════════════════
+document.addEventListener('paste', e => {
+  if (document.activeElement && ['INPUT','TEXTAREA'].includes(document.activeElement.tagName)) return;
+  const items = e.clipboardData?.items;
+  if (!items) return;
+  for (const item of items) {
+    if (item.type.startsWith('image/')) {
+      const file = item.getAsFile();
+      let target = tsActiveSlotNum !== null ? tsSlots.find(s => s.num === tsActiveSlotNum && s.status === 'empty') : null;
+      if (!target) target = tsGetSortedSlots().find(s => s.status === 'empty');
+      if (!target) { toast('No empty tsSlots available for paste.'); return; }
+      tsHandleImage(target.num, file);
+      return;
+    }
+  }
+});
+
+// ═══════════════════════════════════════════
+//  IMAGE HANDLING
+// ═══════════════════════════════════════════
+function tsHandleImage(num, file) {
+  const slot = tsSlots.find(s => s.num === num);
+  if (!slot || slot.status !== 'empty') return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width; canvas.height = img.height;
+      canvas.getContext('2d').drawImage(img, 0, 0);
+      canvas.toBlob(blob => {
+        slot.file = blob;
+        slot.previewURL = URL.createObjectURL(blob);
+        slot.status = 'grace';
+        slot.graceCount = 5;
+        markUnsaved(true);
+        tsRenderSlots();
+        tsStartGraceCountdown(num);
+      }, 'image/jpeg', 0.85);
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function tsStartGraceCountdown(num) {
+  const slot = tsSlots.find(s => s.num === num);
+  if (!slot) return;
+  slot.graceCount = 5;
+  slot.graceInterval = setInterval(() => {
+    slot.graceCount--;
+    const el = document.getElementById(`graceNum-${num}`);
+    if (el) el.textContent = slot.graceCount;
+    const footer = document.querySelector(`#slot-${num} .slot-status`);
+    if (footer) footer.textContent = `Uploading in ${slot.graceCount}s...`;
+    if (slot.graceCount <= 0) { clearInterval(slot.graceInterval); slot.graceInterval = null; }
+  }, 1000);
+  slot.graceTimer = setTimeout(() => {
+    clearInterval(slot.graceInterval);
+    tsStartUpload(num);
+  }, 5000);
+}
+
+function tsCancelGrace(num) {
+  const slot = tsSlots.find(s => s.num === num);
+  if (!slot) return;
+  clearTimeout(slot.graceTimer);
+  clearInterval(slot.graceInterval);
+  slot.graceTimer = null; slot.graceInterval = null;
+  slot.file = null;
+  if (slot.previewURL) URL.revokeObjectURL(slot.previewURL);
+  slot.previewURL = null;
+  slot.status = 'empty';
+  slot.graceCount = 5;
+  tsRenderSlots();
+  tsSetActiveSlot(num);
+  toast(`Slot #${num} cleared. Ready for new image.`);
+}
+
+function tsRemoveWaitingSlot(num, e) {
+  if (e) e.stopPropagation();
+  tsSlots = tsSlots.filter(s => s.num !== num);
+  // Do NOT add to history — slot was never used for upload
+  if (tsActiveSlotNum === num) {
+    tsActiveSlotNum = null;
+    const next = tsGetSortedSlots().find(s => s.status === 'empty');
+    if (next) tsSetActiveSlot(next.num);
+  }
+  markUnsaved(true);
+  tsRenderSlots();
+  toast(`Slot #${num} removed.`);
+}
+
+function tsRemoveAllUnused() {
+  const unused = tsSlots.filter(s => s.status === 'empty');
+  if (unused.length === 0) { toast('No waiting slots to remove.'); return; }
+  if (!confirm(`Remove ${unused.length} waiting slot(s)? This cannot be undone. No history entries will be created.`)) return;
+  tsSlots = tsSlots.filter(s => s.status !== 'empty');
+  if (tsActiveSlotNum !== null && unused.some(s => s.num === tsActiveSlotNum)) tsActiveSlotNum = null;
+  markUnsaved(true);
+  tsRenderSlots();
+  toast(`Removed ${unused.length} waiting slot(s).`);
+}
+
+// ═══════════════════════════════════════════
+//  UPLOAD
+// ═══════════════════════════════════════════
+function tsStartUpload(num) {
+  const slot = tsSlots.find(s => s.num === num);
+  if (!slot) return;
+  if (!navigator.onLine) {
+    slot.status = 'empty';
+    tsUploadQueue.push(num);
+    toast(`Offline. Slot #${num} queued for when internet returns.`);
+    tsRenderSlots(); return;
+  }
+  slot.status = 'uploading';
+  tsRenderSlots();
+  tsActiveUploads++;
+  tsUpdateStats();
+  tsDoUpload(num);
+}
+
+async function tsDoUpload(num) {
+  const slot = tsSlots.find(s => s.num === num);
+  if (!slot) return;
+  let progress = 0;
+  const fakeInterval = setInterval(() => {
+    progress = Math.min(progress + Math.random() * 10 + 3, 88);
+    const bar = document.getElementById(`prog-${num}`);
+    if (bar) bar.style.width = progress + '%';
+  }, 200);
+  try {
+    const b64 = await tsBlobToBase64(slot.file);
+    const result = await fetch(TS_SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'uploadImage', filename: `${num}.jpg`, imageBase64: b64, mimeType: 'image/jpeg' })
+    }).then(r => r.json());
+    clearInterval(fakeInterval);
+    const bar = document.getElementById(`prog-${num}`);
+    if (bar) bar.style.width = '100%';
+    if (result.conflict) {
+      slot.status = 'conflict';
+      tsActiveUploads--;
+      tsRenderSlots();
+      toast(`🚨 File #${num}.jpg already exists in Drive. Handle manually — other uploads continue.`);
+      tsProcessQueue();
+    } else if (result.ok) {
+      tsFinishUpload(num);
+    } else {
+      throw new Error(result.error || 'Unknown error');
+    }
+  } catch (err) {
+    clearInterval(fakeInterval);
+    slot.status = 'empty';
+    tsActiveUploads--;
+    tsRenderSlots();
+    toast(`Upload failed for slot #${num}: ${err.message}`);
+    tsProcessQueue();
+  }
+}
+
+function tsFinishUpload(num) {
+  const slot = tsSlots.find(s => s.num === num);
+  if (!slot) return;
+  tsAddToHistory(num);
+  tsSessionDone++;
+  tsActiveUploads--;
+
+  // ── Auto-create YouTube task for this slot ──
+  (function() {
+    const slotTitle = String(num);
+    const existing = tasks.find(t => t.title === slotTitle && !t.archived);
+    if (!existing) {
+      tasks.push({
+        id: uid(),
+        type: 'youtube',
+        title: slotTitle,
+        defaultReward: globalSettings.defaultYoutubeReward || 0.02,
+        thumbnail: null,
+        previewButton: true,
+        quicky: false,
+        assignments: [],
+        archived: false,
+        createdAt: now(),
+        updatedAt: now()
+      });
+      markUnsaved(true);
+      if (document.getElementById('page-tasks') && document.getElementById('page-tasks').classList.contains('active')) {
+        taskPage = 0; renderTasks();
+      }
+      toast(`✅ Slot #${num} uploaded → YouTube task created`);
+    } else {
+      toast(`✅ Slot #${num} uploaded (task already exists)`);
+    }
+  })();
+
+  const el = document.getElementById(`slot-${num}`);
+  if (el) {
+    el.classList.add('vanishing');
+    setTimeout(() => { tsSlots = tsSlots.filter(s => s.num !== num); tsActivateNextSlot(num); tsRenderSlots(); }, 350);
+  } else {
+    tsSlots = tsSlots.filter(s => s.num !== num);
+    tsActivateNextSlot(num); tsRenderSlots();
+  }
+  tsProcessQueue();
+}
+
+function tsProcessQueue() {
+  while (tsActiveUploads < TS_MAX_CONCURRENT && tsUploadQueue.length > 0) {
+    const num = tsUploadQueue.shift();
+    const slot = tsSlots.find(s => s.num === num);
+    if (slot && slot.file) tsStartUpload(num);
+  }
+  tsUpdateStats();
+}
+
+// ═══════════════════════════════════════════
+//  SAVE TO DRIVE
+// ═══════════════════════════════════════════
+
+
+
+// ═══════════════════════════════════════════
+//  PANELS
+// ═══════════════════════════════════════════
+function tsPanelToggle(id) {
+  const panel = document.getElementById(id);
+  if (!panel) return;
+  const isOpen = panel.style.display !== 'none';
+  panel.style.display = isOpen ? 'none' : 'block';
+  if (!isOpen) {
+    if (id === 'tsHistoryPanel') tsRenderHistory();
+  }
+}
+
+function tsRenderHistory() {
+  const list = document.getElementById('tsHistoryList');
+  const h = tsGetHistory().sort((a, b) => a - b);
+  if (h.length === 0) { list.innerHTML = `<div class="panel-empty">No uploads yet.</div>`; return; }
+  list.innerHTML = h.map(n => `
+    <div class="history-item">
+      <span class="h-num">#${String(n).padStart(2,'0')}</span>
+      <button class="h-del" onclick="tsDeleteFromHistory(${n})" title="Remove">🗑</button>
+    </div>`).join('');
+}
+
+function tsDeleteFromHistory(num) {
+  if (!confirm(`Remove slot #${num} from history?\nYou must also delete the file from Drive manually.`)) return;
+  tsRemoveFromHistory(num);
+  tsRenderHistory();
+  markUnsaved(true);
+  toast(`Slot #${num} removed from history.`);
+}
+
+// ═══════════════════════════════════════════
+//  TASKSHOT MODAL (uses native confirm/alert, no custom overlay)
+// ═══════════════════════════════════════════
+function tsShowModal(title, text, actions) {
+  // Simple confirm fallback for 2-action modals; else toast
+  if (actions && actions.length === 2) {
+    if (confirm(`${title}\n\n${text}`)) {
+      actions[0].action && actions[0].action();
+    } else {
+      actions[1].action && actions[1].action();
+    }
+  } else if (actions && actions.length === 1) {
+    actions[0].action && actions[0].action();
+  }
+}
+function tsCloseModal() { /* no-op — tsShowModal uses native confirm */ }
+
+// ═══════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════
+
+// ─────────────────────────────────────────
+function tsUpdateVerDisplay(filename) {
+  const el = document.getElementById('tsVerDisplay');
+  if (!el) return;
+  if (!filename) { el.textContent = TS_APP_VERSION; return; }
+  const m = filename.match(/Taskshot_V\d+\.(\d{4})\.(\d{2})\.(\d{2})\.(\d{2})\.(\d{2})\.(\d{2})/);
+  if (m) el.textContent = `${TS_APP_VERSION} · ${m[1]}.${m[2]}.${m[3]} ${m[4]}:${m[5]}`;
+  else el.textContent = TS_APP_VERSION;
+}
+
+// TASKSHOT INIT (called from JTM DOMContentLoaded)
+// ─────────────────────────────────────────
+function tsInit() {
+  tsRenderSlots();
+  tsUpdateStats();
+  tsUpdateVerDisplay(tsCurrentFilename);
+}
+
+// ─────────────────────────────────────────
+// END TASKSHOT ENGINE
 // ─────────────────────────────────────────
 
-// Returns true if ALL of an account's gologin profiles are low data (or if any single profile is low)
-// For blocking assignment: true if the account has at least one profile and ALL are low data
-function isProfileLowData(profileNameOrAcc) {
-  // Legacy call: string profile name
-  if (typeof profileNameOrAcc === 'string') {
-    if (!profileNameOrAcc) return false;
-    const profile = gologinProfiles.find(p => p.name === profileNameOrAcc);
-    if (!profile) return false;
-    return (profile.dataRemaining || 0) < 30;
-  }
-  return false;
-}
-
-// Returns true if an account has profiles and ALL of them are low data
-function isAccAllProfilesLow(acc) {
-  const profiles = getAccGologins(acc);
-  if (!profiles.length) return false;
-  return profiles.every(name => isProfileLowData(name));
-}
-
-// Helper: get gologin profiles for an account as array (supports legacy string)
-function getAccGologins(acc) {
-  if (!acc) return [];
-  if (Array.isArray(acc.gologins)) return acc.gologins;
-  if (acc.gologin && typeof acc.gologin === 'string') return [acc.gologin];
-  return [];
-}
-
-// Populate the multi-profile select + pills in the account modal
-function populateGologinSelect(selectId, currentValue) {
-  // currentValue ignored — we use accModalGologinData hidden field instead
-  const sel = document.getElementById(selectId);
-  if (!sel) return;
-  sel.innerHTML = '<option value="">— Add a profile —</option>' +
-    gologinProfiles.map(p => {
-      const lowData = isProfileLowData(p.name);
-      const label = p.name + (lowData ? ' ⚠ LOW DATA' : '');
-      return `<option value="${p.name}">${label}</option>`;
-    }).join('');
-  // Attach change handler to add profile as pill
-  sel.onchange = function() {
-    const val = sel.value;
-    if (!val) return;
-    const hidden = document.getElementById('accModalGologinData');
-    const current = JSON.parse(hidden.value || '[]');
-    if (!current.includes(val)) {
-      current.push(val);
-      hidden.value = JSON.stringify(current);
-      renderAccModalGologinPills(current);
-    }
-    sel.value = '';
-  };
-  // Render existing pills from hidden field
-  const hidden = document.getElementById('accModalGologinData');
-  if (hidden) renderAccModalGologinPills(JSON.parse(hidden.value || '[]'));
-}
-
-function renderAccModalGologinPills(profiles) {
-  const container = document.getElementById('accModalGologinPills');
-  if (!container) return;
-  if (!profiles.length) {
-    container.innerHTML = '<span style="font-family:var(--mono);font-size:10.5px;color:var(--ink3);">None</span>';
-    return;
-  }
-  container.innerHTML = '';
-  profiles.forEach(function(name) {
-    const pill = document.createElement('span');
-    pill.style.cssText = 'display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:10.5px;padding:3px 8px;border-radius:99px;background:var(--jt-light);color:var(--jt);border:1px solid var(--jt-border);';
-    const label = document.createTextNode(name);
-    const x = document.createElement('span');
-    x.textContent = '×';
-    x.style.cssText = 'cursor:pointer;font-size:13px;line-height:1;margin-left:2px;opacity:0.7;';
-    x.title = 'Remove';
-    x.onclick = function() { window.removeAccModalGologin(name); };
-    pill.appendChild(label);
-    pill.appendChild(x);
-    container.appendChild(pill);
-  });
-}
-
-window.removeAccModalGologin = function(name) {
-  const hidden = document.getElementById('accModalGologinData');
-  if (!hidden) return;
-  let current = JSON.parse(hidden.value || '[]');
-  current = current.filter(n => n !== name);
-  hidden.value = JSON.stringify(current);
-  renderAccModalGologinPills(current);
-};
-
-// Open Add modal
-window.openAddGologinModal = function() {
-  document.getElementById('gologinModalTitle').textContent = 'Add GoLogin Profile';
-  document.getElementById('gologinModalId').value = '';
-  document.getElementById('gologinModalName').value = '';
-  document.getElementById('gologinModalData').value = '490';
-  openModal('gologinModal');
-  setTimeout(() => document.getElementById('gologinModalName').focus(), 80);
-};
-
-// Open Edit modal
-window.openEditGologinModal = function(id) {
-  const p = gologinProfiles.find(x => x.id === id); if (!p) return;
-  document.getElementById('gologinModalTitle').textContent = 'Edit GoLogin Profile';
-  document.getElementById('gologinModalId').value = id;
-  document.getElementById('gologinModalName').value = p.name;
-  document.getElementById('gologinModalData').value = typeof p.dataRemaining === 'number' ? p.dataRemaining : 490;
-  openModal('gologinModal');
-  setTimeout(() => { const el = document.getElementById('gologinModalName'); if(el){el.focus();el.select();} }, 80);
-};
-
-// Save (add or update)
-window.saveGologinProfile = function() {
-  const id = document.getElementById('gologinModalId').value;
-  const name = document.getElementById('gologinModalName').value.trim();
-  if (!name) { toast('Profile name is required'); return; }
-  const dup = gologinProfiles.find(p => p.name === name && p.id !== id);
-  if (dup) { toast('A profile with that name already exists'); return; }
-  const dataVal = document.getElementById('gologinModalData').value;
-  const dataRemaining = dataVal !== '' ? parseFloat(dataVal) : 490;
-  if (id) {
-    const p = gologinProfiles.find(x => x.id === id);
-    if (p) {
-      const oldName = p.name;
-      p.name = name;
-      p.dataRemaining = dataRemaining;
-      if (oldName !== name) {
-        accounts.forEach(a => {
-          if (Array.isArray(a.gologins)) {
-            const idx = a.gologins.indexOf(oldName);
-            if (idx !== -1) a.gologins[idx] = name;
-          } else if (a.gologin === oldName) { a.gologin = name; }
-        });
-      }
-      toast('Profile updated');
-    }
-  } else {
-    gologinProfiles.push({ id: uid(), name, dataRemaining, createdAt: now() });
-    toast('Profile added');
-  }
-  closeModal('gologinModal');
-  renderGologinPage();
-  markUnsaved(true);
-};
-
-// Delete profile
-window.deleteGologinProfile = function(id) {
-  const p = gologinProfiles.find(x => x.id === id); if (!p) return;
-  const linkedCount = accounts.filter(a => getAccGologins(a).includes(p.name)).length;
-  const msg = linkedCount
-    ? `Delete "${p.name}"? This profile is linked to ${linkedCount} account(s). Their GoLogin field will be cleared.`
-    : `Delete GoLogin profile "${p.name}"?`;
-  openConfirm(msg, () => {
-    accounts.forEach(a => {
-      if (Array.isArray(a.gologins)) {
-        a.gologins = a.gologins.filter(n => n !== p.name);
-      } else if (a.gologin === p.name) { a.gologin = ''; }
-    });
-    const idx = gologinProfiles.findIndex(x => x.id === id);
-    if (idx !== -1) gologinProfiles.splice(idx, 1);
-    renderGologinPage();
-    markUnsaved(true);
-    toast('Profile deleted');
-  });
-};
-
-// Deduct data when a task is completed via this account's profiles
-// YouTube = -12 MB, Google = -8 MB
-function deductGologinData(accountId, taskType) {
-  const acc = accounts.find(a => a.id === accountId);
-  if (!acc) return;
-  const profileNames = getAccGologins(acc);
-  if (!profileNames.length) return;
-  const deduction = taskType === 'youtube' ? 12 : 8;
-  profileNames.forEach(name => {
-    const profile = gologinProfiles.find(p => p.name === name);
-    if (profile) {
-      profile.dataRemaining = Math.max(0, (typeof profile.dataRemaining === 'number' ? profile.dataRemaining : 490) - deduction);
-    }
-  });
-}
-
-// Computed: accounts linked to a profile
-function gologinLinkedAccounts(profileName) {
-  return accounts.filter(a => getAccGologins(a).includes(profileName)).length;
-}
-
-// Computed: total completed+rewarded tasks assigned while this profile was linked
-function gologinTotalTasks(profileName) {
-  let count = 0;
-  tasks.forEach(task => {
-    (task.assignments||[]).forEach(asgn => {
-      if ((asgn.status === 'completed' || asgn.status === 'rewarded')) {
-        if (asgn.gologinProfile !== undefined) {
-          if (asgn.gologinProfile === profileName) count++;
-        } else {
-          // Legacy: fall back to current account link
-          const acc = accounts.find(a => a.id === asgn.accountId);
-          if (acc && getAccGologins(acc).includes(profileName)) count++;
-        }
-      }
-    });
-  });
-  return count;
-}
-
-// Render the GoLogin table page
-function renderGologinPage() {
-  const tbody = document.getElementById('gologinTableBody');
-  const banner = document.getElementById('gologinLowDataBanner');
-  if (!tbody) return;
-
-  // Show/hide the low-data banner
-  const anyLow = gologinProfiles.some(p => (p.dataRemaining || 0) < 30);
-  if (banner) banner.style.display = anyLow ? 'block' : 'none';
-
-  if (!gologinProfiles.length) {
-    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:32px;color:var(--ink3);font-family:var(--mono);font-size:12px;">No GoLogin profiles yet — click + Add Profile</td></tr>`;
-    return;
-  }
-
-  tbody.innerHTML = gologinProfiles.map(p => {
-    const linkedAccs = accounts.filter(a => getAccGologins(a).includes(p.name));
-    const linked = linkedAccs.length;
-    const totalTasks = gologinTotalTasks(p.name);
-    const mb = typeof p.dataRemaining === 'number' ? p.dataRemaining : 490;
-    const isLow = mb < 30;
-    const mbColor = mb > 200 ? 'var(--green)' : mb > 80 ? 'var(--amber)' : 'var(--red)';
-    const mbDisplay = mb >= 1024 ? (mb / 1024).toFixed(2) + ' GB' : mb.toFixed(1) + ' MB';
-    const rowBg = isLow ? 'background:rgba(248,113,113,0.05);' : '';
-    const lowBadge = isLow
-      ? `<span style="font-family:var(--mono);font-size:9px;font-weight:700;padding:2px 7px;border-radius:99px;background:var(--red-light);color:var(--red);border:1px solid var(--red-border);margin-left:7px;vertical-align:middle;">⚠ LOW DATA · Cannot assign tasks</span>`
-      : '';
-    const linkedAccountsHtml = linkedAccs.length
-      ? linkedAccs.map(a => `<span style="display:inline-block;font-family:var(--mono);font-size:9.5px;padding:2px 7px;border-radius:99px;background:var(--jt-light);color:var(--jt);border:1px solid var(--jt-border);margin:1px;">${a.name.replace(/&/g,'&amp;')}</span>`).join('')
-      : `<span style="font-family:var(--mono);font-size:9.5px;color:var(--ink3);">None</span>`;
-    const hoverReset = isLow ? 'rgba(248,113,113,0.05)' : '';
-    return `
-      <tr style="border-bottom:1px solid var(--border);transition:background 0.1s;${rowBg}" onmouseenter="this.style.background='var(--surface2)'" onmouseleave="this.style.background='${hoverReset}'">
-        <td style="padding:11px 14px;font-family:var(--mono);font-size:13px;font-weight:600;color:var(--ink);">${(p.name||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}${lowBadge}</td>
-        <td style="padding:11px 14px;text-align:right;font-family:var(--mono);font-size:13px;font-weight:700;color:${mbColor};">${mbDisplay}</td>
-        <td style="padding:11px 14px;font-family:var(--mono);font-size:13px;color:var(--jt);font-weight:600;cursor:pointer;" onclick="this.nextElementSibling && (this.nextElementSibling.style.display = this.nextElementSibling.style.display==='none'?'table-row':'none')"
-          title="Click to toggle linked accounts">
-          ${linked} <span style="font-size:9.5px;opacity:0.6;">▾</span>
-        </td>
-        <td style="padding:11px 14px;text-align:right;font-family:var(--mono);font-size:13px;color:var(--ink2);">${totalTasks}</td>
-        <td style="padding:11px 14px;text-align:center;">
-          <div style="display:inline-flex;gap:6px;">
-            <button onclick="openEditGologinModal('${p.id}')" style="font-family:var(--mono);font-size:11px;padding:5px 10px;border-radius:6px;border:1px solid var(--border2);background:var(--jt-light);color:var(--jt);cursor:pointer;">✎ Edit</button>
-            <button onclick="deleteGologinProfile('${p.id}')" style="font-family:var(--mono);font-size:11px;padding:5px 10px;border-radius:6px;border:1px solid var(--red-border);background:var(--red-light);color:var(--red);cursor:pointer;">✕</button>
-          </div>
-        </td>
-      </tr>
-      <tr style="display:none;background:var(--surface2);">
-        <td colspan="5" style="padding:8px 20px 12px;">
-          <div style="font-family:var(--mono);font-size:9.5px;color:var(--ink3);margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px;">Linked Accounts</div>
-          <div style="display:flex;flex-wrap:wrap;gap:4px;">${linkedAccountsHtml}</div>
-        </td>
-      </tr>`;
-  }).join('');
-}
 
 // ─────────────────────────────────────────
 // PAYOUT MODAL
@@ -5669,7 +6006,7 @@ function buildSaveJSON() {
     auditLog: JSON.parse(JSON.stringify(auditLog)),
     bugLog: JSON.parse(JSON.stringify(bugLog)),
     wordLibrary: JSON.parse(JSON.stringify(wordLibrary)),
-    gologinProfiles: JSON.parse(JSON.stringify(gologinProfiles))
+    taskshotHistory: tsHistory.slice()
   };
 }
 
@@ -5682,7 +6019,7 @@ function loadDataJson(payload) {
   }
   if (Array.isArray(payload.auditLog)) { auditLog.length = 0; auditLog.push(...payload.auditLog); }
   if (Array.isArray(payload.wordLibrary)) { wordLibrary.length = 0; wordLibrary.push(...payload.wordLibrary); }
-  if (Array.isArray(payload.gologinProfiles)) { gologinProfiles.length = 0; gologinProfiles.push(...payload.gologinProfiles); }
+  if (Array.isArray(payload.taskshotHistory)) { tsHistory = payload.taskshotHistory.slice(); }
   if (Array.isArray(payload.bugLog)) { bugLog.length = 0; bugLog.push(...payload.bugLog); }
   if (payload.savedAt) {
     const dv = document.getElementById('dvBadge');
@@ -5800,7 +6137,7 @@ window.togglePanel = function(panelId) {
 // ─────────────────────────────────────────
 // GOOGLE DRIVE INTEGRATION — OAuth via GIS
 // ─────────────────────────────────────────
-const APP_V_VERSION = '3.8';
+const APP_V_VERSION = '3.9';
 const DRIVE_CLIENT_ID = '122560609463-vvejkpk1phego89icu12410bq0bmeha7.apps.googleusercontent.com';
 const DRIVE_REDIRECT_ORIGIN = 'https://ashiqurzaman431.github.io';
 const DRIVE_APP_FOLDER_NAME = 'JT MANAGER APP DATA';
@@ -6146,11 +6483,6 @@ let auditLog = [];
   src = src.replace(
     /\/\*EMBEDDED_WORDLIB_START\*\/[\s\S]*?\/\*EMBEDDED_WORDLIB_END\*\//,
     `/*EMBEDDED_WORDLIB_START*/\nlet wordLibrary = [];\n/*EMBEDDED_WORDLIB_END*/`
-  );
-  const gologinJson = JSON.stringify(gologinProfiles, null, 2).replace(/</g,'\\u003c').replace(/>/g,'\\u003e');
-  src = src.replace(
-    /\/\*EMBEDDED_GOLOGIN_START\*\/[\s\S]*?\/\*EMBEDDED_GOLOGIN_END\*\//,
-    `/*EMBEDDED_GOLOGIN_START*/\nlet gologinProfiles = ${gologinJson};\n/*EMBEDDED_GOLOGIN_END*/`
   );
   const bugLogJson = JSON.stringify(bugLog, null, 2);
   src = src.replace(
@@ -7011,7 +7343,6 @@ window.acStepComplete = function(taskId, asgnId) {
   pushUndo(`Status → completed (${task.title})`);
   asgn.status = 'completed';
   asgn.completedAt = now();
-  deductGologinData(asgn.accountId, task.type);
   sessOnTaskCompleted(asgn.accountId);
 
   if (selectedAccId) renderAccDetail(selectedAccId);
@@ -8154,6 +8485,30 @@ showLoginOverlay();
 initGIS();
 markUnsaved(false);
 
+// ── TASKSHOT INIT ──
+tsInit();
+
+// ── TASKSHOT paste listener (only fires when TaskShot page is active) ──
+document.addEventListener('paste', function(e) {
+  const tsPage = document.getElementById('page-taskshot');
+  if (!tsPage || !tsPage.classList.contains('active')) return;
+  if (document.activeElement && ['INPUT','TEXTAREA'].includes(document.activeElement.tagName)) return;
+  const items = e.clipboardData && e.clipboardData.items;
+  if (!items) return;
+  for (const item of items) {
+    if (item.type.startsWith('image/')) {
+      const file = item.getAsFile();
+      let target = tsActiveSlotNum !== null
+        ? tsSlots.find(s => s.num === tsActiveSlotNum && s.status === 'empty')
+        : null;
+      if (!target) target = tsGetSortedSlots().find(s => s.status === 'empty');
+      if (!target) { toast('⚠ No empty TaskShot slots available'); return; }
+      tsHandleImage(target.num, file);
+      return;
+    }
+  }
+});
+
 }); // DOMContentLoaded
 </script>
 
@@ -8384,5 +8739,5 @@ if ('serviceWorker' in navigator) {
          font-size:18px;cursor:pointer;
          box-shadow:0 2px 12px rgba(13,27,62,0.22);
          align-items:center;justify-content:center;">↑</button>
-<script>// 31</script>
+<script>// 32</script>
 <protonpass-root-8df7 data-protonpass-role="root" data-protonpass-theme="dark"></protonpass-root-8df7></body></html>
