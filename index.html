@@ -4453,7 +4453,7 @@ function renderErrorModalEntries(taskId) {
   }
   el.innerHTML = errors.map((e, i) => {
     const label = e.type === 'task_error'
-      ? (e.errorType === 'video_not_found' ? '🎬 Video Not Found' : '📝 Words Don\'t Match')
+      ? (e.errorType === 'video_not_found' ? '🎬 Video Not Found' : e.errorType === 'white_screen' ? '⬜ White Screen' : '📝 Words Don\'t Match')
       : `👤 Acc Error: ${e.accountId ? (accounts.find(a=>a.id===e.accountId)||{name:'?'}).name : '?'}`;
     return `<div style="background:var(--red-light);border:1px solid var(--red-border);border-radius:8px;padding:8px 12px;display:flex;align-items:center;justify-content:space-between;gap:8px;">
       <div>
@@ -4480,7 +4480,7 @@ window.toggleErrorTypeField = function() {
   document.getElementById('errorModalAccField').style.display = type === 'acc_error' ? 'flex' : 'none';
   const subEl = document.getElementById('errorModalSubType');
   if (type === 'task_error') {
-    subEl.innerHTML = '<option value="video_not_found">Video Not Found</option><option value="words_dont_match">Words Don\'t Match</option>';
+    subEl.innerHTML = '<option value="video_not_found">Video Not Found</option><option value="words_dont_match">Words Don\'t Match</option><option value="white_screen">White Screen</option>';
   } else {
     subEl.innerHTML = '<option value="acc_specific">Account-Specific Issue</option>';
   }
