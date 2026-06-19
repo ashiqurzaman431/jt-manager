@@ -3365,12 +3365,13 @@ function tsRemoveWaitingSlot(num, e) {
 function tsRemoveAllUnused() {
   const unused = tsSlots.filter(s => s.status === 'empty');
   if (unused.length === 0) { toast('No waiting slots to remove.'); return; }
-  if (!confirm(`Remove ${unused.length} waiting slot(s)? This cannot be undone. No history entries will be created.`)) return;
-  tsSlots = tsSlots.filter(s => s.status !== 'empty');
-  if (tsActiveSlotNum !== null && unused.some(s => s.num === tsActiveSlotNum)) tsActiveSlotNum = null;
-  markUnsaved(true);
-  tsRenderSlots();
-  toast(`Removed ${unused.length} waiting slot(s).`);
+  openConfirm(`Remove ${unused.length} waiting slot(s)? This cannot be undone. No history entries will be created.`, () => {
+    tsSlots = tsSlots.filter(s => s.status !== 'empty');
+    if (tsActiveSlotNum !== null && unused.some(s => s.num === tsActiveSlotNum)) tsActiveSlotNum = null;
+    markUnsaved(true);
+    tsRenderSlots();
+    toast(`Removed ${unused.length} waiting slot(s).`);
+  });
 }
 
 // ═══════════════════════════════════════════
