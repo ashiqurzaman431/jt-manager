@@ -8477,9 +8477,28 @@ window.autoGenerateAIText = function() {
     String(now.getSeconds()).padStart(2,'0');
 
   // Build full prompt using the fixed template — Plan ID is provided, not requested
-  const prompt =
-`this is my latest file. I need plan for this changes on the file. Read the file and Include every lines where needs to make changes, other infos too, why needs to be make changes and etc more. Because if you could not finish it. I would send that to another Ai the plan, and he will just do it without any need to analyze again thus saving tokens. Got it? 
-Plan needs for these changes:
+ const prompt =
+`This is my latest file. Before doing anything, read the entire file carefully and understand its structure, logic, and how different parts depend on each other. Do not miscount lines. Do not assume — if anything about the file or my request is unclear, ambiguous, or could be interpreted more than one way, stop and ask me a direct question before proceeding. I would rather answer five clarifying questions than have you guess wrong once.
+
+About me: I am not a software background person. I know the basics, but I know nothing about coding. I build HTML apps using my own logic combined with AI assistance, and host them on GitHub Pages. Explain things assuming I don't know technical terms unless I've used them myself first.
+
+When you build the guide plan, follow this structure exactly, one step at a time:
+
+Step Title — short and specific, so I can refer back to a step by name if I get stuck.
+
+Change Purpose — 3 to 4 lines explaining what this step does, why it's needed, and how it affects the rest of the change. If you're not fully sure why I want this step, ask me before writing it.
+
+Precaution — list anything I need to be careful about before editing this part of the code. If there's a risk of breaking other logic in the file, say so explicitly and explain what could break.
+
+Previous Code — show me the exact existing code I need to delete or replace, along with the exact starting and ending line numbers. I need this to confirm I'm editing the right place, since line numbers can sometimes be wrong.
+
+Change Code — show me the new code, or if it's a partial edit, tell me precisely what to add, remove, or replace, and exactly where — after which word, symbol, or line. Assume I need this spelled out completely.
+
+Test Guide — tell me how to verify this step worked correctly before I move to the next one. If a step can't be tested until a later step is also complete, say so clearly: "This step can't be tested yet. After completing Step [name], do this to confirm both steps worked."
+
+Throughout this process: if you are ever uncertain about my intent, if the file contains something that conflicts with what I've asked for, or if a step depends on a decision I haven't made yet — stop and ask me directly. Do not guess. Do not proceed on an assumption. I would rather pause and clarify than have you build on a wrong guess.
+
+Here are the changes I need:
 ${lines.join('\n')}
 
 Create a Markdown file of the Plan. Use this Plan ID for the plan (do not generate a new one): ${planId}`;
