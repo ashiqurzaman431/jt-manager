@@ -6314,6 +6314,49 @@ function continueAsGuest() {
 }
 window.continueAsGuest = continueAsGuest;
 
+  // ─────────────────────────────────────────
+// GUEST ACCESS MODAL
+// ─────────────────────────────────────────
+function showGuestAccessModal(featureName) {
+  const modal = document.createElement('div');
+  modal.className = 'modal-overlay';
+  modal.style.position = 'fixed';
+  modal.style.top = '0';
+  modal.style.left = '0';
+  modal.style.right = '0';
+  modal.style.bottom = '0';
+  modal.style.display = 'flex';
+  modal.style.alignItems = 'center';
+  modal.style.justifyContent = 'center';
+  modal.style.backgroundColor = 'rgba(0,0,0,0.5)';
+  modal.style.zIndex = '9999';
+  modal.onclick = () => modal.remove();
+  
+  modal.innerHTML = `
+    <div class="modal" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;max-width:380px;box-shadow:var(--shadow);color:var(--ink);font-family:var(--sans);">
+      <div class="modal-title" style="margin-bottom:16px;">
+        <span style="font-size:18px;font-weight:700;">Google Sign-in Required</span>
+      </div>
+      <div style="margin-bottom:20px;color:var(--ink2);font-size:14px;line-height:1.6;">
+        <strong>${featureName}</strong> requires you to sign in with Google to access your Drive account and sync data.
+        <br><br>
+        Guest mode is read-only and temporary — your data will not be saved.
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button onclick="this.closest('.modal-overlay').remove()" style="flex:1;padding:10px 16px;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink2);cursor:pointer;font-size:14px;font-weight:600;">
+          Continue as Guest
+        </button>
+        <button onclick="gisSignIn();this.closest('.modal-overlay').remove()" style="flex:1;padding:10px 16px;background:var(--jt);border:none;border-radius:var(--radius-sm);color:#fff;cursor:pointer;font-size:14px;font-weight:600;">
+          Sign in with Google
+        </button>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+}
+window.showGuestAccessModal = showGuestAccessModal;
+
 function gisSignOut() {
   if (!confirm('Sign out of Google Drive integration?')) return;
   if (_gisAccessToken) google.accounts.oauth2.revoke(_gisAccessToken, () => {});
