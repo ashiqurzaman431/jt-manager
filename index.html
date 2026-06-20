@@ -2258,11 +2258,11 @@ select option { background: var(--surface3); color: var(--ink); }
           ◷ Assigned only
         </label>
         <label style="display:flex;align-items:center;gap:4px;font-family:var(--mono);font-size:11px;color:var(--ink3);cursor:pointer;white-space:nowrap;">
-          <input type="checkbox" id="hideArchivedCb" checked onchange="setHideArchived(this.checked)" style="accent-color:var(--jt);width:13px;height:13px;">
+          <input type="checkbox" id="hideArchivedCb" onchange="setHideArchived(this.checked)" style="accent-color:var(--jt);width:13px;height:13px;">
           📦 Hide archived
         </label>
         <label style="display:flex;align-items:center;gap:4px;font-family:var(--mono);font-size:11px;color:var(--ink3);cursor:pointer;white-space:nowrap;">
-          <input type="checkbox" id="hideErrorTaskCb" checked onchange="setHideErrorTask(this.checked)" style="accent-color:var(--jt);width:13px;height:13px;">
+          <input type="checkbox" id="hideErrorTaskCb" onchange="setHideErrorTask(this.checked)" style="accent-color:var(--jt);width:13px;height:13px;">
           ⚠ Hide errors
         </label>
       </div>
@@ -3627,8 +3627,8 @@ let bugLog = [];
 // ─────────────────────────────────────────
 let selectedAccId = null;
 let activeTaskTab = 'running';
-let hideArchived = true;    // archived tasks hidden by default
-let hideErrorTask = true;   // tasks with errors hidden by default
+let hideArchived = false;    // archived tasks shown by default
+let hideErrorTask = false;   // tasks with errors shown by default
 let taskTypeFilter = 'all';
 let taskSort = 'unassigned';
 let taskSortDir = 'asc'; // 'asc' | 'desc' — for alpha/newest sorts
