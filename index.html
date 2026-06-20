@@ -1696,6 +1696,9 @@ select option { background: var(--surface3); color: var(--ink); }
       </svg>
       Sign in with Google
     </button>
+    <button class="login-btn" onclick="continueAsGuest()" style="margin-top:12px;background:var(--surface2);border:1px solid var(--border2);color:var(--ink2);">
+      Continue as Guest
+    </button>
     <div class="login-status" id="loginStatus"></div>
   </div>
 </div>
@@ -3637,6 +3640,10 @@ let auditLog = [];
 let wordLibrary = [];
 /*EMBEDDED_WORDLIB_END*/
 
+// ─────────────────────────────────────────
+// GUEST MODE FLAG
+// ─────────────────────────────────────────
+let isGuestMode = false;
 
 // ─────────────────────────────────────────
 // ─────────────────────────────────────────
@@ -6294,6 +6301,18 @@ function gisSignIn() {
   _gisTokenClient.requestAccessToken({ prompt: 'consent' });
 }
 window.gisSignIn = gisSignIn;
+function continueAsGuest() {
+  isGuestMode = true;
+  setLoginStatus('Entering guest mode…');
+  hideLoginOverlay();
+  // Initialize UI with empty data (already initialized in DOMContentLoaded)
+  renderDashboard();
+  renderTasks();
+  renderAccList();
+  renderActionCenter();
+  toast('Guest mode activated — no data will be saved');
+}
+window.continueAsGuest = continueAsGuest;
 
 function gisSignOut() {
   if (!confirm('Sign out of Google Drive integration?')) return;
