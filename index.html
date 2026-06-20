@@ -6630,11 +6630,15 @@ async function checkDriveVersion() {
 
 // ── Get Latest from Drive ─────────────────────────────────────────────────
 window.driveGetLatest = async function() {
+  if (isGuestMode) {
+    showGuestAccessModal('Get Latest from Drive');
+    return;
+  }
+  
   if (!_gisAccessToken) {
     toast('⚠ Sign in to Google Drive first');
     return;
   }
-
   const btn = document.getElementById('btnGetLatest');
   if (btn) btn.disabled = true;
   setDriveDot('spin','fetching…');
@@ -6718,8 +6722,14 @@ function _triggerLocalDownload(content, filename, mimeType = 'text/plain') {
 
 // ── Save to Drive (or local fallback) ────────────────────────────────────
 document.getElementById('btnSave').addEventListener('click', async () => {
+  if (isGuestMode) {
+    showGuestAccessModal('Save to Drive');
+    return;
+  }
+  
   const d = new Date();
   const y = d.getFullYear();
+  // ... rest of function (unchanged)
   const m = String(d.getMonth() + 1).padStart(2, '0');
   const day = String(d.getDate()).padStart(2, '0');
   const hh = String(d.getHours()).padStart(2, '0');
