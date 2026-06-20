@@ -1138,15 +1138,15 @@ select option { background: var(--surface3); color: var(--ink); }
   position: absolute;
   top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
+  height: 55%;
+  width: auto;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   padding: 0 12px;
   font-family: var(--mono);
   font-weight: 800;
-  font-size: clamp(28px, 12vw, 120px);
+  font-size: clamp(28px, 10vw, 100px);
   line-height: 1;
   letter-spacing: -2px;
   white-space: nowrap;
@@ -1154,7 +1154,7 @@ select option { background: var(--surface3); color: var(--ink); }
   pointer-events: none;
   z-index: 0;
   color: rgba(232, 234, 242, 0.20);
-text-shadow: 0 0 16px rgba(232, 234, 242, 0.16);
+  text-shadow: 0 0 16px rgba(232, 234, 242, 0.16);
 }
 
 .task-card-watermark.youtube {
