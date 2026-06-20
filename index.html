@@ -6575,12 +6575,12 @@ function renderAuditLog() {
 
 // ── Unsaved indicator ──────────────────────────────────────────────────────
 function markUnsaved(val) {
+  if (isGuestMode) return;  // Don't show unsaved in guest mode
   _hasUnsaved = val;
   const dot = document.getElementById('unsavedDot');
   if (dot) dot.classList.toggle('visible', val);
   const dotFloat = document.getElementById('unsavedFloat');
   if (dotFloat) dotFloat.classList.toggle('visible', val);
-
 }
 
 // ── Drive status dot ──────────────────────────────────────────────────────
