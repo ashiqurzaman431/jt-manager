@@ -6311,12 +6311,24 @@ window.gisSignIn = gisSignIn;
 function continueAsGuest() {
   isGuestMode = true;
   setLoginStatus('Entering guest mode…');
+  
+  // Show the manual sidebar
+  const sidebar = document.getElementById('guestManualSidebar');
+  if (sidebar) {
+    sidebar.classList.remove('hidden');
+  }
+  
   hideLoginOverlay();
+  
   // Initialize UI with empty data (already initialized in DOMContentLoaded)
   renderDashboard();
   renderTasks();
   renderAccList();
   renderActionCenter();
+  
+  // Show initial manual section
+  showManualSection('welcome');
+  
   toast('Guest mode activated — no data will be saved');
 }
 window.continueAsGuest = continueAsGuest;
@@ -8963,4 +8975,74 @@ if ('serviceWorker' in navigator) {
          box-shadow:0 2px 12px rgba(13,27,62,0.22);
          align-items:center;justify-content:center;">↑</button>
 <script>// 33</script>
-<protonpass-root-8df7 data-protonpass-role="root" data-protonpass-theme="dark"></protonpass-root-8df7></body></html>
+<protonpass-root-8df7 data-protonpass-role="root" data-protonpass-theme="dark"></protonpass-root-8df7>
+<!-- GUEST MODE USER MANUAL SIDEBAR -->
+<div id="guestManualSidebar" class="hidden" style="
+  position: fixed;
+  right: 0;
+  top: 0;
+  width: 320px;
+  height: 100vh;
+  background: var(--surface2);
+  border-left: 1px solid var(--border);
+  overflow-y: auto;
+  z-index: 99;
+  padding: 20px;
+  font-family: var(--sans);
+  font-size: 14px;
+  color: var(--ink2);
+  line-height: 1.6;
+  box-shadow: -2px 0 8px rgba(0,0,0,0.2);
+">
+  <div id="manualContent">
+    <!-- Content injected by JS -->
+  </div>
+</div>
+
+<style>
+  #guestManualSidebar h2 {
+    margin: 0 0 16px 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--ink);
+    border-bottom: 2px solid var(--jt);
+    padding-bottom: 8px;
+  }
+  
+  #guestManualSidebar h3 {
+    margin: 16px 0 10px 0;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--ink);
+  }
+  
+  #guestManualSidebar p {
+    margin-bottom: 12px;
+    font-size: 13px;
+  }
+  
+  #guestManualSidebar ul {
+    margin-left: 16px;
+    margin-bottom: 12px;
+    font-size: 13px;
+  }
+  
+  #guestManualSidebar ol {
+    margin-left: 16px;
+    margin-bottom: 12px;
+    font-size: 13px;
+  }
+  
+  #guestManualSidebar li {
+    margin-bottom: 6px;
+  }
+  
+  #guestManualSidebar .highlight {
+    background: rgba(108, 142, 246, 0.15);
+    padding: 2px 4px;
+    border-radius: 3px;
+    color: var(--jt);
+    font-weight: 600;
+  }
+</style>
+</body></html>
