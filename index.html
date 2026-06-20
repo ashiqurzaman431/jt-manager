@@ -129,6 +129,7 @@ body {
 
 /* ── PINNED IN-PROGRESS BANNER ── */
 .pinned-inprogress-banner {
+  grid-column: 1 / -1;
   margin-bottom: 14px;
   background: linear-gradient(135deg, rgba(251,191,36,0.09), rgba(251,191,36,0.04));
   border: 1.5px solid rgba(251,191,36,0.35);
@@ -1118,7 +1119,10 @@ select option { background: var(--surface3); color: var(--ink); }
 }
 
 /* ── TASK CARDS ── */
-.tasks-list { display:flex; flex-direction:column; gap:10px; }
+.tasks-list { display:grid; grid-template-columns:1fr 1fr; gap:10px; align-items:start; }
+@media (max-width:820px) {
+  .tasks-list { grid-template-columns:1fr; }
+}
 .task-card {
   background:var(--surface); border:1px solid var(--border);
   border-radius:var(--radius); padding:14px 16px;
@@ -1477,6 +1481,7 @@ select option { background: var(--surface3); color: var(--ink); }
 
 /* ── EMPTY STATE ── */
 .empty-state {
+  grid-column: 1 / -1;
   text-align:center; padding:32px 16px; color:var(--ink3);
   border:1.5px dashed var(--border2); border-radius:var(--radius);
   font-family:var(--mono); font-size:12.1px; background:var(--surface);
@@ -4405,7 +4410,7 @@ function renderTasks() {
     const pagedList = list.slice(taskPage * TASKS_PER_PAGE, (taskPage + 1) * TASKS_PER_PAGE);
     const cards = pagedList.map(task => renderTaskCard(task)).join('');
     const paginationHtml = totalPages <= 1 ? '' : `
-      <div style="display:flex;align-items:center;justify-content:center;gap:10px;padding:14px 0 6px;font-family:var(--mono);font-size:11px;color:var(--ink2);">
+      <div style="grid-column:1/-1;display:flex;align-items:center;justify-content:center;gap:10px;padding:14px 0 6px;font-family:var(--mono);font-size:11px;color:var(--ink2);">
         <button onclick="setTaskPage(${taskPage - 1})" ${taskPage === 0 ? 'disabled style="opacity:0.35;cursor:not-allowed;"' : 'style="cursor:pointer;"'}
           style="padding:4px 12px;border-radius:6px;border:1px solid var(--border2);background:var(--jt-light);color:var(--jt);font-family:var(--mono);font-size:11px;font-weight:700;">◀</button>
         <span style="font-weight:600;">Page ${taskPage + 1} of ${totalPages} &nbsp;·&nbsp; ${list.length} tasks</span>
