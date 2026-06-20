@@ -1716,14 +1716,14 @@ select option { background: var(--surface3); color: var(--ink); }
   <!-- BUG REPORT MODAL -->
   <div class="modal-overlay" id="bugModal">
     <div class="modal" style="max-width:900px;">
-      <div class="modal-title">
+      <div class="modal-title" style="font-size:19px;">
         <span id="bugModalTitle">📋 Updates</span>
         <button class="modal-close" onclick="closeModal('bugModal')">✕</button>
       </div>
       <div class="modal-fields" style="gap:14px;">
         <!-- Bug log entries -->
         <div id="bugLogList">
-          <div style="font-family:'Geist Mono',monospace;font-size:11px;color:var(--ink3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Pending Updates</div>
+          <div style="font-family:'Geist Mono',monospace;font-size:12.5px;color:var(--ink2);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;font-weight:700;">Pending Updates</div>
           <div id="bugLogEntries" style="display:flex;flex-direction:column;gap:8px;max-height:200px;overflow-y:auto;margin-bottom:4px;">
       <div style="background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.22);border-radius:8px;padding:10px 12px;">
         <div style="font-family:'Geist Mono',monospace;font-size:9px;color:#fbbf24;margin-bottom:4px;opacity:0.7;">#1 · 2026.05.25 17:39</div>
@@ -1789,14 +1789,14 @@ select option { background: var(--surface3); color: var(--ink); }
         <div style="font-family:'Geist Mono',monospace;font-size:9px;color:#fbbf24;margin-bottom:4px;opacity:0.7;">#16 · 2026.06.02 00:04</div>
         <div style="font-family:'Geist Mono',monospace;font-size:12px;color:var(--ink2);line-height:1.5;">Earnings history payout view: currently earnings history lists which accounts and tasks were rewarded on a given day. Replace this with a view that shows per-account payout amounts for the selected time range (daily, monthly, yearly, or custom range), making it easy to see how much each account paid out in that period.</div>
       </div></div>
-          <div style="font-family:'Geist Mono',monospace;font-size:10px;color:var(--ink3);margin-bottom:10px;">Only the AI can clear this log (apply the fixes).</div>
+          <div style="font-family:'Geist Mono',monospace;font-size:11.5px;color:var(--ink2);margin-bottom:10px;">Only the AI can clear this log (apply the fixes).</div>
           <div style="border-top:1px solid var(--border);padding-top:12px;"></div>
         </div>
         <!-- Add new bug form — always visible -->
         <div id="bugReportForm">
           <div class="field">
             <label>Add an update to the log</label>
-            <textarea id="bugReportInput" placeholder="Describe the update…" style="min-height:80px;font-family:'Geist Mono',monospace;font-size:13px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:10px;color:var(--ink);resize:vertical;width:100%;outline:none;"></textarea>
+            <textarea id="bugReportInput" placeholder="Describe the update…" style="min-height:80px;font-family:'Geist Mono',monospace;font-size:14.5px;background:var(--surface2);border:1.5px solid var(--border2);border-radius:8px;padding:10px;color:var(--ink);resize:vertical;width:100%;outline:none;"></textarea>
           </div>
           <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:6px;flex-wrap:wrap;">
             <button class="btn-secondary" onclick="closeModal('bugModal')">Close</button>
@@ -8325,28 +8325,28 @@ function renderBugLogEntries() {
     const countdown = status === 'done' ? bugCountdown(b.doneAt) : '';
     // Entry bg tint by status
     const entryBg = {
-      fresh:       'rgba(251,191,36,0.06)',
-      applied:     'rgba(108,142,246,0.06)',
-      done:        'rgba(52,211,153,0.06)',
-      refresh_bug: 'rgba(248,113,113,0.07)',
-      added:       'rgba(168,85,247,0.07)'
-    }[status] || 'rgba(251,191,36,0.06)';
+      fresh:       'rgba(251,191,36,0.12)',
+      applied:     'rgba(108,142,246,0.12)',
+      done:        'rgba(52,211,153,0.12)',
+      refresh_bug: 'rgba(248,113,113,0.13)',
+      added:       'rgba(168,85,247,0.13)'
+    }[status] || 'rgba(251,191,36,0.12)';
     const entryBorder = {
-      fresh:       'rgba(251,191,36,0.22)',
-      applied:     'rgba(108,142,246,0.22)',
-      done:        'rgba(52,211,153,0.22)',
-      refresh_bug: 'rgba(248,113,113,0.28)',
-      added:       'rgba(168,85,247,0.28)'
-    }[status] || 'rgba(251,191,36,0.22)';
+      fresh:       'rgba(251,191,36,0.45)',
+      applied:     'rgba(108,142,246,0.45)',
+      done:        'rgba(52,211,153,0.45)',
+      refresh_bug: 'rgba(248,113,113,0.5)',
+      added:       'rgba(168,85,247,0.5)'
+    }[status] || 'rgba(251,191,36,0.45)';
     return `
-      <div style="background:${entryBg};border:1px solid ${entryBorder};border-radius:8px;padding:10px 12px;">
-        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:6px;">
-          <span style="font-family:'Geist Mono',monospace;font-size:9px;color:var(--ink3);opacity:0.7;">#${displayIdx+1} · ${b.ts}</span>
+      <div style="background:${entryBg};border:1.5px solid ${entryBorder};border-radius:10px;padding:12px 14px;">
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:7px;">
+          <span style="font-family:'Geist Mono',monospace;font-size:11px;color:var(--ink2);opacity:0.95;font-weight:600;">#${displayIdx+1} · ${b.ts}</span>
           <span class="bug-status-badge bug-status-${status === 'refresh_bug' ? 'refresh' : status}">${bugStatusLabel(status)}</span>
-          ${b.planId ? `<span style="font-family:var(--mono);font-size:9px;color:#a855f7;opacity:0.85;border:1px solid rgba(168,85,247,0.3);border-radius:99px;padding:1px 8px;">Plan ID: ${b.planId}</span>` : ''}
-          ${countdown ? `<span style="font-family:var(--mono);font-size:9px;color:var(--green);opacity:0.8;">${countdown}</span>` : ''}
+          ${b.planId ? `<span style="font-family:var(--mono);font-size:10px;color:#a855f7;opacity:0.95;border:1px solid rgba(168,85,247,0.4);border-radius:99px;padding:1px 8px;">Plan ID: ${b.planId}</span>` : ''}
+          ${countdown ? `<span style="font-family:var(--mono);font-size:10px;color:var(--green);opacity:0.9;">${countdown}</span>` : ''}
         </div>
-        <div class="bug-entry-text" id="bugEntryText_${id}" style="font-family:'Geist Mono',monospace;font-size:12px;color:var(--ink2);line-height:1.5;margin-bottom:8px;cursor:pointer;border-radius:6px;padding:4px 6px;transition:background 0.15s;" onclick="copyBugEntryText('${id}')" title="Click to copy this text">${b.text}</div>
+        <div class="bug-entry-text" id="bugEntryText_${id}" style="font-family:'Geist Mono',monospace;font-size:14.5px;color:var(--ink);line-height:1.6;margin-bottom:9px;cursor:pointer;border-radius:6px;padding:4px 6px;transition:background 0.15s;" onclick="copyBugEntryText('${id}')" title="Click to copy this text">${b.text}</div>
         <div style="display:flex;gap:5px;flex-wrap:wrap;">
           <button class="bug-mark-btn ${status==='applied'?'active-mark':''}" onclick="markBugEntry('${id}','applied')">✅ Applied</button>
           <button class="bug-mark-btn ${status==='done'?'active-mark':''}" onclick="markBugEntry('${id}','done')">✔ Done</button>
