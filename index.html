@@ -3428,9 +3428,12 @@ function tsStartUpload(num) {
   const slot = tsSlots.find(s => s.num === num);
   if (!slot) return;
   
-  // ── GUEST MODE CHECK ──
+ // ── GUEST MODE CHECK ──
   if (isGuestMode) {
     showGuestAccessModal('Upload to Drive');
+    // Reset slot to empty state instead of uploading
+    slot.status = 'empty';
+    tsRenderSlots();
     return;
   }
   
