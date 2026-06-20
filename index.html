@@ -3427,6 +3427,13 @@ function tsRemoveAllUnused() {
 function tsStartUpload(num) {
   const slot = tsSlots.find(s => s.num === num);
   if (!slot) return;
+  
+  // ── GUEST MODE CHECK ──
+  if (isGuestMode) {
+    showGuestAccessModal('Upload to Drive');
+    return;
+  }
+  
   if (!navigator.onLine) {
     slot.status = 'empty';
     tsUploadQueue.push(num);
