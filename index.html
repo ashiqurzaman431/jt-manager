@@ -3964,6 +3964,7 @@ function statusLabel(s) {
 // DASHBOARD
 // ─────────────────────────────────────────
 function renderDashboard() {
+  if (isGuestMode) showManualSection('dashboard');
   // Stat chips
   const total = accounts.length;
   const counts = {active:0,silent:0,under_review:0,payout_ready:0,dead:0};
@@ -4299,6 +4300,7 @@ function countAsgns(task, status) {
 }
 
 function renderTasks() {
+  if (isGuestMode) showManualSection('tasks');
   // Always show sort and direction bars (unified list, no archive tab)
   const sortBar = document.getElementById('taskSortBar');
   if (sortBar) sortBar.style.display = 'flex';
@@ -5275,6 +5277,7 @@ window.confirmAssign = function() {
 // ACCOUNT MANAGEMENT
 // ─────────────────────────────────────────
 function renderAccList() {
+  if (isGuestMode) showManualSection('accounts');
   document.getElementById('accCount').textContent = accounts.length;
 
   // Sync acc sort dropdown
@@ -6376,6 +6379,183 @@ function showGuestAccessModal(featureName) {
 }
 window.showGuestAccessModal = showGuestAccessModal;
 
+  // ─────────────────────────────────────────
+// GUEST MODE USER MANUAL
+// ─────────────────────────────────────────
+
+const manualSections = {
+  welcome: {
+    title: 'Welcome to Guest Mode',
+    html: `
+      <h3>Guest Mode Explained</h3>
+      <p>You're using JT Manager in <span class="highlight">guest mode</span> — a temporary, read-only environment.</p>
+      <h3>What You Can Do</h3>
+      <ul>
+        <li>✓ Add accounts and tasks</li>
+        <li>✓ Edit and organize your data</li>
+        <li>✓ Explore all features</li>
+        <li>✓ View reports and analytics</li>
+      </ul>
+      <h3>What You Can't Do</h3>
+      <ul>
+        <li>✗ Save to Google Drive</li>
+        <li>✗ Download files locally</li>
+        <li>✗ Upload images or media</li>
+        <li>✗ Sync across devices</li>
+      </ul>
+      <h3>To Unlock Full Features</h3>
+      <p>Click any <span class="highlight">Save, Upload, or Sync</span> button to sign in with Google. Your data will be saved to your Drive.</p>
+    `
+  },
+  
+  dashboard: {
+    title: 'Dashboard Overview',
+    html: `
+      <h3>Dashboard at a Glance</h3>
+      <p>The <span class="highlight">Dashboard</span> shows your account and task summary.</p>
+      <h3>Key Metrics</h3>
+      <ul>
+        <li><strong>Total Accounts:</strong> Count of all your JumpTask accounts</li>
+        <li><strong>Active Tasks:</strong> Tasks currently assigned and running</li>
+        <li><strong>Earnings:</strong> JMPT rewards accumulated today</li>
+        <li><strong>Payout Ready:</strong> Accounts ready to cash out</li>
+      </ul>
+      <h3>Quick Actions</h3>
+      <p>Use buttons at the top to navigate to <span class="highlight">Tasks, Accounts, Action Center</span>, and more.</p>
+    `
+  },
+  
+  tasks: {
+    title: 'Task Management',
+    html: `
+      <h3>Understanding Tasks</h3>
+      <p>Each <span class="highlight">task</span> is a single offer from JumpTask requiring completion on one account.</p>
+      <h3>Task Card Fields</h3>
+      <ul>
+        <li><strong>Title (number):</strong> Unique offer ID</li>
+        <li><strong>Reward:</strong> JMPT amount for completion</li>
+        <li><strong>Status:</strong> Pending, assigned, or completed</li>
+        <li><strong>Assigned To:</strong> Which account is working on it</li>
+      </ul>
+      <h3>Common Actions</h3>
+      <ul>
+        <li>Click <span class="highlight">Assign</span> to pick an account</li>
+        <li>Click <span class="highlight">Edit</span> to change details</li>
+        <li>Use <span class="highlight">Search</span> to find by ID or reward</li>
+      </ul>
+    `
+  },
+  
+  accounts: {
+    title: 'Account Management',
+    html: `
+      <h3>Managing Accounts</h3>
+      <p>Each <span class="highlight">account</span> is a JumpTask profile that can be assigned multiple tasks.</p>
+      <h3>Account Information</h3>
+      <ul>
+        <li><strong>Account Name:</strong> Your chosen identifier</li>
+        <li><strong>Wallet:</strong> Crypto address for payouts</li>
+        <li><strong>Country:</strong> Geolocation (affects available offers)</li>
+        <li><strong>Status:</strong> Active, silent, under review, or dead</li>
+      </ul>
+      <h3>Status Meanings</h3>
+      <ul>
+        <li><span class="highlight">Active:</span> Running tasks normally</li>
+        <li><span class="highlight">Silent:</span> Not working (paused)</li>
+        <li><span class="highlight">Under Review:</span> JumpTask reviewing it</li>
+        <li><span class="highlight">Payout Ready:</span> Earnings ready to cash out</li>
+      </ul>
+    `
+  },
+  
+  taskshot: {
+    title: 'TaskShot Upload System',
+    html: `
+      <h3>What is TaskShot?</h3>
+      <p><span class="highlight">TaskShot</span> is a bulk image upload tool for YouTube tasks. It automatically captures thumbnails and creates task records.</p>
+      <h3>How It Works</h3>
+      <ol>
+        <li>Add a slot (upload zone)</li>
+        <li>Select or drag an image into the slot</li>
+        <li>Click "Start Upload" to send to Drive</li>
+        <li>TaskShot creates a YouTube task automatically</li>
+      </ol>
+      <h3>In Guest Mode</h3>
+      <p>You can set up slots and add images, but <span class="highlight">uploads are blocked</span>. Sign in to Google to unlock uploading.</p>
+      <h3>Why Use It?</h3>
+      <ul>
+        <li>Fast bulk task creation</li>
+        <li>Automatic thumbnail capture</li>
+        <li>Saves to your Drive (when authenticated)</li>
+      </ul>
+    `
+  },
+  
+  actioncenter: {
+    title: 'Action Center',
+    html: `
+      <h3>Action Center Overview</h3>
+      <p>The <span class="highlight">Action Center</span> is your command center for bulk operations and quick fixes.</p>
+      <h3>Common Uses</h3>
+      <ul>
+        <li><strong>Assign to All:</strong> Assign a task to multiple accounts at once</li>
+        <li><strong>Bulk Edit:</strong> Change task details in batch</li>
+        <li><strong>Clear Errors:</strong> Fix failed or stuck tasks</li>
+        <li><strong>Status Updates:</strong> Mark tasks as complete</li>
+      </ul>
+      <h3>Tip</h3>
+      <p>Use filters to select specific accounts or task ranges before applying bulk actions.</p>
+    `
+  },
+  
+  save: {
+    title: 'Saving Your Data',
+    html: `
+      <h3>How Saving Works</h3>
+      <p>In <span class="highlight">full mode</span> (signed in), your data saves to Google Drive automatically and on-demand.</p>
+      <h3>Save Options</h3>
+      <ul>
+        <li><strong>Save to Drive:</strong> Upload current state to Drive</li>
+        <li><strong>Get Latest:</strong> Load most recent version from Drive</li>
+        <li><strong>Export for AI:</strong> Download a snapshot (for AI analysis)</li>
+      </ul>
+      <h3>In Guest Mode</h3>
+      <p>Saving is disabled. All data exists only in your browser session and is lost on page refresh.</p>
+      <p style="color:var(--amber);font-size:12px;margin-top:8px;">⚠ Don't close your browser without signing in to save!</p>
+    `
+  },
+  
+  sync: {
+    title: 'Drive Sync & Backup',
+    html: `
+      <h3>Why Use Google Drive?</h3>
+      <p><span class="highlight">Drive sync</span> lets you access your data across devices and never lose work.</p>
+      <h3>Benefits</h3>
+      <ul>
+        <li>✓ Access from any device</li>
+        <li>✓ Automatic versioning</li>
+        <li>✓ Secure cloud backup</li>
+        <li>✓ Share with team members</li>
+        <li>✓ Version history (restore old saves)</li>
+      </ul>
+      <h3>How to Enable</h3>
+      <p>Click <span class="highlight">Sign in with Google</span> and authorize Drive access. JT Manager will create a folder in your Drive.</p>
+      <h3>Privacy</h3>
+      <p>Only you and people you share with can access your data. JT Manager doesn't read or upload any private files.</p>
+    `
+  }
+};
+
+function showManualSection(sectionKey) {
+  const section = manualSections[sectionKey] || manualSections.welcome;
+  const contentDiv = document.getElementById('manualContent');
+  if (contentDiv) {
+    contentDiv.innerHTML = `<h2>${section.title}</h2>${section.html}`;
+  }
+}
+
+window.showManualSection = showManualSection;
+
 function gisSignOut() {
   if (!confirm('Sign out of Google Drive integration?')) return;
   if (_gisAccessToken) google.accounts.oauth2.revoke(_gisAccessToken, () => {});
@@ -7346,6 +7526,7 @@ function acEnsureTimerStarted(asgnId, asgn) {
 }
 
 function renderActionCenter() {
+  if (isGuestMode) showManualSection('actioncenter');
   const bodyEl     = document.getElementById('acPanelBody');
   const countEl    = document.getElementById('acPanelFlowCount');
   const tabCountEl = document.getElementById('acTabCount');
