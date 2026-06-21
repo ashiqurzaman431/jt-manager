@@ -7618,6 +7618,7 @@ function initGIS() {
       }
       _gisAccessToken = response.access_token;
       _gisTokenExpiry = Date.now() + (response.expires_in - 60) * 1000;
+      window.isGuestMode = false;
       setLoginStatus('');
       onSignedIn();
     },
