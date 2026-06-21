@@ -13,6 +13,8 @@
 <script src="https://accounts.google.com/gsi/client" async="" defer=""></script>
 <script>
   (function(){var t=localStorage.getItem('jtTheme')||'classic';document.documentElement.setAttribute('data-theme',t);})();
+  // Declare isGuestMode globally so onclick handlers can access it
+  window.isGuestMode = false;
 </script>
 <style>
 /* ══════════════════════════════════════════════
@@ -4923,7 +4925,7 @@ let wordLibrary = [];
 // ─────────────────────────────────────────
 // GUEST MODE FLAG
 // ─────────────────────────────────────────
-let isGuestMode = false;
+// Already declared at top of script as window.isGuestMode = false;
 
 // ─────────────────────────────────────────
 // ─────────────────────────────────────────
@@ -5963,7 +5965,7 @@ function renderTaskCard(task) {
       ${!task.archived ? `<button class="btn-secondary" style="font-size:10.5px;padding:4px 8px;" onclick="openLinksModal('${task.id}')">🔗</button>` : ''}
       <button class="btn-secondary" style="font-size:10.5px;padding:4px 8px;color:var(--red);border-color:var(--red-border);" onclick="openErrorModal('${task.id}')">⚠ Error</button>
       <button class="btn-secondary" style="font-size:10.5px;padding:4px 8px;" onclick="openEditTaskModal('${task.id}')">✎ Edit</button>
-      ${task.previewButton && !task.archived ? `<button class=\"btn-secondary\" style=\"font-size:10.5px;padding:4px 8px;color:var(--amber);border-color:var(--amber-border);\" onclick=\"isGuestMode ? showGuestAccessModal('View Thumbnails') : openTaskMediaModal('${task.id}')\" title=\"${isYT ? 'View thumbnails' : 'View websites'}\">${isYT ? 'View Thumbnails' : 'View Websites'}</button>` : ''}
+      ${task.previewButton && !task.archived ? `<button class=\"btn-secondary\" style=\"font-size:10.5px;padding:4px 8px;color:var(--amber);border-color:var(--amber-border);\" onclick=\"window.isGuestMode ? showGuestAccessModal('View Thumbnails') : openTaskMediaModal('${task.id}')\" title=\"${isYT ? 'View thumbnails' : 'View websites'}\">${isYT ? 'View Thumbnails' : 'View Websites'}</button>` : ''}
       ${!task.archived && isYT ? `<button class="btn-secondary" style="font-size:10.5px;padding:4px 8px;color:var(--amber);border-color:var(--amber-border);" onclick="openThumbModal('${task.id}')" title="${task.thumbnail?'Change thumbnail':'Add thumbnail'}">${task.thumbnail?'🖼 Thumb':'📷 Thumb'}</button>` : ''}
       ${task.archived && task.thumbnail ? `<button class="btn-secondary" style="font-size:10.5px;padding:4px 8px;color:var(--amber);border-color:var(--amber-border);" onclick="removeTaskImage('${task.id}')">🗑 Img</button>` : ''}
       ${!task.archived
@@ -7634,7 +7636,7 @@ function gisSignIn() {
 }
 window.gisSignIn = gisSignIn;
 function continueAsGuest() {
-  isGuestMode = true;
+  window.isGuestMode = true;
   setLoginStatus('Entering guest mode…');
   
   // Show the manual sidebar
