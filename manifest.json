@@ -10,13 +10,13 @@
   "theme_color": "#14151f",
   "icons": [
     {
-      "src": "/jt-manager/icons/icon-192.png",
+      "src": "/jt-manager/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/jt-manager/icons/icon-512.png",
+      "src": "/jt-manager/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"

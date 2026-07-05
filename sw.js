@@ -1,4 +1,4 @@
-const CACHE_NAME = 'jtm-v3';
+const CACHE_NAME = 'jtm-v4';
 
 // Install — skip waiting immediately, no pre-caching
 self.addEventListener('install', event => {
