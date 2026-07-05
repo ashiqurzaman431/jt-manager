@@ -74,7 +74,7 @@
   --nav-h: 72px;
 }
 * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-html { scroll-behavior:smooth; color-scheme:dark; }
+html { scroll-behavior:smooth; color-scheme:dark; overflow-x:hidden; width:100%; }
 ::-webkit-scrollbar { width: 8px; }
 ::-webkit-scrollbar-track { background: var(--surface2); }
 ::-webkit-scrollbar-thumb { background: var(--jt); border-radius: 10px; opacity: 0.5; }
@@ -294,6 +294,7 @@ body {
   top: 0; right: 0;
   height: 100vh;
   width: 300px;
+  max-width: 100vw;
   background: var(--surface);
   border-left: 1.5px solid var(--jt-border);
   box-shadow: -4px 0 24px rgba(0,0,0,0.10);
@@ -407,6 +408,7 @@ body {
   top: 0; right: 0;
   height: 100vh;
   width: 300px;
+  max-width: 100vw;
   background: var(--surface);
   border-left: 1.5px solid var(--jt-border);
   box-shadow: -4px 0 24px rgba(0,0,0,0.10);
@@ -811,6 +813,10 @@ body {
   -webkit-appearance:none; appearance:none;
   transition: border-color 0.2s, box-shadow 0.2s;
 }
+.field input[type="checkbox"] {
+  -webkit-appearance:auto; appearance:auto;
+  background:none; border:none; padding:0; width:auto; height:auto;
+}
 select option { background: var(--surface3); color: var(--ink); }
 .field input:focus, .field select:focus, .field textarea:focus {
   border-color:var(--jt-border); background: var(--surface);
@@ -1028,6 +1034,13 @@ select option { background: var(--surface3); color: var(--ink); }
   transition:all 0.15s;
 }
 .btn-add-payout-acc:hover { background:#8fbf9f; color:#0d0f14; }
+.btn-delete-acc {
+  width:100%; padding:9px; margin-top:8px; background:transparent; color:#e07a7a;
+  border:1px solid rgba(224,122,122,0.35); border-radius:var(--radius-sm);
+  font-family:var(--mono); font-size:12.1px; font-weight:600; cursor:pointer;
+  transition:all 0.15s;
+}
+.btn-delete-acc:hover { background:rgba(224,122,122,0.12); border-color:#e07a7a; }
 
 /* Col 2/3: Switchable */
 .acc-right-col { padding:18px; }
@@ -1757,28 +1770,6 @@ select option { background: var(--surface3); color: var(--ink); }
     </div>
 
     <div class="tasks-list" id="tasksList">
-    </div>
-    <!-- Default Reward Settings -->
-    <div style="margin-top:28px;">
-      <div class="sec-title">Default Reward Settings</div>
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px;">
-        <div style="font-family:var(--mono);font-size:12.1px;color:var(--ink3);margin-bottom:16px;line-height:1.6;">
-          Set the default reward pre-filled when adding a new task. You can always override it per task.
-        </div>
-        <div style="display:flex;gap:12px;flex-wrap:wrap;">
-          <div class="field" style="flex:1;min-width:160px;">
-            <label>Default Google Task Reward (USDT)</label>
-            <input type="number" id="defaultGoogleRewardInput" min="0" step="any" placeholder="0.00" style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:14.3px;padding:9px 10px;outline:none;width:100%;">
-          </div>
-          <div class="field" style="flex:1;min-width:160px;">
-            <label>Default YouTube Task Reward (USDT)</label>
-            <input type="number" id="defaultYoutubeRewardInput" min="0" step="any" placeholder="0.00" style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:14.3px;padding:9px 10px;outline:none;width:100%;">
-          </div>
-          <div style="display:flex;align-items:flex-end;padding-bottom:1px;">
-            <button class="btn-primary" style="padding:10px 20px;white-space:nowrap;" onclick="saveDefaultRewards()">Save Defaults</button>
-          </div>
-        </div>
-      </div>
     </div>
 
   </div>
@@ -3386,7 +3377,7 @@ function renderDashboard() {
   // Stat chips
   const total = accounts.length;
   const counts = {active:0,silent:0,under_review:0,payout_ready:0,dead:0};
-  accounts.forEach(a => { if(counts[a.status]!==undefined) counts[a.status]++; });
+  accounts.forEach(a => { if(!a.deleted && counts[a.status]!==undefined) counts[a.status]++; });
   document.getElementById('dashStatChips').innerHTML = `
     <div class="stat-chip"><div class="stat-chip-label">Total Accounts</div><div class="stat-chip-val blue">${total}</div></div>
     <div class="stat-chip"><div class="stat-chip-label">Active</div><div class="stat-chip-val green">${counts.active}</div></div>
@@ -3397,11 +3388,11 @@ function renderDashboard() {
   `;
 
   // Account cards — sorted: payout_ready first, then by balance desc, then by due rewards desc
-  if (!accounts.length) {
+  if (!accounts.some(a => !a.deleted)) {
     document.getElementById('dashCards').innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="es-icon">◈</div>No accounts yet — add one in Account Management</div>`;
   } else {
     const sortedForDash = [...accounts]
-      .filter(a => a.status !== 'dead')
+      .filter(a => a.status !== 'dead' && !a.deleted)
       .sort((a, b) => {
       // payout_ready always on top
       const aReady = a.status === 'payout_ready' ? 1 : 0;
@@ -3629,7 +3620,7 @@ function renderTaskAccountFilterBar() {
   if (!sel) return;
   const prev = taskAccountFilter;
   sel.innerHTML = ['<option value="all">All Accounts</option>',
-    ...accounts.filter(a => a.status !== 'dead').map(a => `<option value="${a.id}">${a.name}</option>`)
+    ...accounts.filter(a => a.status !== 'dead' && !a.deleted).map(a => `<option value="${a.id}">${a.name}</option>`)
   ].join('');
   sel.value = prev;
 }
@@ -3917,7 +3908,7 @@ window.openErrorModal = function(taskId) {
   document.getElementById('errorModalTaskName').textContent = 'Task: ' + t.title;
   // Populate account select
   const sel = document.getElementById('errorModalAccSelect');
-  sel.innerHTML = accounts.map(a => `<option value="${a.id}">${a.name}</option>`).join('');
+  sel.innerHTML = accounts.filter(a => !a.deleted).map(a => `<option value="${a.id}">${a.name}</option>`).join('');
   renderErrorModalEntries(taskId);
   openModal('errorModal');
 };
@@ -4536,7 +4527,7 @@ window.unarchiveTask = function(id) {
 window.assignToAllActive = function(taskId) {
   const t = tasks.find(t => t.id===taskId); if(!t) return;
   const alreadyAssigned = new Set((t.assignments||[]).map(a => a.accountId));
-  const eligible = accounts.filter(a => a.status !== 'dead' && !alreadyAssigned.has(a.id));
+  const eligible = accounts.filter(a => a.status !== 'dead' && !a.deleted && !alreadyAssigned.has(a.id));
   if (!eligible.length) { toast('All active accounts already assigned'); return; }
   pushUndo('Assign all → ' + t.title);
   if (!t.assignments) t.assignments = [];
@@ -4638,8 +4629,8 @@ window.openAssignModal = function(taskId) {
       assigningTaskId = null;
       return;
     }
-    if (!accCheck || accCheck.status === 'dead') {
-      toast('⚠ Selected account is dead or not found');
+    if (!accCheck || accCheck.status === 'dead' || accCheck.deleted) {
+      toast('⚠ Selected account is dead, deleted, or not found');
       assigningTaskId = null;
       return;
     }
@@ -4652,7 +4643,7 @@ window.openAssignModal = function(taskId) {
   document.getElementById('assignModalTaskInfo').textContent = `Task: ${t.title} · Default: ${fmtUSDT(t.defaultReward)}`;
   document.getElementById('assignModalReward').value = '';
   const alreadyAssigned = new Set((t.assignments||[]).map(a => a.accountId));
-  const eligible = accounts.filter(a => a.status !== 'dead' && !alreadyAssigned.has(a.id));
+  const eligible = accounts.filter(a => a.status !== 'dead' && !a.deleted && !alreadyAssigned.has(a.id));
 
   // Sort: most recently assigned first — but if the top account has a task currently
   // in progress (status === 'assigned'), demote it so the next available account shows first
@@ -4708,7 +4699,7 @@ window.confirmAssign = function() {
 // ACCOUNT MANAGEMENT
 // ─────────────────────────────────────────
 function renderAccList() {
-  document.getElementById('accCount').textContent = accounts.length;
+  document.getElementById('accCount').textContent = accounts.filter(a => !a.deleted).length;
 
   // Sync acc sort dropdown
   const accSortSel = document.getElementById('accSortSelect');
@@ -4717,6 +4708,7 @@ function renderAccList() {
   const searchQ = (document.getElementById('accSearchInput') ? document.getElementById('accSearchInput').value : '').toLowerCase().trim();
 
   let filteredAccounts = accounts.filter(a => {
+    if (a.deleted) return false;
     if (searchQ) {
       const hay = [a.name, a.country, a.walletAddress, a.notes, a.device].join(' ').toLowerCase();
       if (!hay.includes(searchQ)) return false;
@@ -4725,7 +4717,7 @@ function renderAccList() {
   });
 
   if (!filteredAccounts.length) {
-    document.getElementById('accListItems').innerHTML = `<div style="padding:24px;text-align:center;font-family:var(--mono);font-size:12.1px;color:var(--ink3);">${accounts.length ? 'No matches' : 'No accounts yet'}</div>`;
+    document.getElementById('accListItems').innerHTML = `<div style="padding:24px;text-align:center;font-family:var(--mono);font-size:12.1px;color:var(--ink3);">${accounts.some(a => !a.deleted) ? 'No matches' : 'No accounts yet'}</div>`;
     return;
   }
   // Sort accounts: payout_ready always first, dead always last, rest by accSort
@@ -5137,6 +5129,7 @@ function renderAccDetail(accId) {
           ? `<button class="btn-add-payout-acc" onclick="openPayoutModal('${accId}')">💸 Add Payout</button>`
           : `<div class="btn-add-payout-acc" style="opacity:0.38;cursor:not-allowed;user-select:none;filter:grayscale(0.5);" title="Account must be Payout Ready">🔒 Not Payout Ready</div>`
         }
+        <button class="btn-delete-acc" onclick="deleteAccount('${accId}')">🗑 Delete Account</button>
       </div>
       <div class="acc-right-col">
         <div class="acc-right-tabs">
@@ -5371,6 +5364,26 @@ window.saveAccount = function() {
   }
   renderDashboard();
   toast(id ? 'Account updated' : 'Account added');
+};
+
+// Soft-delete: we keep the account record so its historical rewarded-task
+// earnings and payout history still show correctly (tagged "Deleted"),
+// but it disappears from the account list and every "assign/select account"
+// picker. This can't be undone from the UI (by design, to avoid accidental
+// data loss) — if you need it back, its data is still in the save file.
+window.deleteAccount = function(accId) {
+  const acc = accounts.find(a => a.id === accId); if (!acc) return;
+  openConfirm(`Delete account "${acc.name}"? It will be removed from the account list, but its task and payout earnings history will be preserved and labeled "Deleted".`, () => {
+    pushUndo('Delete account ' + acc.name);
+    acc.deleted = true;
+    acc.deletedAt = now();
+    if (selectedAccId === accId) selectedAccId = null;
+    renderAccList();
+    document.getElementById('accDetailPanel').innerHTML = `<div style="padding:40px 20px;text-align:center;font-family:var(--mono);font-size:12.1px;color:var(--ink3);">Select an account to view details</div>`;
+    renderDashboard();
+    markUnsaved(true);
+    toast('Account deleted');
+  });
 };
 
 
@@ -5736,7 +5749,7 @@ function initGIS() {
 function gisSignIn() {
   setLoginStatus('Opening Google sign-in…');
   if (!_gisTokenClient) { setLoginStatus('GIS not ready — try again in a moment.'); return; }
-  _gisTokenClient.requestAccessToken({ prompt: 'consent' });
+  _gisTokenClient.requestAccessToken({ prompt: 'select_account' });
 }
 window.gisSignIn = gisSignIn;
 function continueAsGuest() {
@@ -6394,7 +6407,7 @@ function populateEhAccountSelect() {
   const sel = document.getElementById('ehAccountSelect');
   if (!sel) return;
   sel.innerHTML = '<option value="all">All Accounts</option>' +
-    accounts.map(a => `<option value="${a.id}">${a.name}</option>`).join('');
+    accounts.map(a => `<option value="${a.id}">${a.name}${a.deleted ? ' (Deleted)' : ''}</option>`).join('');
 }
 
 window.onEhRangeChange = function() {
@@ -6431,7 +6444,7 @@ function getEhPayouts() {
     (acc.payoutHistory||[]).forEach(p => {
       const d = new Date((p.date||'')+'T00:00:00');
       if (!isNaN(d) && d >= fromDate && d <= today) {
-        payouts.push({ ...p, accName: acc.name, accId: acc.id, dateObj: d });
+        payouts.push({ ...p, accName: acc.name + (acc.deleted ? ' (Deleted)' : ''), accId: acc.id, dateObj: d });
       }
     });
   });
@@ -6494,7 +6507,7 @@ window.renderEarningsHistory = function() {
         dateObj: d,
         amount: parseFloat(asgn.reward || task.defaultReward || 0),
         jmptEarned: asgn.jmptEarned || 0,
-        accName: acc ? acc.name : 'Unknown',
+        accName: acc ? (acc.name + (acc.deleted ? ' (Deleted)' : '')) : 'Deleted Account',
         taskTitle: task.title,
         type: task.type,
       });
@@ -7386,6 +7399,9 @@ window.toggleActionCenter = function() {
   const panel = document.getElementById('acPanel');
   const tab   = document.getElementById('acTab');
   if (_acOpen) {
+    if (typeof _taOpen !== 'undefined' && _taOpen && typeof window.toggleTaskAddPanel === 'function') {
+      window.toggleTaskAddPanel();
+    }
     panel.classList.add('ac-open');
     tab.style.display = 'none';
   } else {
@@ -7427,6 +7443,7 @@ function setAcPanelVisibility(visible) {
   <div id="taSwitcher">
     <button class="ta-switch-btn active" id="taSwitchAdd" onclick="taShowTab('add')">+ Add New</button>
     <button class="ta-switch-btn" id="taSwitchBulk" onclick="taShowTab('bulk')">⚡ Bulk Add</button>
+    <button class="ta-switch-btn" id="taSwitchDefaults" onclick="taShowTab('defaults')">⚙ Defaults</button>
   </div>
   <div id="taPanelBody">
     <!-- Add New Task form -->
@@ -7508,6 +7525,22 @@ function setAcPanelVisibility(visible) {
         <button class="btn-secondary" onclick="bulkAddPreview()">Preview</button>
       </div>
     </div>
+
+    <!-- Default Reward Settings -->
+    <div class="ta-form-section" id="taSectionDefaults">
+      <div style="font-family:var(--mono);font-size:11.5px;color:var(--ink3);line-height:1.6;">
+        Set the default reward pre-filled when adding a new task. You can always override it per task.
+      </div>
+      <div class="field">
+        <label>Default Google Task Reward (USDT)</label>
+        <input type="number" id="defaultGoogleRewardInput" min="0" step="any" placeholder="0.00" style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:14.3px;padding:9px 10px;outline:none;width:100%;">
+      </div>
+      <div class="field">
+        <label>Default YouTube Task Reward (USDT)</label>
+        <input type="number" id="defaultYoutubeRewardInput" min="0" step="any" placeholder="0.00" style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:14.3px;padding:9px 10px;outline:none;width:100%;">
+      </div>
+      <button class="btn-primary" onclick="saveDefaultRewards()">Save Defaults</button>
+    </div>
   </div>
 </div>
 
@@ -7523,6 +7556,9 @@ window.toggleTaskAddPanel = function() {
   const panel = document.getElementById('taPanel');
   const tab   = document.getElementById('taTab');
   if (_taOpen) {
+    if (typeof _acOpen !== 'undefined' && _acOpen && typeof window.toggleActionCenter === 'function') {
+      window.toggleActionCenter();
+    }
     panel.classList.add('ta-open');
     tab.style.display = 'none';
     tab.classList.add('ta-panel-open');
@@ -7552,21 +7588,21 @@ function setTaPanelVisibility(visible) {
 }
 
 window.taShowTab = function(which) {
-  const addSection  = document.getElementById('taSectionAdd');
-  const bulkSection = document.getElementById('taSectionBulk');
-  const addBtn      = document.getElementById('taSwitchAdd');
-  const bulkBtn     = document.getElementById('taSwitchBulk');
-  if (which === 'bulk') {
-    addSection.classList.remove('active');
-    bulkSection.classList.add('active');
-    addBtn.classList.remove('active');
-    bulkBtn.classList.add('active');
-  } else {
-    bulkSection.classList.remove('active');
-    addSection.classList.add('active');
-    bulkBtn.classList.remove('active');
-    addBtn.classList.add('active');
-  }
+  const sections = {
+    add:      document.getElementById('taSectionAdd'),
+    bulk:     document.getElementById('taSectionBulk'),
+    defaults: document.getElementById('taSectionDefaults'),
+  };
+  const buttons = {
+    add:      document.getElementById('taSwitchAdd'),
+    bulk:     document.getElementById('taSwitchBulk'),
+    defaults: document.getElementById('taSwitchDefaults'),
+  };
+  Object.keys(sections).forEach(key => {
+    sections[key].classList.toggle('active', key === which);
+    buttons[key].classList.toggle('active', key === which);
+  });
+  if (which === 'defaults') populateDefaultRewardFields();
 };
 </script>
 
@@ -7586,6 +7622,6 @@ if ('serviceWorker' in navigator) {
          font-size:18px;cursor:pointer;
          box-shadow:0 2px 12px rgba(0,0,0,0.22);
          align-items:center;justify-content:center;">↑</button>
-<script>// 33</script>
+<script>// 34</script>
 <protonpass-root-8df7 data-protonpass-role="root" data-protonpass-theme="dark"></protonpass-root-8df7>
 </body></html>
