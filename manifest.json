@@ -16,7 +16,7 @@
       "purpose": "any"
     },
     {
-      "src": "/jt-manager/icon-192.png",
+      "src": "/jt-manager/icon-192-maskable.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
@@ -28,7 +28,7 @@
       "purpose": "any"
     },
     {
-      "src": "/jt-manager/icon-512.png",
+      "src": "/jt-manager/icon-512-maskable.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
