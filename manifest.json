@@ -1,6 +1,6 @@
 {
   "name": "JT Manager",
-  "short_name": "JTM",
+  "short_name": "Jt Manager",
   "description": "JumpTask Enterprise Multi-Account Manager",
   "start_url": "/jt-manager/",
   "scope": "/jt-manager/",

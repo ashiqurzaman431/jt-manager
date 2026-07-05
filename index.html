@@ -5876,8 +5876,9 @@ async function onSignedIn() {
   hideLoginOverlay();
   // Ensure folder exists then do background version check
   try {
-    await ensureDriveFolder();
+    const folderId = await ensureDriveFolder();
     checkDriveVersion();
+    pruneOldDriveFiles(folderId);
   } catch(e) { setDriveDot('gray', 'folder error: ' + e.message); }
 }
 
@@ -5930,6 +5931,40 @@ async function driveGetFileContent(fileId) {
   });
   if (!r.ok) throw new Error('Drive download failed: ' + r.status);
   return await r.text();
+}
+
+async function driveDeleteFile(fileId) {
+  const tok = await gisGetToken();
+  const r = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}`, {
+    method: 'DELETE',
+    headers: { Authorization: 'Bearer ' + tok }
+  });
+  if (!r.ok && r.status !== 404) throw new Error('Drive delete failed: ' + r.status);
+}
+
+// ── Keep only the newest N autosave files in Drive, delete the rest ────────
+// Runs once per session (right after sign-in / folder check). Only ever
+// touches files named JT_Manager_*.json — never anything else in the folder.
+const DRIVE_MAX_SAVE_FILES = 10;
+async function pruneOldDriveFiles(folderId) {
+  try {
+    const files = await driveListFiles(folderId, 'application/json');
+    // driveListFiles already orders newest-first (modifiedTime desc)
+    const saveFiles = files.filter(f => f.name && f.name.startsWith('JT_Manager_') && f.name.endsWith('.json'));
+    if (saveFiles.length <= DRIVE_MAX_SAVE_FILES) return;
+
+    const toDelete = saveFiles.slice(DRIVE_MAX_SAVE_FILES);
+    let deletedCount = 0;
+    for (const f of toDelete) {
+      try { await driveDeleteFile(f.id); deletedCount++; }
+      catch(e) { console.warn('Prune: failed to delete', f.name, e); }
+    }
+    if (deletedCount > 0) {
+      addAuditEntry('DRIVE CLEANUP', `Removed ${deletedCount} old save file(s), kept latest ${DRIVE_MAX_SAVE_FILES}`);
+    }
+  } catch(e) {
+    console.warn('Drive prune check failed:', e);
+  }
 }
 
 async function driveUploadFile(folderId, filename, content, mimeType) {
