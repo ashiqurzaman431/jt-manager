@@ -74,21 +74,27 @@
   --nav-h: 72px;
 }
 * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-html { scroll-behavior:smooth; color-scheme:dark; overflow-x:hidden; width:100%; }
-::-webkit-scrollbar { width: 8px; }
-::-webkit-scrollbar-track { background: var(--surface2); }
-::-webkit-scrollbar-thumb { background: var(--jt); border-radius: 10px; opacity: 0.5; }
-::-webkit-scrollbar-thumb:hover { background: var(--jt2); }
+html { scroll-behavior:smooth; color-scheme:dark; overflow-x:hidden; width:100%; scrollbar-width:none; -ms-overflow-style:none; }
+/* Scrollbars hidden everywhere — scrolling still works, just no visible track/thumb */
+::-webkit-scrollbar { display:none; width:0; height:0; }
+* { scrollbar-width:none; -ms-overflow-style:none; }
 
-/* ── Glass surfaces: frosted-glass blur for major panels/cards over the dark gradient body ── */
-.card, .dash-card, .earnings-card, .task-card, .login-card, .ac-flow-card,
-.modal, .task-tabs, .task-add-panel, .panel-body,
-.acc-list-panel, .acc-detail-panel, .acc-active-task, .sess-section,
+/* ── Glass surfaces: frosted-glass blur for major *singular* panels over the dark gradient body ──
+   NOTE: intentionally NOT applied to repeated list items (task-card, dash-card, ac-flow-card,
+   acc-active-task, history-item, slot, pinned-inprogress-banner) — backdrop-filter is GPU-heavy,
+   and applying it to every card in a list of 20+ at once was the main cause of app-wide lag. */
+.login-card, .modal, .task-tabs, .task-add-panel, .panel-body,
+.acc-list-panel, .acc-detail-panel, .sess-section,
 #acPanel,
-.history-item, #page-taskshot .history-item, #page-taskshot .slot,
-.toast, .pinned-inprogress-banner {
+.toast {
   -webkit-backdrop-filter: blur(18px) saturate(160%);
   backdrop-filter: blur(18px) saturate(160%);
+}
+/* Repeated card/list elements: solid surface instead of blur, same look, far cheaper to paint */
+.card, .dash-card, .earnings-card, .task-card, .ac-flow-card,
+.acc-active-task, .history-item, #page-taskshot .history-item, #page-taskshot .slot,
+.pinned-inprogress-banner {
+  background: var(--surface);
 }
 
 body {
@@ -180,9 +186,9 @@ body {
   border-radius: 99px;
   letter-spacing: 0.2px;
 }
-.tag-fresh  { background: rgba(123,184,148,0.15); color: #8fbf9f; border: 1px solid rgba(123,184,148,0.3); animation: tagFreshPulse 2.2s ease-in-out infinite; }
-.tag-today  { background: rgba(203,161,90,0.15); color: #cba15a; border: 1px solid rgba(203,161,90,0.3); animation: tagTodayShimmer 1.8s ease-in-out infinite; }
-.tag-quicky { background: rgba(154,147,184,0.15); color: #a79bc4; border: 1px solid rgba(154,147,184,0.3); animation: tagQuickyFlash 1.1s ease-in-out infinite; }
+.tag-fresh  { background: rgba(123,184,148,0.15); color: #8fbf9f; border: 1px solid rgba(123,184,148,0.3); }
+.tag-today  { background: rgba(203,161,90,0.15); color: #cba15a; border: 1px solid rgba(203,161,90,0.3); }
+.tag-quicky { background: rgba(154,147,184,0.15); color: #a79bc4; border: 1px solid rgba(154,147,184,0.3); }
 
 @keyframes tagFreshPulse {
   0%, 100% { opacity: 1; }
@@ -406,8 +412,6 @@ body {
   flex-direction: column;
   gap: 8px;
 }
-#acPanelBody::-webkit-scrollbar { width: 4px; }
-#acPanelBody::-webkit-scrollbar-thumb { background: var(--jt-border); border-radius: 4px; }
 
 /* ── ADD/BULK TASK PANEL (docked right, like AC) ── */
 #taPanel {
@@ -523,8 +527,6 @@ body {
   flex-direction: column;
   gap: 10px;
 }
-#taPanelBody::-webkit-scrollbar { width: 4px; }
-#taPanelBody::-webkit-scrollbar-thumb { background: var(--jt-border); border-radius: 4px; }
 .ta-form-section { display: none; flex-direction: column; gap: 10px; }
 .ta-form-section.active { display: flex; }
 
@@ -631,9 +633,89 @@ body {
   display: flex;
   flex-direction: column;
 }
-#accDockPanelBody::-webkit-scrollbar { width: 4px; }
-#accDockPanelBody::-webkit-scrollbar-thumb { background: var(--jt-border); border-radius: 4px; }
 #accDockPanelBody .acc-list-items { max-height: none; flex: 1; overflow-y: visible; }
+
+/* ── PAYOUT SETTINGS DOCK PANEL (docked right, like AC & Accounts) ── */
+#payDockPanel {
+  position: fixed;
+  top: 0; right: 0;
+  height: 100vh;
+  width: 320px;
+  max-width: 100vw;
+  background: var(--surface);
+  border-left: 1.5px solid var(--jt-border);
+  box-shadow: -4px 0 24px rgba(0,0,0,0.10);
+  z-index: 800;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform 0.25s cubic-bezier(0.4,0,0.2,1);
+}
+#payDockPanel.pay-dock-open {
+  transform: translateX(0);
+}
+#payDockPanel.pay-dock-hidden {
+  display: none;
+}
+#payDockTab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  background: var(--jt-grad);
+  color: #fff;
+  width: 28px;
+  padding: 14px 0;
+  border-radius: 10px 0 0 10px;
+  cursor: pointer;
+  box-shadow: -2px 0 12px rgba(0,0,0,0.18);
+  transition: width 0.2s, background 0.15s;
+  writing-mode: vertical-rl;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  user-select: none;
+}
+#payDockTab:hover { background: linear-gradient(135deg,#1976D2,#1565C0); }
+#payDockTab.pay-dock-hidden { display: none; }
+#payDockTab.pay-dock-panel-open { pointer-events: none; }
+#payDockPanelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 14px 12px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  background: linear-gradient(135deg, rgba(154,158,166,0.10), rgba(154,147,184,0.06));
+}
+#payDockPanelTitle {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--jt);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+#payDockCollapseBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--jt);
+  font-size: 16px;
+  line-height: 1;
+  padding: 2px 4px;
+  border-radius: 6px;
+  transition: background 0.15s;
+}
+#payDockCollapseBtn:hover { background: var(--jt-border); }
+#payDockPanelBody {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px;
+}
 /* Flow card inside panel */
 .ac-flow-card {
   background: var(--surface2);
@@ -2074,67 +2156,7 @@ TaskRec01: task assigned, timer started.</div>
 
     </div><!-- /acc-mgmt-layout -->
 
-    <!-- Global Settings: JMPT Rate -->
-    <div style="margin-top:28px;">
-      <div class="sec-title">Global Payout Settings</div>
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px;">
-        <div style="font-family:var(--mono);font-size:12.1px;color:var(--ink3);margin-bottom:16px;line-height:1.6;">
-          Enter any known exchange reference — e.g. <em>"2 JMPT = $0.02"</em> or <em>"5 JMPT = $0.01"</em> — and the system will calculate the rate automatically.
-          The rate is used at the moment you mark a task <strong style="color:var(--jt);">Rewarded</strong> to convert USD → JMPT.
-          An account becomes <strong style="color:var(--jt);">Payout Ready</strong> when its JMPT balance reaches the threshold below.
-        </div>
-
-        <!-- Row 1: Flexible input — enter JMPT and USD amounts you know -->
-        <div style="display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap;margin-bottom:14px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;">
-          <div style="font-family:var(--mono);font-size:11px;color:var(--ink3);width:100%;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px;">Enter what you know:</div>
-          <div class="field" style="flex:1;min-width:100px;">
-            <label>JMPT Amount</label>
-            <input type="number" id="rateInputJmpt" min="0" step="any" placeholder="e.g. 2" oninput="calcRateFromInputs()" style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:14.3px;padding:9px 10px;outline:none;width:100%;">
-          </div>
-          <div style="font-family:var(--mono);font-size:15.4px;color:var(--ink3);padding-bottom:10px;">=</div>
-          <div class="field" style="flex:1;min-width:100px;">
-            <label>USD Amount ($)</label>
-            <input type="number" id="rateInputUsd" min="0" step="any" placeholder="e.g. 0.02" oninput="calcRateFromInputs()" style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:14.3px;padding:9px 10px;outline:none;width:100%;">
-          </div>
-          <div style="padding-bottom:10px;display:flex;flex-direction:column;align-items:flex-start;gap:3px;">
-            <span style="font-family:var(--mono);font-size:9.9px;color:var(--ink3);">Calculated rate:</span>
-            <span id="rateCalcPreview" style="font-family:var(--mono);font-size:13.2px;font-weight:700;color:var(--jt);">—</span>
-          </div>
-        </div>
-
-        <!-- Row 2: Resulting rate display + quick reference + save -->
-        <div style="display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:12px;">
-          <div class="field" style="flex:1;min-width:160px;">
-            <label>Saved Active Rate (JMPT per $0.01)</label>
-            <input type="number" id="globalJmptRateInput" min="0" step="any" placeholder="Auto-calculated or enter manually" oninput="updateJmptRatePreview()" style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:14.3px;padding:9px 10px;outline:none;width:100%;">
-          </div>
-          <div style="font-family:var(--mono);font-size:12.1px;color:var(--ink3);padding-bottom:10px;white-space:nowrap;">
-            → $1.00 = <strong id="globalJmptRatePreview" style="color:var(--jt);">—</strong>
-          </div>
-        </div>
-
-        <!-- Row 3: Payout threshold -->
-        <div style="display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;">
-          <div class="field" style="flex:1;min-width:160px;">
-            <label>Payout Ready Threshold (JMPT)</label>
-            <input type="number" id="globalPayoutThresholdInput" min="0" step="any" placeholder="0.5" style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:14.3px;padding:9px 10px;outline:none;width:100%;">
-          </div>
-          <div style="font-family:var(--mono);font-size:11px;color:var(--ink3);padding-bottom:10px;max-width:260px;line-height:1.5;">
-            Account auto-promotes to <strong style="color:var(--jt);">Payout Ready</strong> when JMPT balance ≥ this value, and reverts to <strong style="color:var(--green);">Active</strong> after payout.
-          </div>
-          <button class="btn-primary" style="padding:10px 20px;white-space:nowrap;" onclick="saveGlobalSettings()">Save Settings</button>
-        </div>
-
-        <!-- Quick reference examples -->
-        <div style="margin-top:12px;font-family:var(--mono);font-size:9.9px;color:var(--ink3);line-height:2;">
-          Quick fill:
-          <button onclick="quickFillRate(1,0.01)" style="margin-left:6px;padding:2px 10px;border-radius:99px;border:1px solid var(--border2);background:var(--surface3);color:var(--ink2);font-family:var(--mono);font-size:9.9px;cursor:pointer;">1 JMPT = $0.01</button>
-          <button onclick="quickFillRate(2,0.01)" style="margin-left:4px;padding:2px 10px;border-radius:99px;border:1px solid var(--border2);background:var(--surface3);color:var(--ink2);font-family:var(--mono);font-size:9.9px;cursor:pointer;">2 JMPT = $0.01</button>
-          <button onclick="quickFillRate(1,0.02)" style="margin-left:4px;padding:2px 10px;border-radius:99px;border:1px solid var(--border2);background:var(--surface3);color:var(--ink2);font-family:var(--mono);font-size:9.9px;cursor:pointer;">1 JMPT = $0.02</button>
-          <button onclick="quickFillRate(5,0.01)" style="margin-left:4px;padding:2px 10px;border-radius:99px;border:1px solid var(--border2);background:var(--surface3);color:var(--ink2);font-family:var(--mono);font-size:9.9px;cursor:pointer;">5 JMPT = $0.01</button>
-        </div>
-      </div>
-    </div>
+    <!-- Global Payout Settings moved to the docked "💵 Payout" panel (see #payDockPanel below) -->
 
   </div>
 
@@ -3340,6 +3362,8 @@ function showPage(id) {
   setTaPanelVisibility(id === 'tasks');
   // Accounts dock panel: only visible on Accounts tab
   if (typeof setAccDockVisibility === 'function') setAccDockVisibility(id === 'accounts');
+  // Payout settings dock panel: only visible on Accounts tab (open by default)
+  if (typeof setPayDockVisibility === 'function') setPayDockVisibility(id === 'accounts');
   // Hide scroll-to-top when leaving tasks page
   const stBtn = document.getElementById('taskScrollTopBtn');
   if (stBtn) stBtn.style.display = 'none';
@@ -3805,18 +3829,22 @@ window.setTaskSortDirDropdown = function(dir) {
   renderTasks();
 };
 
+let _taskSearchDebounceTimer = null;
 window.applyTaskSearch = function() {
-  const titleEl = document.getElementById('taskTitleSearch');
-  const fromEl  = document.getElementById('taskRangeFrom');
-  const toEl    = document.getElementById('taskRangeTo');
-  window._taskTitleSearch = titleEl ? titleEl.value : '';
-  const fromVal = fromEl && fromEl.value !== '' ? parseFloat(fromEl.value) : null;
-  const toVal   = toEl && toEl.value !== '' ? parseFloat(toEl.value) : null;
-  // Range search only active when BOTH fields are filled
-  window._taskRangeFrom = (fromVal !== null && toVal !== null) ? fromVal : null;
-  window._taskRangeTo   = (fromVal !== null && toVal !== null) ? toVal   : null;
-  taskPage = 0;
-  renderTasks();
+  clearTimeout(_taskSearchDebounceTimer);
+  _taskSearchDebounceTimer = setTimeout(() => {
+    const titleEl = document.getElementById('taskTitleSearch');
+    const fromEl  = document.getElementById('taskRangeFrom');
+    const toEl    = document.getElementById('taskRangeTo');
+    window._taskTitleSearch = titleEl ? titleEl.value : '';
+    const fromVal = fromEl && fromEl.value !== '' ? parseFloat(fromEl.value) : null;
+    const toVal   = toEl && toEl.value !== '' ? parseFloat(toEl.value) : null;
+    // Range search only active when BOTH fields are filled
+    window._taskRangeFrom = (fromVal !== null && toVal !== null) ? fromVal : null;
+    window._taskRangeTo   = (fromVal !== null && toVal !== null) ? toVal   : null;
+    taskPage = 0;
+    renderTasks();
+  }, 180);
 };
 
 window.clearTaskSearch = function() {
@@ -4851,6 +4879,12 @@ window.confirmAssign = function() {
 // ─────────────────────────────────────────
 // ACCOUNT MANAGEMENT
 // ─────────────────────────────────────────
+let _accListDebounceTimer = null;
+window.debouncedRenderAccList = function() {
+  clearTimeout(_accListDebounceTimer);
+  _accListDebounceTimer = setTimeout(renderAccList, 180);
+};
+
 function renderAccList() {
   const activeCount = accounts.filter(a => !a.deleted).length;
   const accCountEl = document.getElementById('accCount');
@@ -7556,6 +7590,9 @@ document.addEventListener('paste', function(e) {
     👤 Accounts
     <span id="accDockTabCount">0</span>
   </div>
+  <div id="payDockTab" class="pay-dock-hidden" onclick="togglePayDock()">
+    💵 Payout
+  </div>
 </div>
 
 <div id="acPanel" class="ac-hidden">
@@ -7588,6 +7625,9 @@ window.toggleActionCenter = function() {
     }
     if (typeof _accDockOpen !== 'undefined' && _accDockOpen && typeof window.toggleAccDock === 'function') {
       window.toggleAccDock();
+    }
+    if (typeof _payDockOpen !== 'undefined' && _payDockOpen && typeof window.togglePayDock === 'function') {
+      window.togglePayDock();
     }
     panel.classList.add('ac-open');
     tab.style.display = 'none';
@@ -7738,7 +7778,7 @@ function setAcPanelVisibility(visible) {
   </div>
   <div id="accDockToolbar">
     <button class="btn-primary" style="width:100%;padding:8px 10px;font-size:12.1px;" onclick="openAddAccountModal()">+ Add Account</button>
-    <input type="text" id="accSearchInput" oninput="renderAccList()" placeholder="🔍 Search accounts…" style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:12.1px;padding:7px 10px;outline:none;">
+    <input type="text" id="accSearchInput" oninput="debouncedRenderAccList()" placeholder="🔍 Search accounts…" style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:12.1px;padding:7px 10px;outline:none;">
     <div style="display:flex;align-items:center;gap:6px;">
       <span style="font-family:var(--mono);font-size:9.9px;color:var(--ink3);white-space:nowrap;">Sort:</span>
       <select id="accSortSelect" onchange="setAccSortDropdown(this.value)" style="flex:1;font-family:var(--mono);font-size:11.5px;padding:5px 8px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--surface2);color:var(--ink);cursor:pointer;outline:none;">
@@ -7752,6 +7792,73 @@ function setAcPanelVisibility(visible) {
   </div>
   <div id="accDockPanelBody">
     <div class="acc-list-items" id="accListItems"><div style="padding:24px;text-align:center;font-family:var(--mono);font-size:12.1px;color:var(--ink3);">No accounts yet</div></div>
+  </div>
+</div>
+
+<!-- ── PAYOUT SETTINGS DOCK PANEL (fixed, right-docked) ── -->
+<div id="payDockPanel" class="pay-dock-hidden">
+  <div id="payDockPanelHeader">
+    <div id="payDockPanelTitle">
+      <span>💵</span> Global Payout Settings
+    </div>
+    <button id="payDockCollapseBtn" onclick="togglePayDock()" title="Collapse">›</button>
+  </div>
+  <div id="payDockPanelBody">
+    <div style="font-family:var(--mono);font-size:11.5px;color:var(--ink3);margin-bottom:14px;line-height:1.6;">
+      Enter any known exchange reference — e.g. <em>"2 JMPT = $0.02"</em> or <em>"5 JMPT = $0.01"</em> — and the system will calculate the rate automatically.
+      The rate is used at the moment you mark a task <strong style="color:var(--jt);">Rewarded</strong> to convert USD → JMPT.
+      An account becomes <strong style="color:var(--jt);">Payout Ready</strong> when its JMPT balance reaches the threshold below.
+    </div>
+
+    <!-- Row 1: Flexible input — enter JMPT and USD amounts you know -->
+    <div style="display:flex;align-items:flex-end;gap:8px;flex-wrap:wrap;margin-bottom:12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;">
+      <div style="font-family:var(--mono);font-size:10px;color:var(--ink3);width:100%;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px;">Enter what you know:</div>
+      <div class="field" style="flex:1;min-width:80px;">
+        <label>JMPT Amount</label>
+        <input type="number" id="rateInputJmpt" min="0" step="any" placeholder="e.g. 2" oninput="calcRateFromInputs()" style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:13px;padding:8px 9px;outline:none;width:100%;">
+      </div>
+      <div style="font-family:var(--mono);font-size:14px;color:var(--ink3);padding-bottom:9px;">=</div>
+      <div class="field" style="flex:1;min-width:80px;">
+        <label>USD Amount ($)</label>
+        <input type="number" id="rateInputUsd" min="0" step="any" placeholder="e.g. 0.02" oninput="calcRateFromInputs()" style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:13px;padding:8px 9px;outline:none;width:100%;">
+      </div>
+      <div style="padding-bottom:9px;display:flex;flex-direction:column;align-items:flex-start;gap:3px;width:100%;">
+        <span style="font-family:var(--mono);font-size:9.5px;color:var(--ink3);">Calculated rate:</span>
+        <span id="rateCalcPreview" style="font-family:var(--mono);font-size:12.5px;font-weight:700;color:var(--jt);">—</span>
+      </div>
+    </div>
+
+    <!-- Row 2: Resulting rate display -->
+    <div style="display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
+      <div class="field" style="flex:1;min-width:140px;">
+        <label>Saved Active Rate (JMPT per $0.01)</label>
+        <input type="number" id="globalJmptRateInput" min="0" step="any" placeholder="Auto-calculated or enter manually" oninput="updateJmptRatePreview()" style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:13px;padding:8px 9px;outline:none;width:100%;">
+      </div>
+      <div style="font-family:var(--mono);font-size:11px;color:var(--ink3);padding-bottom:9px;white-space:nowrap;width:100%;">
+        → $1.00 = <strong id="globalJmptRatePreview" style="color:var(--jt);">—</strong>
+      </div>
+    </div>
+
+    <!-- Row 3: Payout threshold -->
+    <div style="display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap;margin-bottom:12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;">
+      <div class="field" style="flex:1;min-width:140px;">
+        <label>Payout Ready Threshold (JMPT)</label>
+        <input type="number" id="globalPayoutThresholdInput" min="0" step="any" placeholder="0.5" style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:13px;padding:8px 9px;outline:none;width:100%;">
+      </div>
+      <div style="font-family:var(--mono);font-size:10.5px;color:var(--ink3);padding-bottom:9px;line-height:1.5;">
+        Account auto-promotes to <strong style="color:var(--jt);">Payout Ready</strong> when JMPT balance ≥ this value, and reverts to <strong style="color:var(--green);">Active</strong> after payout.
+      </div>
+      <button class="btn-primary" style="width:100%;padding:9px 10px;white-space:nowrap;" onclick="saveGlobalSettings()">Save Settings</button>
+    </div>
+
+    <!-- Quick reference examples -->
+    <div style="margin-top:8px;font-family:var(--mono);font-size:9.5px;color:var(--ink3);line-height:2;">
+      Quick fill:<br>
+      <button onclick="quickFillRate(1,0.01)" style="margin:2px 4px 0 0;padding:2px 10px;border-radius:99px;border:1px solid var(--border2);background:var(--surface3);color:var(--ink2);font-family:var(--mono);font-size:9.5px;cursor:pointer;">1 JMPT = $0.01</button>
+      <button onclick="quickFillRate(2,0.01)" style="margin:2px 4px 0 0;padding:2px 10px;border-radius:99px;border:1px solid var(--border2);background:var(--surface3);color:var(--ink2);font-family:var(--mono);font-size:9.5px;cursor:pointer;">2 JMPT = $0.01</button>
+      <button onclick="quickFillRate(1,0.02)" style="margin:2px 4px 0 0;padding:2px 10px;border-radius:99px;border:1px solid var(--border2);background:var(--surface3);color:var(--ink2);font-family:var(--mono);font-size:9.5px;cursor:pointer;">1 JMPT = $0.02</button>
+      <button onclick="quickFillRate(5,0.01)" style="margin:2px 4px 0 0;padding:2px 10px;border-radius:99px;border:1px solid var(--border2);background:var(--surface3);color:var(--ink2);font-family:var(--mono);font-size:9.5px;cursor:pointer;">5 JMPT = $0.01</button>
+    </div>
   </div>
 </div>
 
@@ -7772,6 +7879,9 @@ window.toggleAccDock = function() {
     }
     if (typeof _taOpen !== 'undefined' && _taOpen && typeof window.toggleTaskAddPanel === 'function') {
       window.toggleTaskAddPanel();
+    }
+    if (typeof _payDockOpen !== 'undefined' && _payDockOpen && typeof window.togglePayDock === 'function') {
+      window.togglePayDock();
     }
     panel.classList.add('acc-dock-open');
     tab.style.display = 'none';
@@ -7800,6 +7910,58 @@ function setAccDockVisibility(visible) {
     panel.classList.remove('acc-dock-open');
   }
 }
+
+// ── PAYOUT SETTINGS DOCK PANEL LOGIC ──────────────────────────────────────
+let _payDockOpen = true;
+let _payDockToggling = false;
+
+window.togglePayDock = function() {
+  if (_payDockToggling) return;
+  _payDockToggling = true;
+  _payDockOpen = !_payDockOpen;
+  const panel = document.getElementById('payDockPanel');
+  const tab   = document.getElementById('payDockTab');
+  if (_payDockOpen) {
+    if (typeof _acOpen !== 'undefined' && _acOpen && typeof window.toggleActionCenter === 'function') {
+      window.toggleActionCenter();
+    }
+    if (typeof _taOpen !== 'undefined' && _taOpen && typeof window.toggleTaskAddPanel === 'function') {
+      window.toggleTaskAddPanel();
+    }
+    if (typeof _accDockOpen !== 'undefined' && _accDockOpen && typeof window.toggleAccDock === 'function') {
+      window.toggleAccDock();
+    }
+    panel.classList.add('pay-dock-open');
+    tab.style.display = 'none';
+    tab.classList.add('pay-dock-panel-open');
+  } else {
+    panel.classList.remove('pay-dock-open');
+    tab.style.display = '';
+    tab.classList.remove('pay-dock-panel-open');
+  }
+  setTimeout(() => { _payDockToggling = false; }, 50);
+};
+
+function setPayDockVisibility(visible) {
+  const panel = document.getElementById('payDockPanel');
+  const tab   = document.getElementById('payDockTab');
+  if (!panel || !tab) return;
+  if (visible) {
+    panel.classList.remove('pay-dock-hidden');
+    tab.classList.remove('pay-dock-hidden');
+    if (_payDockOpen) {
+      panel.classList.add('pay-dock-open');
+      tab.style.display = 'none';
+      tab.classList.add('pay-dock-panel-open');
+    } else {
+      tab.style.display = '';
+    }
+  } else {
+    panel.classList.add('pay-dock-hidden');
+    tab.classList.add('pay-dock-hidden');
+    panel.classList.remove('pay-dock-open');
+  }
+}
 </script>
 
 <script>
@@ -7819,6 +7981,9 @@ window.toggleTaskAddPanel = function() {
     }
     if (typeof _accDockOpen !== 'undefined' && _accDockOpen && typeof window.toggleAccDock === 'function') {
       window.toggleAccDock();
+    }
+    if (typeof _payDockOpen !== 'undefined' && _payDockOpen && typeof window.togglePayDock === 'function') {
+      window.togglePayDock();
     }
     panel.classList.add('ta-open');
     tab.style.display = 'none';
@@ -7874,6 +8039,8 @@ document.addEventListener('click', function(e) {
   const taTab   = document.getElementById('taTab');
   const accDockPanel = document.getElementById('accDockPanel');
   const accDockTab   = document.getElementById('accDockTab');
+  const payDockPanel = document.getElementById('payDockPanel');
+  const payDockTab   = document.getElementById('payDockTab');
 
   if (typeof _acOpen !== 'undefined' && _acOpen && acPanel && acTab &&
       !acPanel.contains(e.target) && !acTab.contains(e.target)) {
@@ -7886,6 +8053,10 @@ document.addEventListener('click', function(e) {
   if (typeof _accDockOpen !== 'undefined' && _accDockOpen && accDockPanel && accDockTab &&
       !accDockPanel.contains(e.target) && !accDockTab.contains(e.target)) {
     window.toggleAccDock();
+  }
+  if (typeof _payDockOpen !== 'undefined' && _payDockOpen && payDockPanel && payDockTab &&
+      !payDockPanel.contains(e.target) && !payDockTab.contains(e.target)) {
+    window.togglePayDock();
   }
 });
 </script>
