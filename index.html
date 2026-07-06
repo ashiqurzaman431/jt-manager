@@ -1625,7 +1625,7 @@ select option { background: var(--surface3); color: var(--ink); }
   </div>
 
   <!-- FLOATING UNSAVED-CHANGES INDICATOR (always visible, even when scrolled) -->
-  <div class="unsaved-float" id="unsavedFloat" title="Unsaved changes — use Save to Drive">
+  <div class="unsaved-float" id="unsavedFloat" title="Unsaved changes — use Save to Drive" onclick="performSaveToDrive()" style="cursor:pointer;">
     <span class="dot"></span> Unsaved changes
   </div>
 
@@ -1640,7 +1640,7 @@ select option { background: var(--surface3); color: var(--ink); }
     </div>
     <div class="drive-indicator-row">
       <div class="drive-dot green" id="driveDot" title="Drive: just saved"></div>
-      <div class="unsaved-dot" id="unsavedDot" title="Unsaved changes"></div>
+      <div class="unsaved-dot" id="unsavedDot" title="Unsaved changes" onclick="performSaveToDrive()" style="cursor:pointer;"></div>
       <button class="user-pill" id="userPill" onclick="gisSignOut()" title="Click to sign out" style="display:none;">
         <div class="user-avatar" id="userAvatar"></div>
         <span id="userNameShort">User</span>
@@ -2420,6 +2420,18 @@ TaskRec01: task assigned, timer started.</div>
 <div id="imgLightbox" onclick="closeLightbox()" style="display: none; position: fixed; inset: 0px; background: rgba(13, 27, 62, 0.82); backdrop-filter: blur(6px); z-index: 900; align-items: center; justify-content: center; cursor: zoom-out;">
   <img id="imgLightboxImg" src="" alt="thumbnail" style="max-width:92vw;max-height:88vh;border-radius:12px;box-shadow:0 8px 48px rgba(0,0,0,0.5);">
   <div style="position:absolute;top:18px;right:22px;color:#fff;font-size:28.6px;cursor:pointer;opacity:0.7;line-height:1;" onclick="closeLightbox()">✕</div>
+</div>
+
+<!-- MODAL: Task media preview (thumbnail / Drive preview) — replaces window.open so it stays inside the PWA window -->
+<div id="mediaPreviewModal" style="display:none; position:fixed; inset:0px; background:rgba(13,27,62,0.82); backdrop-filter:blur(6px); z-index:900; align-items:center; justify-content:center;">
+  <div style="width:92vw;height:88vh;max-width:1000px;background:#111;border-radius:12px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 8px 48px rgba(0,0,0,0.5);">
+    <div style="background:#1a1a1a;border-bottom:1px solid #333;padding:8px 14px;font-family:var(--mono);font-size:13px;color:#ccc;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;">
+      <span id="mediaPreviewTitle">Preview</span>
+      <span style="cursor:pointer;opacity:0.7;font-size:18px;" onclick="closeMediaPreviewModal()">✕</span>
+    </div>
+    <div id="mediaPreviewBody" style="flex:1;display:flex;align-items:center;justify-content:center;overflow:auto;background:#111;">
+    </div>
+  </div>
 </div>
 
 <!-- MODAL: Status Note (replaces prompt()) -->
@@ -4317,20 +4329,31 @@ let _driveThumbnailCacheTime = 0;
 const DRIVE_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 const THUMB_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx4oO5T4DNFyD-jkRlvw4Lhg_7EFhafpRaIJZ9Jakt0ErbhE1Su_ZzCKWhyQF_z_e2y/exec';
 
+window.openMediaPreviewModal = function(title) {
+  document.getElementById('mediaPreviewTitle').textContent = title || 'Preview';
+  document.getElementById('mediaPreviewModal').style.display = 'flex';
+};
+window.closeMediaPreviewModal = function() {
+  document.getElementById('mediaPreviewModal').style.display = 'none';
+  document.getElementById('mediaPreviewBody').innerHTML = '';
+};
+
 window.openTaskMediaModal = async function(taskId) {
   const t = tasks.find(x => x.id === taskId);
   if (!t) return;
   const titleText = (t.title || 'Task preview').trim().toLowerCase();
+  const body = document.getElementById('mediaPreviewBody');
 
-  // Local base64 thumbnail — open immediately, no network needed
+  // Local base64 thumbnail — show immediately, no network needed
   if (t.thumbnail) {
-    window.open(t.thumbnail, '_blank');
+    openMediaPreviewModal(t.title);
+    body.innerHTML = `<img src="${t.thumbnail}" style="max-width:100%;max-height:100%;object-fit:contain;">`;
     return;
   }
 
-  // Open a blank tab immediately (must be inside click handler to avoid popup block)
-  const newTab = window.open('', '_blank');
-  if (newTab) newTab.document.write(`<html><head><title>${t.title}</title></head><body style="background:#111;color:#aaa;font-family:monospace;padding:40px;font-size:14px;">Loading thumbnail for <b style="color:#fff;">${t.title}</b>…</body></html>`);
+  // Show the modal immediately with a loading state, then fetch
+  openMediaPreviewModal(t.title);
+  body.innerHTML = `<div style="color:#aaa;font-family:monospace;padding:40px;font-size:14px;text-align:center;">Loading thumbnail for <b style="color:#fff;">${t.title}</b>…</div>`;
 
   try {
     const url = `${THUMB_SCRIPT_URL}?action=findImage&title=${encodeURIComponent(t.title)}`;
@@ -4338,21 +4361,16 @@ window.openTaskMediaModal = async function(taskId) {
     const data = await res.json();
 
     if (!data.ok) {
-      if (newTab) newTab.close();
+      closeMediaPreviewModal();
       toast(data.error || 'No matching image found for this task.');
       return;
     }
 
     const previewUrl = `https://drive.google.com/file/d/${data.fileId}/preview`;
-    if (newTab) {
-      newTab.document.write(`<!DOCTYPE html><html><head><title>${t.title}</title><style>*{margin:0;padding:0;box-sizing:border-box;}body{background:#111;display:flex;flex-direction:column;height:100vh;}#bar{background:#1a1a1a;border-bottom:1px solid #333;padding:8px 14px;font-family:monospace;font-size:13px;color:#ccc;flex-shrink:0;}#bar b{color:#fff;}iframe{flex:1;border:none;width:100%;}</style></head><body><div id="bar">📋 Task: <b>${t.title}</b></div><iframe src="${previewUrl}" allowfullscreen></iframe></body></html>`);
-      newTab.document.close();
-    } else {
-      window.open(previewUrl, '_blank');
-    }
+    body.innerHTML = `<iframe src="${previewUrl}" style="width:100%;height:100%;border:none;" allowfullscreen></iframe>`;
   } catch (err) {
     console.error(err);
-    if (newTab) newTab.close();
+    closeMediaPreviewModal();
     toast('Error loading thumbnail: ' + (err.message || err));
   }
 };
@@ -6397,7 +6415,7 @@ function _triggerLocalDownload(content, filename, mimeType = 'text/plain') {
   }
 }
 
-// ── Save to Drive (or local fallback) — now runs automatically every 10s ──
+// ── Save to Drive (or local fallback) — triggered by clicking the unsaved dot ──
 async function performSaveToDrive() {
   if (isGuestMode) return;
   if (!_hasUnsaved) return; // nothing changed, skip the upload
@@ -6446,7 +6464,6 @@ async function performSaveToDrive() {
     markUnsaved(false);
   }
 }
-setInterval(performSaveToDrive, 10000);
 
 // ─────────────────────────────────────────
 // RAIN CANVAS
