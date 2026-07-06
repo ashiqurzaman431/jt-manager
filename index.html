@@ -2464,8 +2464,8 @@ TaskRec01: task assigned, timer started.</div>
     <!-- Add new link -->
     <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;display:flex;flex-direction:column;gap:8px;">
       <div style="font-family:var(--mono);font-size:11px;color:var(--ink3);text-transform:uppercase;font-weight:600;">Add New Link</div>
-      <div class="field"><label>Label (optional)</label><input type="text" id="newLinkLabel" placeholder="e.g. YouTube video, Google search..."></div>
-      <div class="field"><label>URL</label><input type="text" id="newLinkUrl" placeholder="https://..."></div>
+      <div class="field"><label>Label (optional)</label><input type="text" id="newLinkLabel" placeholder="e.g. YouTube video, Google search..." onkeydown="if(event.key==='Enter')addLink()"></div>
+      <div class="field"><label>URL</label><input type="text" id="newLinkUrl" placeholder="https://..." onkeydown="if(event.key==='Enter')addLink()"></div>
       <button class="btn-primary" style="width:100%;" onclick="addLink()">+ Add Link</button>
     </div>
     <div class="modal-actions" style="margin-top:14px;">
@@ -8072,6 +8072,20 @@ window.taShowTab = function(which) {
 };
 
 // ── Click outside either docked panel closes it ──────────────────────────
+// NOTE: some in-panel buttons (e.g. Action Center's Search/Visited/Completed
+// step buttons) re-render their container's innerHTML on click, which detaches
+// the clicked element from the DOM *before* this document-level listener runs.
+// A detached node fails el.contains(e.target) even though the click genuinely
+// happened inside the panel. e.composedPath() is captured at dispatch time and
+// stays valid regardless of later DOM mutations, so we use that instead.
+function _pathContains(e, el) {
+  if (!el) return false;
+  if (typeof e.composedPath === 'function') {
+    return e.composedPath().includes(el);
+  }
+  return el.contains(e.target);
+}
+
 document.addEventListener('click', function(e) {
   const acPanel = document.getElementById('acPanel');
   const acTab   = document.getElementById('acTab');
@@ -8083,19 +8097,19 @@ document.addEventListener('click', function(e) {
   const payDockTab   = document.getElementById('payDockTab');
 
   if (typeof _acOpen !== 'undefined' && _acOpen && acPanel && acTab &&
-      !acPanel.contains(e.target) && !acTab.contains(e.target)) {
+      !_pathContains(e, acPanel) && !_pathContains(e, acTab)) {
     window.toggleActionCenter();
   }
   if (typeof _taOpen !== 'undefined' && _taOpen && taPanel && taTab &&
-      !taPanel.contains(e.target) && !taTab.contains(e.target)) {
+      !_pathContains(e, taPanel) && !_pathContains(e, taTab)) {
     window.toggleTaskAddPanel();
   }
   if (typeof _accDockOpen !== 'undefined' && _accDockOpen && accDockPanel && accDockTab &&
-      !accDockPanel.contains(e.target) && !accDockTab.contains(e.target)) {
+      !_pathContains(e, accDockPanel) && !_pathContains(e, accDockTab)) {
     window.toggleAccDock();
   }
   if (typeof _payDockOpen !== 'undefined' && _payDockOpen && payDockPanel && payDockTab &&
-      !payDockPanel.contains(e.target) && !payDockTab.contains(e.target)) {
+      !_pathContains(e, payDockPanel) && !_pathContains(e, payDockTab)) {
     window.togglePayDock();
   }
 });
