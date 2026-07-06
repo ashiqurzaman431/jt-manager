@@ -1493,20 +1493,20 @@ select option { background: var(--surface3); color: var(--ink); }
   animation:dotpulse 1.4s infinite;
 }
 .unsaved-dot.visible { display:inline-block; }
-/* Floating unsaved-changes badge — stays visible while scrolled */
+/* Floating Save Data button — stays visible while scrolled, shown while there are unsaved changes */
 .unsaved-float {
   position:fixed; bottom:85px; right:20px; z-index:1000;
   display:none; align-items:center; gap:8px;
-  background:#fff8f0; border:1px solid #d97706; color:#b45309;
-  font-family:var(--mono); font-size:12px; font-weight:600;
-  padding:8px 14px; border-radius:99px;
-  box-shadow:0 6px 20px rgba(203,161,90,0.25);
-  animation:dotpulse 1.4s infinite;
+  background:#d97706; border:1px solid #d97706; color:#fff;
+  font-family:var(--mono); font-size:13px; font-weight:700;
+  padding:10px 18px; border-radius:99px;
+  box-shadow:0 6px 20px rgba(203,161,90,0.35);
+  cursor:pointer; transition:transform 0.15s ease, box-shadow 0.15s ease;
+  -webkit-appearance:none; appearance:none; outline:none;
 }
+.unsaved-float:hover { transform:translateY(-1px); box-shadow:0 8px 24px rgba(203,161,90,0.45); }
+.unsaved-float:active { transform:translateY(0); }
 .unsaved-float.visible { display:flex; }
-.unsaved-float .dot {
-  width:8px; height:8px; border-radius:50%; background:#d97706; flex-shrink:0;
-}
 
 .task-archived {
   opacity: 0.65;
@@ -1741,10 +1741,10 @@ select option { background: var(--surface3); color: var(--ink); }
     <button onclick="document.getElementById('conflictBar').classList.remove('visible')">Dismiss</button>
   </div>
 
-  <!-- FLOATING UNSAVED-CHANGES INDICATOR (always visible, even when scrolled) -->
-  <div class="unsaved-float" id="unsavedFloat" title="Unsaved changes — use Save to Drive" onclick="performSaveToDrive()" style="cursor:pointer;">
-    <span class="dot"></span> Unsaved changes
-  </div>
+  <!-- FLOATING SAVE DATA BUTTON (shown while there are unsaved changes, stays visible while scrolled) -->
+  <button class="unsaved-float" id="unsavedFloat" title="Save your data to Drive" onclick="performSaveToDrive(true)">
+    💾 Save Data
+  </button>
 
   <!-- TOP BAR -->
   <div class="topbar">
@@ -1757,7 +1757,7 @@ select option { background: var(--surface3); color: var(--ink); }
     </div>
     <div class="drive-indicator-row">
       <div class="drive-dot green" id="driveDot" title="Drive: just saved"></div>
-      <div class="unsaved-dot" id="unsavedDot" title="Unsaved changes" onclick="performSaveToDrive()" style="cursor:pointer;"></div>
+      <div class="unsaved-dot" id="unsavedDot" title="Unsaved changes — tap Save Data" onclick="performSaveToDrive(true)" style="cursor:pointer;"></div>
       <button class="user-pill" id="userPill" onclick="gisSignOut()" title="Click to sign out" style="display:none;">
         <div class="user-avatar" id="userAvatar"></div>
         <span id="userNameShort">User</span>
@@ -6484,10 +6484,14 @@ function _triggerLocalDownload(content, filename, mimeType = 'text/plain') {
   }
 }
 
-// ── Save to Drive (or local fallback) — triggered by clicking the unsaved dot ──
-async function performSaveToDrive() {
-  if (isGuestMode) return;
-  if (!_hasUnsaved) return; // nothing changed, skip the upload
+// ── Save to Drive (or local fallback) — triggered by tapping Save Data ──
+async function performSaveToDrive(force) {
+  if (isGuestMode) { toast('Sign in first — guest mode can\'t save to Drive.'); return; }
+  if (!force && !_hasUnsaved) return; // background/auto calls: nothing changed, skip silently
+  if (force && !_hasUnsaved) {
+    toast('Nothing to save — no changes since last save.');
+    return;
+  }
 
   const d = new Date();
   const y = d.getFullYear();
