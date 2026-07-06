@@ -330,6 +330,7 @@ body {
 }
 /* The collapsed tab badge sticking out from right edge */
 #acTab {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -338,7 +339,7 @@ body {
   background: var(--jt-grad);
   color: #fff;
   width: 28px;
-  padding: 14px 0;
+  padding: 14px 0 30px;
   border-radius: 10px 0 0 10px;
   cursor: pointer;
   box-shadow: -2px 0 12px rgba(0,0,0,0.18);
@@ -353,6 +354,10 @@ body {
 #acTab:hover { background: linear-gradient(135deg,#1976D2,#1565C0); }
 #acTab.ac-hidden { display: none; }
 #acTabCount {
+  position: absolute;
+  left: 50%;
+  bottom: 10px;
+  transform: translateX(-50%);
   display: inline-block;
   background: rgba(255,255,255,0.25);
   border-radius: 99px;
@@ -360,7 +365,6 @@ body {
   font-size: 10px;
   font-weight: 700;
   writing-mode: horizontal-tb;
-  margin-top: 4px;
   min-width: 18px;
   text-align: center;
 }
@@ -420,7 +424,7 @@ body {
   height: 100vh;
   width: 300px;
   max-width: 100vw;
-  background: var(--surface);
+  background: rgba(51, 55, 80, 0.61);
   border-left: 1.5px solid var(--jt-border);
   box-shadow: -4px 0 24px rgba(0,0,0,0.10);
   z-index: 800;
@@ -478,6 +482,15 @@ body {
   display: flex;
   align-items: center;
   gap: 7px;
+  line-height: 1;
+  white-space: nowrap;
+}
+#taPanelTitle > span:first-child {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px;
+  font-size: 13px;
 }
 #taCollapseBtn {
   background: none;
@@ -537,7 +550,7 @@ body {
   height: 100vh;
   width: 300px;
   max-width: 100vw;
-  background: var(--surface);
+  background: rgba(51, 55, 80, 0.61);
   border-left: 1.5px solid var(--jt-border);
   box-shadow: -4px 0 24px rgba(0,0,0,0.10);
   z-index: 800;
@@ -554,6 +567,7 @@ body {
 }
 /* The collapsed tab badge sticking out from right edge — stacked with the other dock tabs */
 #accDockTab {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -562,7 +576,7 @@ body {
   background: var(--jt-grad);
   color: #fff;
   width: 28px;
-  padding: 14px 0;
+  padding: 14px 0 30px;
   border-radius: 10px 0 0 10px;
   cursor: pointer;
   box-shadow: -2px 0 12px rgba(0,0,0,0.18);
@@ -578,6 +592,10 @@ body {
 #accDockTab.acc-dock-hidden { display: none; }
 #accDockTab.acc-dock-panel-open { pointer-events: none; }
 #accDockTabCount {
+  position: absolute;
+  left: 50%;
+  bottom: 10px;
+  transform: translateX(-50%);
   display: inline-block;
   background: rgba(255,255,255,0.25);
   border-radius: 99px;
@@ -585,7 +603,6 @@ body {
   font-size: 10px;
   font-weight: 700;
   writing-mode: horizontal-tb;
-  margin-top: 4px;
   min-width: 18px;
   text-align: center;
 }
@@ -606,6 +623,15 @@ body {
   display: flex;
   align-items: center;
   gap: 7px;
+  line-height: 1;
+  white-space: nowrap;
+}
+#accDockPanelTitle > span:first-child {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px;
+  font-size: 13px;
 }
 #accDockCollapseBtn {
   background: none;
@@ -642,7 +668,7 @@ body {
   height: 100vh;
   width: 320px;
   max-width: 100vw;
-  background: var(--surface);
+  background: rgba(51, 55, 80, 0.61);
   border-left: 1.5px solid var(--jt-border);
   box-shadow: -4px 0 24px rgba(0,0,0,0.10);
   z-index: 800;
@@ -698,6 +724,15 @@ body {
   display: flex;
   align-items: center;
   gap: 7px;
+  line-height: 1;
+  white-space: nowrap;
+}
+#payDockPanelTitle > span:first-child {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px;
+  font-size: 13px;
 }
 #payDockCollapseBtn {
   background: none;
@@ -1460,7 +1495,7 @@ select option { background: var(--surface3); color: var(--ink); }
 .unsaved-dot.visible { display:inline-block; }
 /* Floating unsaved-changes badge — stays visible while scrolled */
 .unsaved-float {
-  position:fixed; bottom:65px; right:20px; z-index:500;
+  position:fixed; bottom:85px; right:20px; z-index:1000;
   display:none; align-items:center; gap:8px;
   background:#fff8f0; border:1px solid #d97706; color:#b45309;
   font-family:var(--mono); font-size:12px; font-weight:600;
