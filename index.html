@@ -109,11 +109,7 @@ body {
   overflow-x: hidden;
 }
 
-#rain-canvas {
-  position:fixed; top:0; left:0;
-  width:100%; height:100%;
-  pointer-events:none; z-index:0; opacity:0.06;
-}
+/* #rain-canvas removed — was a full-screen 60fps GPU/CPU drain, see JS removal note */
 
 .app { position:relative; z-index:1; max-width:1300px; margin:0 auto; padding:0 18px; }
 
@@ -1709,8 +1705,6 @@ select option { background: var(--surface3); color: var(--ink); }
 </head>
 <body>
 
-<canvas id="rain-canvas" width="1366" height="657"></canvas>
-
 <!-- ── GOOGLE LOGIN OVERLAY ── -->
 <div id="loginOverlay" class="hidden">
   <div class="login-card">
@@ -3305,6 +3299,7 @@ let assigningTaskId = null;
 let thumbBase64 = null;
 let thumbModalBase64 = null;
 let accSort = 'default';
+let activeTaskSort = 'newest'; // 'newest' | 'name_asc' — sort for the per-account Active Tasks list
 let pendingStatusChange = null;
 
 // ─────────────────────────────────────────
@@ -3597,6 +3592,41 @@ function renderDashboard() {
   if (!accounts.some(a => !a.deleted)) {
     document.getElementById('dashCards').innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="es-icon">◈</div>No accounts yet — add one in Account Management</div>`;
   } else {
+    // Single pass over all tasks/assignments to build per-account aggregates.
+    // Previously calcBalance/calcJmptBalance/getAccountActiveTasks were each
+    // called multiple times per account (sort + card + 2x inline calcs),
+    // rescanning the entire tasks list every time — this replaces all of
+    // that with one O(tasks) pass regardless of account count.
+    const _rate = globalSettings.jmptRate || 0;
+    const _agg = new Map();
+    accounts.forEach(a => { if (!a.deleted) _agg.set(a.id, {activeTasks:[], completedDue:0, pendingUsd:0, pendingJmpt:0, rewardedUsd:0, rewardedJmpt:0}); });
+    tasks.forEach(task => {
+      (task.assignments||[]).forEach(asgn => {
+        const agg = _agg.get(asgn.accountId);
+        if (!agg) return;
+        if (asgn.status !== 'rewarded') {
+          agg.activeTasks.push({task, assignment: asgn});
+          if (asgn.status === 'completed') agg.completedDue++;
+        }
+        if (asgn.status === 'completed' || asgn.status === 'assigned') {
+          const usd = parseFloat(asgn.reward || task.defaultReward || 0);
+          agg.pendingUsd += usd;
+          agg.pendingJmpt += _rate > 0 ? parseFloat(((usd/0.01)*_rate).toFixed(6)) : 0;
+        } else if (asgn.status === 'rewarded') {
+          agg.rewardedUsd += parseFloat(asgn.reward || task.defaultReward || 0);
+          agg.rewardedJmpt += parseFloat(asgn.jmptEarned || 0);
+        }
+      });
+    });
+    accounts.forEach(a => {
+      if (a.deleted) return;
+      const agg = _agg.get(a.id);
+      const withdrawn = (a.payoutHistory||[]).reduce((s,p) => s + parseFloat(p.amount||0), 0);
+      const jmptWithdrawn = (a.payoutHistory||[]).reduce((s,p) => s + parseFloat(p.jmptAmount||0), 0);
+      agg.balance = agg.rewardedUsd - withdrawn;
+      agg.jmptBalance = agg.rewardedJmpt - jmptWithdrawn;
+    });
+
     const sortedForDash = [...accounts]
       .filter(a => a.status !== 'dead' && !a.deleted)
       .sort((a, b) => {
@@ -3605,23 +3635,22 @@ function renderDashboard() {
       const bReady = b.status === 'payout_ready' ? 1 : 0;
       if (bReady !== aReady) return bReady - aReady;
       // then by USD balance desc
-      const aBal = calcBalance(a.id);
-      const bBal = calcBalance(b.id);
+      const aBal = _agg.get(a.id).balance;
+      const bBal = _agg.get(b.id).balance;
       if (bBal !== aBal) return bBal - aBal;
       // then by due rewards (completed tasks) desc
-      const aDue = getAccountActiveTasks(a.id).filter(t => t.assignment.status === 'completed').length;
-      const bDue = getAccountActiveTasks(b.id).filter(t => t.assignment.status === 'completed').length;
-      return bDue - aDue;
+      return _agg.get(b.id).completedDue - _agg.get(a.id).completedDue;
     });
 
     document.getElementById('dashCards').innerHTML = sortedForDash.map(a => {
-      const activeTasks = getAccountActiveTasks(a.id);
-      const balance = calcBalance(a.id);
-      const jmptBal = calcJmptBalance(a.id);
-      const tasksDue = activeTasks.filter(t => t.assignment.status === 'completed').length;
+      const agg = _agg.get(a.id);
+      const balance = agg.balance;
+      const jmptBal = agg.jmptBalance;
       const lastPayout = a.payoutHistory && a.payoutHistory.length ? a.payoutHistory[a.payoutHistory.length-1] : null;
       const lastTaskAssign = getLastTaskTime(a.id);
       const flag = countryFlag(a.country);
+      const expectedUsd = balance + agg.pendingUsd;
+      const expectedJmpt = jmptBal + agg.pendingJmpt;
       return `
       <div class="dash-card${a.status==='payout_ready' ? ' dash-card-ready' : ''}">
         <div class="dash-card-head">
@@ -3642,11 +3671,11 @@ function renderDashboard() {
           </div>
           <div class="dash-meta-item">
             <div class="dash-meta-label">Expected USD</div>
-            <div class="dash-meta-val amber">${(() => { let cu=0; tasks.forEach(t=>(t.assignments||[]).forEach(asn=>{ if(asn.accountId===a.id&&(asn.status==='completed'||asn.status==='assigned')) cu+=parseFloat(asn.reward||t.defaultReward||0); })); return (balance+cu)>0?fmtUSDT(balance+cu):'—'; })()}</div>
+            <div class="dash-meta-val amber">${expectedUsd > 0 ? fmtUSDT(expectedUsd) : '—'}</div>
           </div>
           <div class="dash-meta-item">
             <div class="dash-meta-label">Expected JMPT</div>
-            <div class="dash-meta-val" style="color:var(--amber);font-weight:700;">${(() => { const rate=globalSettings.jmptRate||0; let cj=0; tasks.forEach(t=>(t.assignments||[]).forEach(asn=>{ if(asn.accountId===a.id&&(asn.status==='completed'||asn.status==='assigned')) { const u=parseFloat(asn.reward||t.defaultReward||0); cj+=rate>0?parseFloat(((u/0.01)*rate).toFixed(6)):0; } })); const exp=jmptBal+cj; return exp>0?fmtJmpt(exp):'—'; })()}</div>
+            <div class="dash-meta-val" style="color:var(--amber);font-weight:700;">${expectedJmpt > 0 ? fmtJmpt(expectedJmpt) : '—'}</div>
           </div>
         </div>
         <div class="dash-times">
@@ -4951,6 +4980,25 @@ function renderAccList() {
   // Sort accounts: payout_ready always first, dead always last, rest by accSort
   const STATUS_ORDER = {payout_ready:0, active:1, silent:2, under_review:3, dead:999};
 
+  // Precompute expensive per-account values ONCE (instead of rescanning all
+  // tasks/assignments inside the sort comparator on every comparison).
+  let _balanceCache = null, _lastCompleteCache = null;
+  if (accSort === 'balance') {
+    _balanceCache = new Map();
+    filteredAccounts.forEach(a => _balanceCache.set(a.id, calcBalance(a.id)));
+  } else if (accSort === 'last_complete') {
+    _lastCompleteCache = new Map();
+    filteredAccounts.forEach(a => _lastCompleteCache.set(a.id, ''));
+    tasks.forEach(task => {
+      (task.assignments||[]).forEach(asgn => {
+        if (asgn.assignedAt && _lastCompleteCache.has(asgn.accountId)) {
+          const cur = _lastCompleteCache.get(asgn.accountId);
+          if (!cur || asgn.assignedAt > cur) _lastCompleteCache.set(asgn.accountId, asgn.assignedAt);
+        }
+      });
+    });
+  }
+
   let sortedAccounts = [...filteredAccounts].sort((a, b) => {
     const aIsPR = a.status === 'payout_ready';
     const bIsPR = b.status === 'payout_ready';
@@ -4962,27 +5010,17 @@ function renderAccList() {
     if (!aIsDead && bIsDead) return -1;
     // Apply chosen sort
     if (accSort === 'balance') {
-      return calcBalance(b.id) - calcBalance(a.id);
+      return _balanceCache.get(b.id) - _balanceCache.get(a.id);
     } else if (accSort === 'payout_date') {
       const aLast = a.payoutHistory && a.payoutHistory.length ? a.payoutHistory[a.payoutHistory.length-1].date : '';
       const bLast = b.payoutHistory && b.payoutHistory.length ? b.payoutHistory[b.payoutHistory.length-1].date : '';
       return bLast.localeCompare(aLast);
     } else if (accSort === 'last_complete') {
-      // Use raw ISO timestamp for correct chronological sort
-      const getLastIso = (acc) => {
-        let latest = null;
-        tasks.forEach(task => {
-          (task.assignments||[]).forEach(asgn => {
-            if (asgn.accountId === acc.id && asgn.assignedAt) {
-              if (!latest || asgn.assignedAt > latest) latest = asgn.assignedAt;
-            }
-          });
-        });
-        return latest || '';
-      };
-      return getLastIso(b).localeCompare(getLastIso(a));
+      return _lastCompleteCache.get(b.id).localeCompare(_lastCompleteCache.get(a.id));
     } else if (accSort === 'status') {
       return (STATUS_ORDER[a.status]||5) - (STATUS_ORDER[b.status]||5);
+    } else if (accSort === 'name_asc') {
+      return (a.name||'').localeCompare(b.name||'', undefined, {sensitivity:'base'});
     }
     return 0;
   });
@@ -5194,8 +5232,11 @@ function renderAccDetail(accId) {
     : '';
 
   // Right column content — active tasks with bulk select
-  // Sort active tasks: newest assigned first
-  const sortedActive = [...activeTasks].sort((a,b) => (b.assignment.assignedAt||'').localeCompare(a.assignment.assignedAt||''));
+  // Sort active tasks: newest assigned first, or A → Z by task title
+  const sortedActive = [...activeTasks].sort((a,b) => {
+    if (activeTaskSort === 'name_asc') return (a.task.title||'').localeCompare(b.task.title||'', undefined, {sensitivity:'base'});
+    return (b.assignment.assignedAt||'').localeCompare(a.assignment.assignedAt||'');
+  });
 
   const activeTasksHtml = sortedActive.length ? `
     <div id="bulkBar" style="display:flex;align-items:center;gap:8px;margin-bottom:10px;background:var(--jt-light);border:1px solid var(--jt-border);border-radius:var(--radius-sm);padding:8px 12px;flex-wrap:wrap;">
@@ -5368,12 +5409,25 @@ function renderAccDetail(accId) {
           <button class="acc-right-tab ${accRightTab==='history'?'active':''}" onclick="switchAccRight('history','${accId}')">Account History</button>
         </div>
         <div id="accRightContent">
+          ${accRightTab==='active' ? `
+          <div style="display:flex;align-items:center;justify-content:flex-end;gap:6px;margin-bottom:8px;">
+            <span style="font-family:var(--mono);font-size:9.9px;color:var(--ink3);white-space:nowrap;">Sort:</span>
+            <select onchange="setActiveTaskSort(this.value)" style="font-family:var(--mono);font-size:11px;padding:4px 8px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--surface2);color:var(--ink);cursor:pointer;outline:none;">
+              <option value="newest" ${activeTaskSort==='newest'?'selected':''}>Newest</option>
+              <option value="name_asc" ${activeTaskSort==='name_asc'?'selected':''}>Name (A → Z)</option>
+            </select>
+          </div>` : ''}
           ${accRightTab==='active' ? activeTasksHtml : historyHtml}
         </div>
       </div>
     </div>
   `;
 }
+
+window.setActiveTaskSort = function(s) {
+  activeTaskSort = s;
+  if (selectedAccId) renderAccDetail(selectedAccId);
+};
 
 window.switchAccRight = function(tab, accId) {
   accRightTab = tab;
@@ -6540,50 +6594,9 @@ async function performSaveToDrive(force) {
 window.performSaveToDrive = performSaveToDrive;
 
 // ─────────────────────────────────────────
-// RAIN CANVAS
-// ─────────────────────────────────────────
-(() => {
-  const canvas = document.getElementById('rain-canvas');
-  const ctx = canvas.getContext('2d');
-  function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
-  resize(); window.addEventListener('resize', resize);
-  const streaks = Array.from({length:55}, () => ({
-    x: Math.random()*window.innerWidth, y: Math.random()*window.innerHeight,
-    len: 14+Math.random()*22, speed: 3.5+Math.random()*5,
-    opacity: 0.03+Math.random()*0.09, width: 0.5+Math.random()*0.8,
-    color: Math.random()>0.5 ? '21,101,192' : '13,71,161'
-  }));
-  const ripples = [];
-  function loop() {
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    streaks.forEach(s => {
-      const g = ctx.createLinearGradient(s.x,s.y,s.x,s.y+s.len);
-      g.addColorStop(0,`rgba(${s.color},0)`); g.addColorStop(1,`rgba(${s.color},${s.opacity})`);
-      ctx.beginPath(); ctx.moveTo(s.x,s.y); ctx.lineTo(s.x+s.len*0.04,s.y+s.len);
-      ctx.strokeStyle=g; ctx.lineWidth=s.width; ctx.stroke();
-      s.y+=s.speed;
-      if(s.y>canvas.height+30) {
-        if(Math.random()<0.2) ripples.push({x:s.x,y:canvas.height-3,r:0,opacity:0.18,color:'21,101,192'});
-        s.x=Math.random()*canvas.width; s.y=-s.len; s.speed=3.5+Math.random()*5;
-      }
-    });
-    for(let i=ripples.length-1;i>=0;i--) {
-      const r=ripples[i];
-      ctx.beginPath(); ctx.ellipse(r.x,r.y,r.r,r.r*0.28,0,0,Math.PI*2);
-      ctx.strokeStyle=`rgba(${r.color},${r.opacity})`; ctx.lineWidth=0.6; ctx.stroke();
-      r.r+=0.6; r.opacity-=0.018;
-      if(r.opacity<=0) ripples.splice(i,1);
-    }
-    // Only continue animation if page is visible
-    if (!document.hidden) requestAnimationFrame(loop);
-  }
-  loop();
-  // Resume animation when tab becomes visible again
-  document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) loop();
-  });
-})();
-
+// RAIN CANVAS — removed (was a continuous 60fps RAF loop running on every
+// page at all times; main source of constant GPU/CPU usage). See #rain-canvas
+// element and its CSS, also removed.
 // ─────────────────────────────────────────
 // TASK SECONDARY SORT (Newest/Oldest)
 // ─────────────────────────────────────────
@@ -7827,6 +7840,7 @@ function setAcPanelVisibility(visible) {
         <option value="balance" id="accSortBalance">Balance</option>
         <option value="last_complete" id="accSortLastComplete">Last Complete</option>
         <option value="status" id="accSortStatus">Status</option>
+        <option value="name_asc" id="accSortNameAsc">Name (A → Z)</option>
       </select>
     </div>
   </div>
