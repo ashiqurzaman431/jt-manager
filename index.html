@@ -5487,6 +5487,10 @@ window.markActionComplete = function(taskId, asgnId) {
   pushUndo(`Status → completed (${task.title})`);
   asgn.status = 'completed';
   asgn.completedAt = now();
+  // Stop the Action Center timer/beep for this flow, it's no longer "assigned"
+  acStopTimer(asgnId);
+  delete acFlowStep[asgnId];
+  delete acStepTimes[asgnId];
   if (selectedAccId) renderAccDetail(selectedAccId);
   taskPage = 0;
   renderTasks();
@@ -5544,6 +5548,10 @@ window.bulkUpdateStatus = function(accId, newStatus) {
     const asgn = (task.assignments||[]).find(a => a.id===asgnId); if(!asgn) return;
     if (newStatus==='completed' && asgn.status==='assigned') {
       asgn.status='completed'; asgn.completedAt=now();
+      // Stop the Action Center timer/beep for this flow, it's no longer "assigned"
+      acStopTimer(asgnId);
+      delete acFlowStep[asgnId];
+      delete acStepTimes[asgnId];
     } else if (newStatus==='rewarded' && (asgn.status==='assigned'||asgn.status==='completed')) {
       asgn.status='rewarded';
       if(!asgn.completedAt) asgn.completedAt=now();
@@ -6987,6 +6995,7 @@ function acStartTimer(asgnId) {
   const intervalId = setInterval(() => {
     const el = document.getElementById('ac-timer-' + asgnId);
     if (el) el.textContent = acFmtElapsed(Date.now() - startEpoch);
+    acCheckBeep(asgnId, startEpoch);
   }, 1000);
   acTimers[asgnId] = { intervalId, startEpoch };
 }
@@ -6995,6 +7004,54 @@ function acStopTimer(asgnId) {
   if (acTimers[asgnId]) {
     clearInterval(acTimers[asgnId].intervalId);
     delete acTimers[asgnId];
+  }
+  delete acBeepCount[asgnId];
+}
+
+// ── AC Beep alert (2 min after start, then every 30s until completed) ──────
+// acBeepCount: { [asgnId]: number of beeps already fired }
+const acBeepCount = {};
+const AC_BEEP_FIRST_MS  = 120000; // 2 minutes
+const AC_BEEP_REPEAT_MS = 15000;  // then every 15 seconds
+
+let acAudioCtx = null;
+function acGetAudioCtx() {
+  if (!acAudioCtx) {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return null;
+    acAudioCtx = new Ctx();
+  }
+  if (acAudioCtx.state === 'suspended') acAudioCtx.resume();
+  return acAudioCtx;
+}
+
+function acPlayBeep() {
+  try {
+    const ctx = acGetAudioCtx();
+    if (!ctx) return;
+    const osc  = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = 880;
+    gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.35, ctx.currentTime + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.28);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.3);
+  } catch (e) { /* audio not available, ignore */ }
+}
+
+// Checks elapsed time for a flow's timer and fires a beep on schedule:
+// first beep at 2:00, then one beep every 30s after that, until stopped.
+function acCheckBeep(asgnId, startEpoch) {
+  const elapsed = Date.now() - startEpoch;
+  if (elapsed < AC_BEEP_FIRST_MS) return;
+  const expected = 1 + Math.floor((elapsed - AC_BEEP_FIRST_MS) / AC_BEEP_REPEAT_MS);
+  if (expected > (acBeepCount[asgnId] || 0)) {
+    acBeepCount[asgnId] = expected;
+    acPlayBeep();
   }
 }
 
@@ -7044,6 +7101,7 @@ function acEnsureTimerStarted(asgnId, asgn) {
     const intervalId = setInterval(() => {
       const el = document.getElementById('ac-timer-' + asgnId);
       if (el) el.textContent = acFmtElapsed(Date.now() - startEpoch);
+      acCheckBeep(asgnId, startEpoch);
     }, 1000);
     acTimers[asgnId] = { intervalId, startEpoch };
   }
