@@ -13,9 +13,62 @@
 <meta name="apple-mobile-web-app-title" content="JT Manager">
 <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://accounts.google.com/gsi/client" async="" defer=""></script>
+<script type="module">
+  // Firebase SDK — loaded via CDN, no build step. type="module" scripts are
+  // deferred and run AFTER classic inline <script> blocks elsewhere in this
+  // file, regardless of position — so anything outside this block that
+  // calls window.firebase* must wait for window.firebaseReady first (see
+  // waitForFirebase() in the main script block).
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
+    from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getDatabase, ref, set, get }
+    from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyA761a1kKPPg2voydpdHdflDk7ZHF8Qj7s",
+    authDomain: "jt-manager-app-database.firebaseapp.com",
+    databaseURL: "https://jt-manager-app-database-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "jt-manager-app-database",
+    storageBucket: "jt-manager-app-database.firebasestorage.app",
+    messagingSenderId: "216137922328",
+    appId: "1:216137922328:web:9d2fe135b94064ec34106d"
+  };
+
+  const fbApp  = initializeApp(firebaseConfig);
+  const fbAuth = getAuth(fbApp);
+  const fbDb   = getDatabase(fbApp);
+  const fbGoogleProvider = new GoogleAuthProvider();
+
+  // Popup — must be called directly and synchronously from a click handler
+  // (see loginWithFirebase in the main script) or the browser blocks it as
+  // untrusted. Learned this the hard way on Xperiencer.
+  window.firebaseSignIn = () => signInWithPopup(fbAuth, fbGoogleProvider);
+  window.firebaseSignOut = () => signOut(fbAuth);
+  window.firebaseOnAuthStateChanged = (cb) => onAuthStateChanged(fbAuth, cb);
+  window.firebaseSaveUserData = (uid, data) => set(ref(fbDb, 'users/' + uid + '/data'), data);
+  window.firebaseLoadUserData = async (uid) => {
+    const snap = await get(ref(fbDb, 'users/' + uid + '/data'));
+    return snap.exists() ? snap.val() : null;
+  };
+  window.firebaseReady = true;
+</script>
 <script>
   // Declare isGuestMode globally so onclick handlers can access it
   window.isGuestMode = false;
+
+  // Firebase UID for the signed-in user, set once firebaseSignIn() resolves
+  // or restored on refresh via firebaseOnAuthStateChanged. Used to key the
+  // RTDB data path (users/<uid>/data).
+  let firebaseUid = null;
+
+  // Polls until the deferred Firebase module script has finished defining
+  // window.firebase* functions (module scripts execute after classic
+  // inline scripts, regardless of position in the file).
+  function waitForFirebase(cb){
+    if(window.firebaseReady){ cb(); return; }
+    setTimeout(()=>waitForFirebase(cb), 50);
+  }
 </script>
 <style>
 /* ══════════════════════════════════════════════
@@ -6039,8 +6092,23 @@ function initGIS() {
   // shows the full account chooser (prompt: 'select_account consent').
 }
 
-function gisSignIn() {
+async function gisSignIn() {
   setLoginStatus('Opening Google sign-in…');
+  // Firebase popup MUST be the very first thing called here, directly and
+  // synchronously within this click handler — calling it after any other
+  // async step (including GIS's own token request) causes the browser to
+  // block it as an untrusted popup. Learned this the hard way on Xperiencer.
+  await new Promise(resolve => waitForFirebase(resolve));
+  try{
+    const cred = await window.firebaseSignIn();
+    firebaseUid = cred.user.uid;
+  } catch(err){
+    setLoginStatus('Account sign-in failed: ' + (err.code || err.message || 'unknown error'));
+    console.warn('Firebase sign-in failed:', err);
+    return;
+  }
+  // Existing Drive/GIS flow — unchanged, still needed for image/Apps
+  // Script access, which stays exactly as it was.
   if (!_gisTokenClient) { setLoginStatus('GIS not ready — try again in a moment.'); return; }
   _gisTokenClient.requestAccessToken({ prompt: 'select_account' });
 }
@@ -6111,6 +6179,8 @@ window.showGuestAccessModal = showGuestAccessModal;
 
 function gisSignOut() {
   if (!confirm('Sign out of Google Drive integration?')) return;
+  if (window.firebaseReady) window.firebaseSignOut().catch(()=>{});
+  firebaseUid = null;
   if (_gisAccessToken) google.accounts.oauth2.revoke(_gisAccessToken, () => {});
   _gisAccessToken = null; _gisTokenExpiry = 0; _gisFolderIdCache = null;
   _gisAppFolderIdCache = null; _gisUserProfile = null;
