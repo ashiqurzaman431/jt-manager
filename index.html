@@ -6094,23 +6094,28 @@ function initGIS() {
 
 async function gisSignIn() {
   setLoginStatus('Opening Google sign-in…');
-  // Firebase popup MUST be the very first thing called here, directly and
-  // synchronously within this click handler — calling it after any other
-  // async step (including GIS's own token request) causes the browser to
-  // block it as an untrusted popup. Learned this the hard way on Xperiencer.
   await new Promise(resolve => waitForFirebase(resolve));
+
+  // Both popups must be OPENED (not awaited) in the same synchronous tick,
+  // before either promise is awaited — the browser only honors a "trusted
+  // click" for popups fired within that same tick. Awaiting the first
+  // popup's result before opening the second consumes the trusted gesture,
+  // causing the second popup to get silently blocked. Fire both, then
+  // await both.
+  const firebasePromise = window.firebaseSignIn();
+  if (_gisTokenClient) {
+    _gisTokenClient.requestAccessToken({ prompt: 'select_account' });
+  } else {
+    setLoginStatus('GIS not ready — try again in a moment.');
+  }
+
   try{
-    const cred = await window.firebaseSignIn();
+    const cred = await firebasePromise;
     firebaseUid = cred.user.uid;
   } catch(err){
     setLoginStatus('Account sign-in failed: ' + (err.code || err.message || 'unknown error'));
     console.warn('Firebase sign-in failed:', err);
-    return;
   }
-  // Existing Drive/GIS flow — unchanged, still needed for image/Apps
-  // Script access, which stays exactly as it was.
-  if (!_gisTokenClient) { setLoginStatus('GIS not ready — try again in a moment.'); return; }
-  _gisTokenClient.requestAccessToken({ prompt: 'select_account' });
 }
 window.gisSignIn = gisSignIn;
 function continueAsGuest() {
