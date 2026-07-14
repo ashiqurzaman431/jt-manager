@@ -20,7 +20,7 @@
   // calls window.firebase* must wait for window.firebaseReady first (see
   // waitForFirebase() in the main script block).
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
+  import { getAuth, GoogleAuthProvider, signInWithCredential, signOut, onAuthStateChanged }
     from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
   import { getDatabase, ref, set, get }
     from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
@@ -38,12 +38,15 @@
   const fbApp  = initializeApp(firebaseConfig);
   const fbAuth = getAuth(fbApp);
   const fbDb   = getDatabase(fbApp);
-  const fbGoogleProvider = new GoogleAuthProvider();
 
-  // Popup — must be called directly and synchronously from a click handler
-  // (see loginWithFirebase in the main script) or the browser blocks it as
-  // untrusted. Learned this the hard way on Xperiencer.
-  window.firebaseSignIn = () => signInWithPopup(fbAuth, fbGoogleProvider);
+  // Signs into Firebase using the access token GIS already obtained via its
+  // own (single) popup — no second popup needed at all. This avoids the
+  // double-popup race that made one or the other get blocked depending on
+  // browser timing.
+  window.firebaseSignInWithAccessToken = (accessToken) => {
+    const credential = GoogleAuthProvider.credential(null, accessToken);
+    return signInWithCredential(fbAuth, credential);
+  };
   window.firebaseSignOut = () => signOut(fbAuth);
   window.firebaseOnAuthStateChanged = (cb) => onAuthStateChanged(fbAuth, cb);
   window.firebaseSaveUserData = (uid, data) => set(ref(fbDb, 'users/' + uid + '/data'), data);
@@ -6041,7 +6044,7 @@ const APP_V_VERSION = '4.0';
 const DRIVE_CLIENT_ID = '122560609463-vvejkpk1phego89icu12410bq0bmeha7.apps.googleusercontent.com';
 const DRIVE_REDIRECT_ORIGIN = 'https://ashiqurzaman431.github.io';
 const DRIVE_APP_FOLDER_NAME = 'JT MANAGER APP DATA';
-const DRIVE_SCOPES = 'https://www.googleapis.com/auth/drive.file';
+const DRIVE_SCOPES = 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile';
 const DATA_FILE_PREFIX = 'JT_Manager_';
 const DATA_FILE_EXTENSION = '.json';
 // Runtime OAuth state
@@ -6073,7 +6076,7 @@ function initGIS() {
   _gisTokenClient = google.accounts.oauth2.initTokenClient({
     client_id: DRIVE_CLIENT_ID,
     scope: DRIVE_SCOPES,
-    callback: (response) => {
+    callback: async (response) => {
       if (response.error) {
         setLoginStatus('Auth error: ' + response.error);
         return;
@@ -6081,6 +6084,19 @@ function initGIS() {
       _gisAccessToken = response.access_token;
       _gisTokenExpiry = Date.now() + (response.expires_in - 60) * 1000;
       window.isGuestMode = false;
+
+      // Sign into Firebase using this same token — no separate popup,
+      // avoids the double-popup race we hit with signInWithPopup.
+      await new Promise(resolve => waitForFirebase(resolve));
+      try{
+        const cred = await window.firebaseSignInWithAccessToken(_gisAccessToken);
+        firebaseUid = cred.user.uid;
+      } catch(err){
+        setLoginStatus('Account sign-in failed: ' + (err.code || err.message || 'unknown error'));
+        console.warn('Firebase sign-in failed:', err);
+        return;
+      }
+
       setLoginStatus('');
       onSignedIn();
     },
@@ -6092,30 +6108,10 @@ function initGIS() {
   // shows the full account chooser (prompt: 'select_account consent').
 }
 
-async function gisSignIn() {
+function gisSignIn() {
   setLoginStatus('Opening Google sign-in…');
-  await new Promise(resolve => waitForFirebase(resolve));
-
-  // Both popups must be OPENED (not awaited) in the same synchronous tick,
-  // before either promise is awaited — the browser only honors a "trusted
-  // click" for popups fired within that same tick. Awaiting the first
-  // popup's result before opening the second consumes the trusted gesture,
-  // causing the second popup to get silently blocked. Fire both, then
-  // await both.
-  const firebasePromise = window.firebaseSignIn();
-  if (_gisTokenClient) {
-    _gisTokenClient.requestAccessToken({ prompt: 'select_account' });
-  } else {
-    setLoginStatus('GIS not ready — try again in a moment.');
-  }
-
-  try{
-    const cred = await firebasePromise;
-    firebaseUid = cred.user.uid;
-  } catch(err){
-    setLoginStatus('Account sign-in failed: ' + (err.code || err.message || 'unknown error'));
-    console.warn('Firebase sign-in failed:', err);
-  }
+  if (!_gisTokenClient) { setLoginStatus('GIS not ready — try again in a moment.'); return; }
+  _gisTokenClient.requestAccessToken({ prompt: 'select_account' });
 }
 window.gisSignIn = gisSignIn;
 function continueAsGuest() {
