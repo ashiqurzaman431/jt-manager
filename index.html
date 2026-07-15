@@ -22,7 +22,7 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import { getAuth, GoogleAuthProvider, signInWithCredential, signOut, onAuthStateChanged }
     from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-  import { getDatabase, ref, set, get }
+  import { getDatabase, ref, set, get, onValue }
     from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
   const firebaseConfig = {
@@ -48,6 +48,11 @@
     return signInWithCredential(fbAuth, credential);
   };
   window.firebaseSignOut = () => signOut(fbAuth);
+  // Firebase's own restored user already carries name/email/photo straight
+  // from Google — reading it here means we never need to pop a consent
+  // window just to display a profile pic, which is what was getting
+  // blocked by the browser on every silent session restore.
+  window.firebaseGetCurrentUser = () => fbAuth.currentUser;
   window.firebaseOnAuthStateChanged = (cb) => onAuthStateChanged(fbAuth, cb);
   window.firebaseSaveUserData = (uid, data) => set(ref(fbDb, 'users/' + uid + '/data'), data);
   window.firebaseLoadUserData = async (uid) => {
@@ -81,6 +86,14 @@
     const snap = await get(ref(fbDb, 'shared/taskManager/tasks'));
     return snap.exists() ? snap.val() : [];
   };
+  // Live updates — used for non-admin approved users so an admin's edit
+  // shows up immediately without needing a refresh. Returns an unsubscribe
+  // function; callers are responsible for detaching the previous listener
+  // before attaching a new one (see loadFromFirebase).
+  window.firebaseWatchSharedTasks = (callback) =>
+    onValue(ref(fbDb, 'shared/taskManager/tasks'), (snap) => {
+      callback(snap.exists() ? snap.val() : []);
+    });
 
   // Guest-demo preview — a small, admin-published subset of the task list
   // (latest 5, non-archived, no assignment/worker data) that's readable by
@@ -1859,10 +1872,8 @@ select option { background: var(--surface3); color: var(--ink); }
     <button onclick="document.getElementById('conflictBar').classList.remove('visible')">Dismiss</button>
   </div>
 
-  <!-- FLOATING SAVE DATA BUTTON (shown while there are unsaved changes, stays visible while scrolled) -->
-  <button class="unsaved-float" id="unsavedFloat" title="Save your data to Drive" onclick="performSaveToDrive(true)">
-    💾 Save Data
-  </button>
+  <!-- Floating Save Data button removed — autosave (see markUnsaved) handles
+       this automatically now. driveDot in the topbar shows live save status. -->
 
   <!-- TOP BAR -->
   <div class="topbar">
@@ -1874,7 +1885,7 @@ select option { background: var(--surface3); color: var(--ink); }
     </div>
     <div class="drive-indicator-row">
       <div class="drive-dot green" id="driveDot" title="Drive: just saved"></div>
-      <div class="unsaved-dot" id="unsavedDot" title="Unsaved changes — tap Save Data" onclick="performSaveToDrive(true)" style="cursor:pointer;"></div>
+      <div class="unsaved-dot" id="unsavedDot" title="Unsaved changes — autosaving shortly…"></div>
       <button class="user-pill" id="userPill" onclick="gisSignOut()" title="Click to sign out" style="display:none;">
         <div class="user-avatar" id="userAvatar"></div>
         <span id="userNameShort">User</span>
@@ -4500,7 +4511,7 @@ function renderTaskCard(task) {
       ${!task.archived ? `<button class="btn-secondary" style="font-size:10.5px;padding:4px 8px;" onclick="openLinksModal('${task.id}')">🔗</button>` : ''}
       <button class="btn-secondary" style="font-size:10.5px;padding:4px 8px;color:var(--red);border-color:var(--red-border);" onclick="openErrorModal('${task.id}')">⚠ Error</button>
       <button class="btn-secondary" style="font-size:10.5px;padding:4px 8px;" onclick="openEditTaskModal('${task.id}')">✎ Edit</button>
-      ${task.previewButton && !task.archived ? `<button class=\"btn-secondary\" style=\"font-size:10.5px;padding:4px 8px;color:var(--amber);border-color:var(--amber-border);\" onclick=\"window.isGuestMode ? showGuestAccessModal('View Thumbnails') : openTaskMediaModal('${task.id}')\" title=\"${isYT ? 'View thumbnails' : 'View websites'}\">${isYT ? 'View Thumbnails' : 'View Websites'}</button>` : ''}
+      ${task.previewButton && !task.archived ? `<button class=\"btn-secondary\" style=\"font-size:10.5px;padding:4px 8px;color:var(--amber);border-color:var(--amber-border);\" onclick=\"openTaskMediaModal('${task.id}')\" title=\"${isYT ? 'View thumbnails' : 'View websites'}\">${isYT ? 'View Thumbnails' : 'View Websites'}</button>` : ''}
       ${!task.archived && isYT ? `<button class="btn-secondary" style="font-size:10.5px;padding:4px 8px;color:var(--amber);border-color:var(--amber-border);" onclick="openThumbModal('${task.id}')" title="${task.thumbnail?'Change thumbnail':'Add thumbnail'}">${task.thumbnail?'🖼 Thumb':'📷 Thumb'}</button>` : ''}
       ${task.archived && task.thumbnail ? `<button class="btn-secondary" style="font-size:10.5px;padding:4px 8px;color:var(--amber);border-color:var(--amber-border);" onclick="removeTaskImage('${task.id}')">🗑 Img</button>` : ''}
       ${!task.archived
@@ -6179,6 +6190,9 @@ let _driveLatestName = null;   // filename of latest file on Drive (from last ch
 let _lastOpenedName  = null;   // filename we last loaded from Drive this session
 let _openCount       = 0;      // how many times Get Latest was called this session
 let _hasUnsaved      = false;  // whether there are unsaved changes
+let _autosaveTimer   = null;   // debounce handle for autosave
+let _sharedTasksUnsubscribe = null; // detach handle for the live task listener
+let _ownAssignmentsCache = {};      // re-merged onto every live task update
 
 // ── OAuth / GIS helpers ────────────────────────────────────────────────────
 function isFileOrigin() {
@@ -6270,7 +6284,8 @@ async function completeSignIn(uid) {
     // RTDB rules still block this uid from every other read/write.
     window.isAdmin = false;
     window.isAllowedUser = false;
-    setLoginStatus("This Google account is not approved for JT Manager. We will mail you for access, if interested, reply to that mail. But now you can visit JT Manager as Guest and check out latest 5 tasks for demo.");
+    setLoginStatus('');
+    showAccessDeniedModal();
     return;
   }
   window.isAdmin = access.isAdmin;
@@ -6291,6 +6306,7 @@ function continueAsGuest() {
   window.isAdmin = false;
   window.isAllowedUser = false;
   setLoginStatus('Entering guest mode…');
+  if (_sharedTasksUnsubscribe) { _sharedTasksUnsubscribe(); _sharedTasksUnsubscribe = null; }
 
   // Wipe any leftover session data — if someone was signed in as a real
   // user in this same tab and switched to guest mode without a refresh,
@@ -6389,6 +6405,50 @@ function showGuestAccessModal(featureName) {
 }
 window.showGuestAccessModal = showGuestAccessModal;
 
+// ─────────────────────────────────────────
+// ACCESS DENIED MODAL — replaces the old inline text-under-the-button
+// message for a rejected (not admin/allowed_user) Google sign-in.
+// ─────────────────────────────────────────
+function showAccessDeniedModal() {
+  const modal = document.createElement('div');
+  modal.className = 'modal-overlay';
+  modal.style.position = 'fixed';
+  modal.style.top = '0';
+  modal.style.left = '0';
+  modal.style.right = '0';
+  modal.style.bottom = '0';
+  modal.style.display = 'flex';
+  modal.style.alignItems = 'center';
+  modal.style.justifyContent = 'center';
+  modal.style.backgroundColor = 'rgba(0,0,0,0.5)';
+  modal.style.zIndex = '9999';
+  modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+
+  modal.innerHTML = `
+    <div class="modal" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;max-width:400px;box-shadow:var(--shadow);color:var(--ink);font-family:var(--sans);">
+      <div class="modal-title" style="margin-bottom:16px;">
+        <span style="font-size:18px;font-weight:700;">🔒 Account Not Approved</span>
+      </div>
+      <div style="margin-bottom:20px;color:var(--ink2);font-size:14px;line-height:1.6;">
+        This Google account is not approved for JT Manager. We will mail you for access, if interested, reply to that mail.
+        <br><br>
+        But now you can visit JT Manager as Guest and check out the latest 5 tasks for demo.
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button onclick="this.closest('.modal-overlay').remove()" style="flex:1;padding:10px 16px;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink2);cursor:pointer;font-size:14px;font-weight:600;">
+          Dismiss
+        </button>
+        <button onclick="this.closest('.modal-overlay').remove();continueAsGuest()" style="flex:1;padding:10px 16px;background:var(--jt);border:none;border-radius:var(--radius-sm);color:#fff;cursor:pointer;font-size:14px;font-weight:600;">
+          Continue as Guest
+        </button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+}
+window.showAccessDeniedModal = showAccessDeniedModal;
+
 // Wipes all personal in-memory state (accounts, tasks, settings, logs).
 // Called on sign-out and on entering guest mode — without this, a previous
 // session's real account data stayed in memory and kept rendering on the
@@ -6412,6 +6472,7 @@ function clearPersonalAppState() {
 
 function gisSignOut() {
   if (!confirm('Sign out of Google Drive integration?')) return;
+  if (_sharedTasksUnsubscribe) { _sharedTasksUnsubscribe(); _sharedTasksUnsubscribe = null; }
   if (window.firebaseReady) window.firebaseSignOut().catch(()=>{});
   firebaseUid = null;
   window.isAdmin = false;
@@ -6478,14 +6539,16 @@ function setUserRoleBadge(role) {
 }
 
 async function onSignedIn() {
-  // Fetch user profile
+  // Profile pic/name — read straight off the Firebase user object (Google
+  // sign-in already populates displayName/email/photoURL on it directly).
+  // Deliberately NOT calling gisGetToken() here anymore: that opened a
+  // Google OAuth popup, and since this function also runs on a silent
+  // session restore (no user click involved), browsers correctly blocked
+  // it — that popup-block was the actual cause of "logged out on refresh".
   try {
-    const tok = await gisGetToken();
-    const r = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-      headers: { Authorization: 'Bearer ' + tok }
-    });
-    if (r.ok) {
-      _gisUserProfile = await r.json();
+    const user = window.firebaseGetCurrentUser ? window.firebaseGetCurrentUser() : null;
+    if (user) {
+      _gisUserProfile = { name: user.displayName || user.email || '', email: user.email || '', picture: user.photoURL || null };
       localStorage.setItem('gis_login_hint', _gisUserProfile.email || '');
       // Update user pill
       const pill = document.getElementById('userPill');
@@ -6525,10 +6588,11 @@ async function loadFromFirebase() {
       window.firebaseLoadSharedTasks(),
       window.firebaseLoadUserAssignments(firebaseUid)
     ]);
+    _ownAssignmentsCache = ownAssignments || {};
     tasks.length = 0;
     if (Array.isArray(sharedTasks)) {
       sharedTasks.forEach(t => {
-        t.assignments = (ownAssignments && ownAssignments[t.id]) || [];
+        t.assignments = (_ownAssignmentsCache && _ownAssignmentsCache[t.id]) || [];
         tasks.push(t);
       });
     }
@@ -6539,6 +6603,27 @@ async function loadFromFirebase() {
     setDriveDot('green', 'synced');
     markUnsaved(false);
     addAuditEntry('OPENED', 'Firebase data');
+
+    // Live sync — non-admins only. Admin edits their own copy of `tasks`
+    // directly and autosaves it; re-echoing their own write back through a
+    // live listener mid-edit would be more likely to clash with an
+    // in-progress change than help, so admin stays on the load-once model
+    // and always sees their own edits instantly anyway (they made them).
+    if (_sharedTasksUnsubscribe) { _sharedTasksUnsubscribe(); _sharedTasksUnsubscribe = null; }
+    if (!window.isAdmin && window.firebaseWatchSharedTasks) {
+      _sharedTasksUnsubscribe = window.firebaseWatchSharedTasks((liveTasks) => {
+        tasks.length = 0;
+        if (Array.isArray(liveTasks)) {
+          liveTasks.forEach(t => {
+            t.assignments = (_ownAssignmentsCache && _ownAssignmentsCache[t.id]) || [];
+            tasks.push(t);
+          });
+        }
+        renderTasks();
+        renderDashboard();
+        renderActionCenter();
+      });
+    }
   } catch (e) {
     console.error(e);
     setDriveDot('red', 'Firebase load failed');
@@ -6742,6 +6827,20 @@ function markUnsaved(val) {
   if (dot) dot.classList.toggle('visible', val);
   const dotFloat = document.getElementById('unsavedFloat');
   if (dotFloat) dotFloat.classList.toggle('visible', val);
+
+  // Autosave — debounced so rapid-fire edits (typing, dragging, bulk
+  // actions) collapse into one save a couple seconds after things go
+  // quiet, instead of hammering Firebase on every keystroke.
+  if (val) {
+    if (_autosaveTimer) clearTimeout(_autosaveTimer);
+    _autosaveTimer = setTimeout(() => {
+      _autosaveTimer = null;
+      performSaveToDrive(true);
+    }, 2500);
+  } else if (_autosaveTimer) {
+    clearTimeout(_autosaveTimer);
+    _autosaveTimer = null;
+  }
 }
 
 // ── Drive status dot ──────────────────────────────────────────────────────
@@ -6939,7 +7038,7 @@ async function publishLatestPreview() {
     const preview = definitionsOnly
       .filter(t => !t.archived)
       .slice()
-      .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
+      .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
       .slice(0, 5);
     await window.firebaseSaveLatestTasksPreview(preview);
     setDriveDot('green', 'preview published');
@@ -7011,7 +7110,7 @@ async function performSaveToDrive(force) {
       const preview = definitionsOnly
         .filter(t => !t.archived)
         .slice()
-        .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
+        .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
         .slice(0, 5);
       try {
         await window.firebaseSaveLatestTasksPreview(preview);
@@ -7643,7 +7742,7 @@ function renderActionCenter() {
          </div>` : '';
     const acLinkBtns = (task.links||[]).map((l,i) => `<button class="ac-link-btn" onclick="copyLink('${task.id}',${i})" title="${l.url}">📋 ${l.label||l.url}</button>`).join('');
     const acViewBtn = (task.previewButton && !task.archived)
-      ? `<button class="ac-link-btn" style="color:var(--amber);background:var(--amber-light);border-color:var(--amber-border);" onclick="window.isGuestMode ? showGuestAccessModal('View Thumbnails') : openTaskMediaModal('${task.id}')" title="${isYT ? 'View thumbnails' : 'View websites'}">${isYT ? '🖼 View Thumbnails' : '🌐 View Websites'}</button>` : '';
+      ? `<button class="ac-link-btn" style="color:var(--amber);background:var(--amber-light);border-color:var(--amber-border);" onclick="openTaskMediaModal('${task.id}')" title="${isYT ? 'View thumbnails' : 'View websites'}">${isYT ? '🖼 View Thumbnails' : '🌐 View Websites'}</button>` : '';
     const acLinksRow = (acLinkBtns || acViewBtn) ? `<div class="ac-links-row">${acLinkBtns}${acViewBtn}</div>` : '';
     const acMediaHtml = (acThumbHtml || acLinksRow)
       ? `<div class="ac-media-row">${acThumbHtml}${acLinksRow}</div>` : '';
