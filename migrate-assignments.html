@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>JT Manager — One-Time Assignments Migration</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+  :root {
+    --bg: #14151f; --surface: #1c1e2b; --surface2: #262939;
+    --border: #333750; --ink: #e8e9f2; --ink2: #a8acc4; --ink3: #6b7090;
+    --jt: #374E99; --jt-light: rgba(55,78,153,0.15); --jt-border: rgba(55,78,153,0.4);
+    --green: #2ea043; --green-light: rgba(46,160,67,0.12); --green-border: rgba(46,160,67,0.4);
+    --red: #cc3b3b; --red-light: rgba(204,59,59,0.12); --red-border: rgba(204,59,59,0.4);
+    --amber: #d4a017; --amber-light: rgba(212,160,23,0.12); --amber-border: rgba(212,160,23,0.4);
+    --mono: 'Geist Mono', monospace; --sans: 'Inter', sans-serif;
+    --radius: 12px; --radius-sm: 8px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--ink); font-family: var(--sans);
+    max-width: 760px; margin: 40px auto; padding: 0 20px 60px;
+  }
+  h1 { font-size: 20px; margin-bottom: 4px; }
+  .sub { color: var(--ink3); font-size: 13px; margin-bottom: 24px; }
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 20px; margin-bottom: 16px;
+  }
+  .warn {
+    background: var(--amber-light); border: 1px solid var(--amber-border);
+    color: var(--amber); border-radius: var(--radius-sm); padding: 12px 16px;
+    font-size: 13px; line-height: 1.6; margin-bottom: 20px;
+  }
+  button {
+    font-family: var(--sans); font-size: 14px; font-weight: 600;
+    padding: 10px 18px; border-radius: var(--radius-sm); border: none;
+    cursor: pointer; margin-right: 8px; margin-top: 4px;
+  }
+  .btn-primary { background: var(--jt); color: #fff; }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-danger { background: var(--red); color: #fff; }
+  .btn-danger:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-secondary { background: var(--surface2); color: var(--ink2); border: 1px solid var(--border); }
+  #status { font-family: var(--mono); font-size: 12.5px; color: var(--ink2); margin-top: 14px; white-space: pre-wrap; line-height: 1.7; }
+  .pill { display: inline-block; font-family: var(--mono); font-size: 11px; padding: 2px 9px; border-radius: 99px; margin-right: 6px; }
+  .pill-green { background: var(--green-light); color: var(--green); border: 1px solid var(--green-border); }
+  .pill-red { background: var(--red-light); color: var(--red); border: 1px solid var(--red-border); }
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; margin-top: 10px; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--border); }
+  th { color: var(--ink3); font-weight: 600; font-size: 11px; text-transform: uppercase; }
+  td { font-family: var(--mono); color: var(--ink2); }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+
+<h1>JT Manager — One-Time Assignments Migration</h1>
+<div class="sub">Moves embedded <code>assignments</code> out of <code>shared/taskManager/tasks</code> and into your private <code>shared/taskManager/assignments/&#123;yourUid&#125;</code> subtree. Admin sign-in required. Safe to close and re-run — it re-checks state every time, it doesn't track "already ran."</div>
+
+<div class="warn">
+  ⚠ This tool ATTRIBUTES every existing assignment record it finds to whichever admin account runs this migration — the old data model never recorded who created an assignment, so there's no way to recover true per-user ownership. If more than one person was assigning tasks before this change, review the preview table below before confirming; you may want to hand-edit afterward in the Firebase console.
+  <br><br>
+  Run this <strong>once</strong>. Running it again after a successful migration is harmless (there'll be nothing left to move), but running it on a database that's already mid-use by multiple users could re-attribute their assignments to you — check the preview count first.
+</div>
+
+<div class="card" id="signinCard">
+  <button class="btn-primary" id="btnSignIn">Sign in with Google (admin account)</button>
+  <div id="status"></div>
+</div>
+
+<div class="card hidden" id="previewCard">
+  <div id="previewSummary"></div>
+  <div id="previewTable"></div>
+  <button class="btn-danger" id="btnMigrate" disabled>Run Migration</button>
+  <button class="btn-secondary" id="btnRefresh">Re-scan</button>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, GoogleAuthProvider, signInWithCredential, onAuthStateChanged }
+    from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getDatabase, ref, get, set }
+    from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+  // Same project as JT Manager — safe to keep public, protected by RTDB rules.
+  const firebaseConfig = {
+    apiKey: "AIzaSyA761a1kKPPg2voydpdHdflDk7ZHF8Qj7s",
+    authDomain: "jt-manager-app-database.firebaseapp.com",
+    databaseURL: "https://jt-manager-app-database-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "jt-manager-app-database",
+    storageBucket: "jt-manager-app-database.firebasestorage.app",
+    messagingSenderId: "216137922328",
+    appId: "1:216137922328:web:9d2fe135b94064ec34106d"
+  };
+  // Must match JT Manager's own client ID or Firebase rejects the token.
+  const GIS_CLIENT_ID = '216137922328-u8kdkorn7agfdtj98h2jmacpp0447vv7.apps.googleusercontent.com';
+  const GIS_SCOPE = 'openid email profile';
+
+  const fbApp = initializeApp(firebaseConfig);
+  const fbAuth = getAuth(fbApp);
+  const fbDb = getDatabase(fbApp);
+
+  const statusEl = document.getElementById('status');
+  const btnSignIn = document.getElementById('btnSignIn');
+  const previewCard = document.getElementById('previewCard');
+  const previewSummary = document.getElementById('previewSummary');
+  const previewTable = document.getElementById('previewTable');
+  const btnMigrate = document.getElementById('btnMigrate');
+  const btnRefresh = document.getElementById('btnRefresh');
+
+  function log(msg) { statusEl.textContent += msg + '\n'; }
+  function setStatus(msg) { statusEl.textContent = msg; }
+
+  let uid = null;
+  let tokenClient = null;
+  let scanResult = null; // { definitionsOnly, extractedAssignments, taskRows }
+
+  function initGIS() {
+    if (!window.google || !window.google.accounts) { setTimeout(initGIS, 250); return; }
+    tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: GIS_CLIENT_ID,
+      scope: GIS_SCOPE,
+      callback: async (resp) => {
+        if (resp.error) { setStatus('Sign-in error: ' + resp.error); return; }
+        try {
+          const cred = GoogleAuthProvider.credential(null, resp.access_token);
+          const result = await signInWithCredential(fbAuth, cred);
+          uid = result.user.uid;
+        } catch (e) {
+          setStatus('Firebase sign-in failed: ' + (e.code || e.message));
+        }
+      }
+    });
+  }
+  initGIS();
+
+  btnSignIn.onclick = () => {
+    if (!tokenClient) { setStatus('Google sign-in still loading — try again in a second.'); return; }
+    tokenClient.requestAccessToken({ prompt: 'select_account' });
+  };
+
+  onAuthStateChanged(fbAuth, async (user) => {
+    if (!user) return;
+    uid = user.uid;
+    setStatus('Checking admin access…');
+    let isAdmin = false;
+    try {
+      const snap = await get(ref(fbDb, 'admins/' + uid));
+      isAdmin = snap.exists() && snap.val() === true;
+    } catch (e) {
+      setStatus('Could not check admin status: ' + e.message);
+      return;
+    }
+    if (!isAdmin) {
+      setStatus('Signed in, but this account is not in /admins — only an admin can run this migration.');
+      return;
+    }
+    setStatus('Signed in as admin (' + uid + '). Scanning tasks…');
+    await scanAndPreview();
+  });
+
+  async function scanAndPreview() {
+    btnMigrate.disabled = true;
+    previewCard.classList.remove('hidden');
+    previewSummary.textContent = 'Scanning…';
+    previewTable.innerHTML = '';
+
+    let tasksSnap;
+    try {
+      tasksSnap = await get(ref(fbDb, 'shared/taskManager/tasks'));
+    } catch (e) {
+      previewSummary.innerHTML = '<span class="pill pill-red">ERROR</span> Could not read shared/taskManager/tasks: ' + e.message;
+      return;
+    }
+    const rawTasks = tasksSnap.exists() ? tasksSnap.val() : [];
+    const taskList = Array.isArray(rawTasks) ? rawTasks : Object.values(rawTasks || {});
+
+    const definitionsOnly = [];
+    const extractedAssignments = {}; // { taskId: [asgn, ...] }
+    const rows = [];
+
+    taskList.forEach(t => {
+      if (!t || !t.id) return;
+      const asgns = Array.isArray(t.assignments) ? t.assignments : [];
+      const { assignments, ...rest } = t;
+      definitionsOnly.push(rest);
+      if (asgns.length) {
+        extractedAssignments[t.id] = asgns;
+        rows.push({ title: t.title || t.id, count: asgns.length });
+      }
+    });
+
+    scanResult = { definitionsOnly, extractedAssignments, rowCount: rows.length };
+
+    const totalAsgns = rows.reduce((s, r) => s + r.count, 0);
+    if (!rows.length) {
+      previewSummary.innerHTML = '<span class="pill pill-green">CLEAN</span> No embedded assignments found on ' + taskList.length + ' task(s). Nothing to migrate.';
+      btnMigrate.disabled = true;
+      return;
+    }
+
+    previewSummary.innerHTML =
+      '<span class="pill pill-amber" style="background:var(--amber-light);color:var(--amber);border:1px solid var(--amber-border);">FOUND</span> ' +
+      totalAsgns + ' assignment record(s) embedded across ' + rows.length + ' of ' + taskList.length + ' task(s). ' +
+      'Will be moved to <code>shared/taskManager/assignments/' + uid + '</code> and stripped from the task definitions.';
+
+    let html = '<table><tr><th>Task</th><th>Assignments found</th></tr>';
+    rows.forEach(r => { html += '<tr><td>' + escapeHtml(r.title) + '</td><td>' + r.count + '</td></tr>'; });
+    html += '</table>';
+    previewTable.innerHTML = html;
+    btnMigrate.disabled = false;
+  }
+
+  btnRefresh.onclick = scanAndPreview;
+
+  btnMigrate.onclick = async () => {
+    if (!scanResult || !scanResult.rowCount) return;
+    if (!confirm('This will overwrite shared/taskManager/tasks (stripped of assignments) and write shared/taskManager/assignments/' + uid + '. Continue?')) return;
+    btnMigrate.disabled = true;
+    log('Writing task definitions (assignments stripped)…');
+    try {
+      await set(ref(fbDb, 'shared/taskManager/tasks'), scanResult.definitionsOnly);
+      log('✓ Definitions written.');
+    } catch (e) {
+      log('✗ Failed writing definitions: ' + e.message);
+      btnMigrate.disabled = false;
+      return;
+    }
+    log('Writing assignments to your private subtree…');
+    try {
+      // Merge with anything already there rather than clobbering it, in
+      // case this is a re-run after a partial previous attempt.
+      const existingSnap = await get(ref(fbDb, 'shared/taskManager/assignments/' + uid));
+      const existing = existingSnap.exists() ? existingSnap.val() : {};
+      const merged = Object.assign({}, existing, scanResult.extractedAssignments);
+      await set(ref(fbDb, 'shared/taskManager/assignments/' + uid), merged);
+      log('✓ Assignments written.');
+    } catch (e) {
+      log('✗ Failed writing assignments: ' + e.message);
+      btnMigrate.disabled = false;
+      return;
+    }
+    log('');
+    log('Migration complete. Re-scanning to confirm…');
+    await scanAndPreview();
+  };
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+</script>
+</body>
+</html>
