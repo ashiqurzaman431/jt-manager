@@ -54,6 +54,68 @@
     const snap = await get(ref(fbDb, 'users/' + uid + '/data'));
     return snap.exists() ? snap.val() : null;
   };
+
+  // Checks whether a signed-in uid is an approved admin or allowed_user.
+  // Returns { isAdmin, isAllowed }. Both false means "not approved" — the
+  // caller must sign the user back out; RTDB rules already block reads/
+  // writes for such a uid, but the client needs this to show a clean
+  // "not approved" message instead of letting them into a broken app.
+  window.firebaseCheckAccess = async (uid) => {
+    let isAdmin = false, isAllowed = false;
+    try {
+      const adminSnap = await get(ref(fbDb, 'admins/' + uid));
+      isAdmin = adminSnap.exists() && adminSnap.val() === true;
+    } catch (e) { /* admins node unreadable if signed out mid-check — treat as false */ }
+    try {
+      const allowedSnap = await get(ref(fbDb, 'allowed_users/' + uid));
+      isAllowed = allowedSnap.exists() && allowedSnap.val() === true;
+    } catch (e) { /* same as above */ }
+    return { isAdmin, isAllowed };
+  };
+
+  // Shared task list — admin-writable, read-only for approved non-admins.
+  // Rules enforce this server-side; these are just the plumbing calls.
+  window.firebaseSaveSharedTasks = (tasksArr) =>
+    set(ref(fbDb, 'shared/taskManager/tasks'), tasksArr);
+  window.firebaseLoadSharedTasks = async () => {
+    const snap = await get(ref(fbDb, 'shared/taskManager/tasks'));
+    return snap.exists() ? snap.val() : [];
+  };
+
+  // Guest-demo preview — a small, admin-published subset of the task list
+  // (latest 5, non-archived, no assignment/worker data) that's readable by
+  // ANY authenticated Google account, approved or not. This is what lets an
+  // unapproved user who tried to sign in see a real demo instead of an
+  // empty screen, without exposing the full shared task list or anyone's
+  // assignment/earnings data to them. Requires the matching rule:
+  //   "shared/taskManager/latestPreview": {
+  //     ".read": "auth != null",
+  //     ".write": "auth != null && root.child('admins/'+auth.uid).exists()"
+  //   }
+  window.firebaseSaveLatestTasksPreview = (previewArr) =>
+    set(ref(fbDb, 'shared/taskManager/latestPreview'), previewArr);
+  window.firebaseLoadLatestTasksPreview = async () => {
+    const snap = await get(ref(fbDb, 'shared/taskManager/latestPreview'));
+    return snap.exists() ? snap.val() : [];
+  };
+
+  // Per-user assignments — the "who's doing this task, what status, what
+  // reward" data. Kept OUT of the shared task definitions on purpose: every
+  // approved user (not just admin) needs to write their own assignment
+  // records, and no user should see another user's (including admin's)
+  // assigned/completed/rewarded activity. Stored as { [taskId]: [asgn, ...] }
+  // under the CALLER's own uid — matching rule:
+  //   "shared/taskManager/assignments/$uid": {
+  //     ".read": "auth != null && (auth.uid === $uid || root.child('admins/'+auth.uid).exists())",
+  //     ".write": "auth != null && (auth.uid === $uid || root.child('admins/'+auth.uid).exists()) && (root.child('admins/'+auth.uid).exists() || root.child('allowed_users/'+auth.uid).exists())"
+  //   }
+  window.firebaseSaveUserAssignments = (uid, assignmentsByTaskId) =>
+    set(ref(fbDb, 'shared/taskManager/assignments/' + uid), assignmentsByTaskId);
+  window.firebaseLoadUserAssignments = async (uid) => {
+    const snap = await get(ref(fbDb, 'shared/taskManager/assignments/' + uid));
+    return snap.exists() ? snap.val() : {};
+  };
+
   window.firebaseReady = true;
 </script>
 <script>
@@ -64,6 +126,12 @@
   // or restored on refresh via firebaseOnAuthStateChanged. Used to key the
   // RTDB data path (users/<uid>/data).
   let firebaseUid = null;
+
+  // Access role for the current session, set by the access-gate check right
+  // after Firebase sign-in (see gisSignIn callback). isAdmin implies write
+  // access to shared/taskManager; isAllowedUser is read-only there.
+  window.isAdmin = false;
+  window.isAllowedUser = false;
 
   // Polls until the deferred Firebase module script has finished defining
   // window.firebase* functions (module scripts execute after classic
@@ -4003,6 +4071,21 @@ function countAsgns(task, status) {
   return (task.assignments||[]).filter(a => a.status === status).length;
 }
 
+// Admin-only guard for task-DEFINITION changes (add/edit/delete/archive/
+// reprice a task). Deliberately does NOT cover assignment/status actions
+// (assignToAllActive, openAssignModal, changeTaskStatus, markActionComplete,
+// removeTaskFromAccount) — those are everyday per-account operations every
+// approved user needs, not task-definition edits. See the note in the
+// handoff doc about assignments currently living inside the same shared
+// tasks array as definitions.
+function requireAdminForTaskEdit() {
+  if (!window.isAdmin) {
+    toast('Admin is constantly updating, seat back!');
+    return false;
+  }
+  return true;
+}
+
 function renderTasks() {
   // Always show sort and direction bars (unified list, no archive tab)
   const sortBar = document.getElementById('taskSortBar');
@@ -4230,6 +4313,7 @@ function renderErrorModalEntries(taskId) {
 }
 
 window.removeTaskError = function(taskId, idx) {
+  if (!requireAdminForTaskEdit()) return;
   const t = tasks.find(t => t.id === taskId);
   if (!t || !t.errors) return;
   t.errors.splice(idx, 1);
@@ -4251,6 +4335,7 @@ window.toggleErrorTypeField = function() {
 };
 
 window.addTaskError = function() {
+  if (!requireAdminForTaskEdit()) return;
   const taskId = document.getElementById('errorModalTaskId').value;
   const t = tasks.find(t => t.id === taskId); if (!t) return;
   const type = document.getElementById('errorModalType').value;
@@ -4626,6 +4711,7 @@ document.addEventListener('paste', e => {
 });
 
 window.addTask = function() {
+  if (!requireAdminForTaskEdit()) return;
   const title = document.getElementById('newTaskTitle').value.trim();
   const type = document.getElementById('newTaskType').value;
   const reward = parseFloat(document.getElementById('newTaskReward').value) || 0;
@@ -4705,6 +4791,7 @@ window.bulkAddPreview = function() {
 };
 
 window.bulkAddTasks = function() {
+  if (!requireAdminForTaskEdit()) return;
   const start  = parseInt(document.getElementById('bulkTaskStart').value, 10);
   const end    = parseInt(document.getElementById('bulkTaskEnd').value, 10);
   const type   = document.getElementById('bulkTaskType').value;
@@ -4762,6 +4849,7 @@ window.bulkTaskTypeChanged = function() {
 };
 
 window.archiveTask = function(id) {
+  if (!requireAdminForTaskEdit()) return;
   const t = tasks.find(t => t.id===id);
   if (!t) return;
   
@@ -4799,6 +4887,7 @@ window.archiveTask = function(id) {
 };
 
 window.deleteTask = function(id) {
+  if (!requireAdminForTaskEdit()) return;
   const t = tasks.find(t => t.id === id); if (!t) return;
   openConfirm(`Permanently delete task "${t.title}"? This cannot be undone.`, () => {
     pushUndo('Delete task ' + t.title);
@@ -4811,6 +4900,7 @@ window.deleteTask = function(id) {
   });
 };
 window.unarchiveTask = function(id) {
+  if (!requireAdminForTaskEdit()) return;
   const t = tasks.find(t => t.id===id);
   pushUndo('Restore task ' + (t ? t.title : id));
   if (t) {
@@ -4851,6 +4941,7 @@ window.assignToAllActive = function(taskId) {
 };
 
 window.openEditTaskModal = function(taskId) {
+  if (!requireAdminForTaskEdit()) return;
   const t = tasks.find(t => t.id===taskId); if(!t) return;
   document.getElementById('editTaskModalId').value = taskId;
   document.getElementById('editTaskModalTitle').value = t.title||'';
@@ -4860,6 +4951,7 @@ window.openEditTaskModal = function(taskId) {
 };
 
 window.saveEditTask = function() {
+  if (!requireAdminForTaskEdit()) return;
   const taskId = document.getElementById('editTaskModalId').value;
   const t = tasks.find(t => t.id===taskId); if(!t) return;
   const newTitle = document.getElementById('editTaskModalTitle').value.trim();
@@ -4878,12 +4970,14 @@ window.saveEditTask = function() {
 };
 
 window.openRewardModal = function(taskId) {
+  if (!requireAdminForTaskEdit()) return;
   const t = tasks.find(t => t.id===taskId); if(!t) return;
   document.getElementById('rewardModalVal').value = t.defaultReward||'';
   document.getElementById('rewardModalTaskId').value = taskId;
   openModal('rewardModal');
 };
 window.saveTaskReward = function() {
+  if (!requireAdminForTaskEdit()) return;
   const taskId = document.getElementById('rewardModalTaskId').value;
   const val = parseFloat(document.getElementById('rewardModalVal').value)||0;
   const t = tasks.find(t => t.id===taskId); if(t) t.defaultReward=val;
@@ -5870,7 +5964,9 @@ function buildSaveJSON() {
   return {
     savedAt,
     accounts: JSON.parse(JSON.stringify(accounts)),
-    tasks: JSON.parse(JSON.stringify(tasks)),
+    // NOTE: tasks are intentionally excluded — they live in
+    // shared/taskManager/tasks (Firebase) now, not in per-user data.
+    // Use buildSaveJSON only for the personal fields below.
     globalSettings: Object.assign({}, globalSettings),
     auditLog: JSON.parse(JSON.stringify(auditLog)),
     bugLog: JSON.parse(JSON.stringify(bugLog)),
@@ -5881,7 +5977,10 @@ function buildSaveJSON() {
 function loadDataJson(payload) {
   if (!payload || typeof payload !== 'object') return;
   if (Array.isArray(payload.accounts)) { accounts.length = 0; accounts.push(...payload.accounts); }
-  if (Array.isArray(payload.tasks)) { tasks.length = 0; tasks.push(...payload.tasks); }
+  // tasks deliberately NOT read from personal payload — see loadFromFirebase(),
+  // which loads tasks separately from shared/taskManager/tasks. If an old
+  // Drive-era JSON with an embedded "tasks" array gets imported, it's ignored
+  // here on purpose so it can't clobber the shared list.
   if (payload.globalSettings && typeof payload.globalSettings === 'object') {
     globalSettings = Object.assign({}, globalSettings, payload.globalSettings);
   }
@@ -6090,15 +6189,12 @@ function initGIS() {
       await new Promise(resolve => waitForFirebase(resolve));
       try{
         const cred = await window.firebaseSignInWithAccessToken(_gisAccessToken);
-        firebaseUid = cred.user.uid;
+        await completeSignIn(cred.user.uid);
       } catch(err){
         setLoginStatus('Account sign-in failed: ' + (err.code || err.message || 'unknown error'));
         console.warn('Firebase sign-in failed:', err);
         return;
       }
-
-      setLoginStatus('');
-      onSignedIn();
     },
   });
   // Silent token restore (via stored login_hint) is intentionally disabled.
@@ -6106,6 +6202,44 @@ function initGIS() {
   // last time, with no chance to pick a different account — every page
   // load now requires an explicit "Sign in with Google" click, which
   // shows the full account chooser (prompt: 'select_account consent').
+}
+
+// Single access-gate + app-load path, shared by both the explicit
+// "Sign in with Google" click and the persistent-session restore on
+// page load (see firebaseOnAuthStateChanged wiring below). Firebase Auth
+// keeps its own session (survives refresh/close by default), so this can
+// run without a fresh GIS popup — _gisAccessToken may be null here, which
+// is fine; it's only needed for the optional Drive backup and profile photo.
+let _lastGrantedUid = null;
+async function completeSignIn(uid) {
+  firebaseUid = uid;
+  if (uid === _lastGrantedUid && (window.isAdmin || window.isAllowedUser)) {
+    return; // already fully signed in for this uid this session
+  }
+  setLoginStatus('Checking access…');
+  let access;
+  try {
+    access = await window.firebaseCheckAccess(uid);
+  } catch (err) {
+    setLoginStatus('Could not verify access — try again.');
+    console.warn('Access check failed:', err);
+    return;
+  }
+  if (!access.isAdmin && !access.isAllowed) {
+    // NOT approved — but stays signed into Firebase on purpose. That's what
+    // lets the "Continue as Guest" button below read the admin-published
+    // demo preview (shared/taskManager/latestPreview requires auth != null).
+    // RTDB rules still block this uid from every other read/write.
+    window.isAdmin = false;
+    window.isAllowedUser = false;
+    setLoginStatus("This Google account is not approved for JT Manager. We will mail you for access, if interested, reply to that mail. But now you can visit JT Manager as Guest and check out latest 5 tasks for demo.");
+    return;
+  }
+  window.isAdmin = access.isAdmin;
+  window.isAllowedUser = access.isAllowed;
+  _lastGrantedUid = uid;
+  setLoginStatus('');
+  await onSignedIn();
 }
 
 function gisSignIn() {
@@ -6116,24 +6250,46 @@ function gisSignIn() {
 window.gisSignIn = gisSignIn;
 function continueAsGuest() {
   window.isGuestMode = true;
+  window.isAdmin = false;
+  window.isAllowedUser = false;
   setLoginStatus('Entering guest mode…');
-  
+
   // Show the manual sidebar
   const sidebar = document.getElementById('guestManualSidebar');
   if (sidebar) {
     sidebar.classList.remove('hidden');
   }
-  
+
   hideLoginOverlay();
-  
-  // Initialize UI with empty data (already initialized in DOMContentLoaded)
-  renderDashboard();
-  renderTasks();
-  renderAccList();
-  renderActionCenter();
-  
-  toast('Guest mode activated — no data will be saved');
-  }
+
+  // Try to show the real demo: the 5 latest tasks the admin published for
+  // preview. This works whenever there's an authenticated Firebase session
+  // (e.g. arriving here after a Google sign-in that wasn't approved) since
+  // shared/taskManager/latestPreview only requires auth != null. A fully
+  // anonymous guest (never signed into Google at all) has no Firebase auth
+  // token, so this read is denied by the rules on purpose — falls back to
+  // an empty board in that case, same as before.
+  tasks.length = 0;
+  const showDemoTasks = async () => {
+    try {
+      if (window.firebaseReady) {
+        const preview = await window.firebaseLoadLatestTasksPreview();
+        if (Array.isArray(preview) && preview.length) tasks.push(...preview);
+      }
+    } catch (e) {
+      console.warn('Guest demo preview unavailable:', e);
+    }
+    taskPage = 0;
+    renderDashboard();
+    renderTasks();
+    renderAccList();
+    renderActionCenter();
+    toast(tasks.length
+      ? `Guest mode — showing ${tasks.length} demo task(s), read-only`
+      : 'Guest mode activated — no data will be saved');
+  };
+  showDemoTasks();
+}
 window.continueAsGuest = continueAsGuest;
   // ─────────────────────────────────────────
 // GUEST ACCESS MODAL
@@ -6182,6 +6338,9 @@ function gisSignOut() {
   if (!confirm('Sign out of Google Drive integration?')) return;
   if (window.firebaseReady) window.firebaseSignOut().catch(()=>{});
   firebaseUid = null;
+  window.isAdmin = false;
+  window.isAllowedUser = false;
+  _lastGrantedUid = null;
   if (_gisAccessToken) google.accounts.oauth2.revoke(_gisAccessToken, () => {});
   _gisAccessToken = null; _gisTokenExpiry = 0; _gisFolderIdCache = null;
   _gisAppFolderIdCache = null; _gisUserProfile = null;
@@ -6250,13 +6409,58 @@ async function onSignedIn() {
     }
   } catch(e) { /* non-fatal */ }
   hideLoginOverlay();
-  // Ensure folder exists then do background version check
-  try {
-    const folderId = await ensureDriveFolder();
-    checkDriveVersion();
-    pruneOldDriveFiles(folderId);
-  } catch(e) { setDriveDot('gray', 'folder error: ' + e.message); }
+  await loadFromFirebase();
 }
+
+// ── Primary data load — Firebase is now the source of truth ────────────────
+// Personal fields (accounts/settings/logs) come from users/{uid}/data.
+// Tasks come from shared/taskManager/tasks — read-only for non-admins,
+// admin-writable, and shared across every approved user.
+async function loadFromFirebase() {
+  setDriveDot('spin', 'loading from Firebase…');
+  try {
+    const personal = await window.firebaseLoadUserData(firebaseUid);
+    if (personal) loadDataJson(personal);
+
+    // Task definitions (shared, admin-written) + THIS user's own assignment
+    // records (private per-user subtree) — merged client-side so nothing
+    // else changes: task.assignments still behaves like before, it's just
+    // scoped to "my assignments" instead of "everyone's assignments".
+    const [sharedTasks, ownAssignments] = await Promise.all([
+      window.firebaseLoadSharedTasks(),
+      window.firebaseLoadUserAssignments(firebaseUid)
+    ]);
+    tasks.length = 0;
+    if (Array.isArray(sharedTasks)) {
+      sharedTasks.forEach(t => {
+        t.assignments = (ownAssignments && ownAssignments[t.id]) || [];
+        tasks.push(t);
+      });
+    }
+    taskPage = 0;
+    renderTasks();
+
+    applyAdminUIState();
+    setDriveDot('green', 'synced');
+    markUnsaved(false);
+    addAuditEntry('OPENED', 'Firebase data');
+  } catch (e) {
+    console.error(e);
+    setDriveDot('red', 'Firebase load failed');
+    toast('✗ Could not load data from Firebase: ' + (e.message || e.code || 'unknown error'));
+  }
+}
+
+// Hides/disables task-editing controls for non-admins. Wrap any element
+// that adds/edits/deletes/archives tasks with class "admin-only-task-ctl"
+// (or list its id below) so read-only users never trigger a write that
+// the RTDB rules would reject anyway.
+function applyAdminUIState() {
+  document.querySelectorAll('.admin-only-task-ctl').forEach(el => {
+    el.style.display = window.isAdmin ? '' : 'none';
+  });
+}
+window.applyAdminUIState = applyAdminUIState;
 
 // ── Drive folder auto-create ───────────────────────────────────────────────
 async function ensureDriveFolder() {
@@ -6638,8 +6842,8 @@ async function performSaveToDrive(force) {
   const payload = buildSaveJSON();
   const content = JSON.stringify(payload, null, 2);
 
-  // Offline fallback — local download
-  if (!_gisAccessToken) {
+  // Offline fallback — local download (not signed in at all)
+  if (!_gisAccessToken || !firebaseUid) {
     addAuditEntry('OFFLINE SAVE', filename);
     _triggerLocalDownload(content, filename, 'application/json');
     toast('📥 Not signed in — saved locally: ' + filename);
@@ -6649,25 +6853,71 @@ async function performSaveToDrive(force) {
     return;
   }
 
-  setDriveDot('spin', 'uploading…');
+  setDriveDot('spin', 'saving…');
 
   try {
-    const folderId = await ensureDriveFolder();
-    await driveUploadFile(folderId, filename, content, 'application/json');
-    toast('☁ Saved to Drive → ' + filename);
+    // Primary save target — personal fields to users/{uid}/data.
+    await window.firebaseSaveUserData(firebaseUid, payload);
+
+    // Task DEFINITIONS (title/type/reward/thumbnail/archived/errors/links)
+    // — admin-write only. `assignments` is deliberately stripped before
+    // this write: it doesn't belong here anymore, see below.
+    if (window.isAdmin) {
+      const definitionsOnly = tasks.map(t => {
+        const { assignments, ...rest } = t;
+        return rest;
+      });
+      await window.firebaseSaveSharedTasks(definitionsOnly);
+
+      // Republish the guest-demo preview: 5 most recently created,
+      // non-archived task definitions, no assignment data at all.
+      const preview = definitionsOnly
+        .filter(t => !t.archived)
+        .slice()
+        .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
+        .slice(0, 5);
+      try {
+        await window.firebaseSaveLatestTasksPreview(preview);
+      } catch (e) {
+        console.warn('Preview publish failed (non-fatal):', e);
+      }
+    }
+
+    // ASSIGNMENTS (who's doing what, status, reward, completedAt, etc.)
+    // — every approved user writes ONLY their own subtree, admin included.
+    // This is what lets non-admins actually persist assigning/completing/
+    // marking-rewarded, and keeps everyone's assignment activity private
+    // from everyone else (rules enforce both — this is just the plumbing).
+    const assignmentsByTaskId = {};
+    tasks.forEach(t => {
+      if (t.assignments && t.assignments.length) assignmentsByTaskId[t.id] = t.assignments;
+    });
+    await window.firebaseSaveUserAssignments(firebaseUid, assignmentsByTaskId);
+
+    toast('☁ Saved to Firebase');
     setDriveDot('green', 'just saved');
     markUnsaved(false);
-    _driveLatestName = filename;
-    addAuditEntry('SAVED', filename);
+    addAuditEntry('SAVED', 'Firebase — ' + suffix);
     const conflictBar = document.getElementById('conflictBar');
     if (conflictBar) conflictBar.classList.remove('visible');
   } catch (e) {
-    console.error('Drive save failed:', e);
-    toast('✗ Drive upload failed — saving locally instead');
-    addAuditEntry('OFFLINE SAVE', filename + ' (upload failed: ' + e.message + ')');
+    console.error('Firebase save failed:', e);
+    toast('✗ Firebase save failed — saving locally instead: ' + (e.message || e.code || 'unknown error'));
+    addAuditEntry('OFFLINE SAVE', filename + ' (Firebase save failed: ' + (e.message || e.code) + ')');
     _triggerLocalDownload(content, filename, 'application/json');
-    setDriveDot('red', 'upload failed');
+    setDriveDot('red', 'save failed');
     markUnsaved(false);
+    return;
+  }
+
+  // Best-effort secondary backup to Drive — never blocks or overrides the
+  // Firebase result above; failures here are silent (console only).
+  try {
+    const folderId = await ensureDriveFolder();
+    await driveUploadFile(folderId, filename, content, 'application/json');
+    _driveLatestName = filename;
+  } catch (e) {
+    console.warn('Drive backup skipped/failed (non-fatal):', e);
   }
 }
 window.performSaveToDrive = performSaveToDrive;
@@ -7698,11 +7948,33 @@ renderEarningsHistory();
 // Init bulk add reward default
 bulkTaskTypeChanged();
 
-// Drive: OAuth init — GIS will trigger checkDriveVersion() after sign-in
+// Drive: OAuth init — GIS will trigger loadFromFirebase() after sign-in
 // Show login overlay; GIS will hide it after token obtained
 showLoginOverlay();
 initGIS();
 markUnsaved(false);
+
+// Persistent sign-in — Firebase Auth keeps its own session (survives
+// refresh, and staying closed for a while, by default). This listener is
+// what makes that persistence actually restore the app: on a fresh page
+// load with an existing Firebase session, it re-runs the access check and
+// loads data WITHOUT requiring a fresh "Sign in with Google" click/popup.
+// Signing out (gisSignOut) still clears this properly.
+waitForFirebase(() => {
+  window.firebaseOnAuthStateChanged(async (user) => {
+    if (user) {
+      if (!firebaseUid) setLoginStatus('Restoring session…');
+      await completeSignIn(user.uid);
+    } else if (firebaseUid) {
+      // Session ended elsewhere (e.g. token revoked, signed out in another tab)
+      firebaseUid = null;
+      window.isAdmin = false;
+      window.isAllowedUser = false;
+      _lastGrantedUid = null;
+      showLoginOverlay();
+    }
+  });
+});
 
 // ── Bridge: the TaskShot engine (tsAddSingleSlot, tsHandleImage, tsStartUpload, etc.)
 // is defined in the page's outer global scope, ABOVE this DOMContentLoaded closure.
