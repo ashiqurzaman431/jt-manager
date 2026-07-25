@@ -3443,7 +3443,11 @@ let activeTagFilters = new Set(); // values: 'fresh' | 'today' | 'quicky'
 let taskTodayOnly = false;
 let taskAssignedOnly = false;
 const TASKS_PER_PAGE = 21;
-let taskPage = 0; // current page index (0-based)
+let taskPage = 0; // legacy — no longer drives rendering, kept only so old reset call sites stay harmless
+let taskLoadedCount = TASKS_PER_PAGE; // how many tasks are currently rendered (grows via "Load More")
+function resetTaskLoadMore() {
+  // no-op — filter/tab changes no longer collapse the loaded task list or force a scroll
+}
 // taskSecondSort removed — merged into taskSort
 
 // ── Task Search State ──
@@ -3527,7 +3531,7 @@ function showPage(id) {
   if (navEl) navEl.classList.add('active');
   positionNavIndicator(navEl);
   if (id === 'dashboard') renderDashboard();
-  if (id === 'tasks') { taskPage = 0; renderTasks(); populateDefaultRewardFields(); }
+  if (id === 'tasks') { resetTaskLoadMore(); renderTasks(); populateDefaultRewardFields(); }
   if (id === 'accounts') {
     renderAccList();
     populateGlobalJmptRateField();
@@ -3701,12 +3705,12 @@ function isTagQuicky(task) {
 function toggleTagFilter(tag) {
   if (activeTagFilters.has(tag)) activeTagFilters.delete(tag);
   else activeTagFilters.add(tag);
-  taskPage = 0;
+  resetTaskLoadMore();
   renderTasks();
 }
 function clearTagFilters() {
   activeTagFilters.clear();
-  taskPage = 0;
+  resetTaskLoadMore();
   renderTasks();
 }
 function weekStart() {
@@ -3962,13 +3966,13 @@ window.switchTaskTab = function(tab) {
 
 window.setHideArchived = function(val) {
   hideArchived = val;
-  taskPage = 0;
+  resetTaskLoadMore();
   renderTasks();
 };
 
 window.setHideErrorTask = function(val) {
   hideErrorTask = val;
-  taskPage = 0;
+  resetTaskLoadMore();
   renderTasks();
 };
 
@@ -3976,7 +3980,7 @@ window.setTaskSort = function(btn, s) {
   taskSort = s;
   const sel = document.getElementById('taskSortSelect');
   if (sel) sel.value = s;
-  taskPage = 0;
+  resetTaskLoadMore();
   renderTasks();
 };
 
@@ -3984,7 +3988,7 @@ window.setTaskSortDir = function(btn, dir) {
   taskSortDir = dir;
   const sel = document.getElementById('taskSortDirSelect');
   if (sel) sel.value = dir;
-  taskPage = 0;
+  resetTaskLoadMore();
   renderTasks();
 };
 
@@ -3997,12 +4001,12 @@ window.setTaskAccountFilter = function(accId) {
   const lbl = document.getElementById('taskAccExceptLabel');
   if (lbl) lbl.style.display = (accId !== 'all') ? 'flex' : 'none';
   renderTaskAccountFilterBar();
-  taskPage = 0;
+  resetTaskLoadMore();
   renderTasks();
 };
 window.setTaskAccountExcept = function(val) {
   taskAccountFilterExcept = val;
-  taskPage = 0;
+  resetTaskLoadMore();
   renderTasks();
 };
 
@@ -4021,31 +4025,31 @@ window.setTaskTypeFilterDropdown = function(f) {
   const todayCb = document.getElementById('typeBtnToday');
   if (todayCb) todayCb.checked = false;
   taskTypeFilter = f;
-  taskPage = 0;
+  resetTaskLoadMore();
   renderTasks();
 };
 
 window.setTaskTodayFilter = function(checked) {
   taskTodayOnly = checked;
-  taskPage = 0;
+  resetTaskLoadMore();
   renderTasks();
 };
 
 window.setTaskAssignedFilter = function(checked) {
   taskAssignedOnly = checked;
-  taskPage = 0;
+  resetTaskLoadMore();
   renderTasks();
 };
 
 window.setTaskSortDropdown = function(s) {
   taskSort = s;
-  taskPage = 0;
+  resetTaskLoadMore();
   renderTasks();
 };
 
 window.setTaskSortDirDropdown = function(dir) {
   taskSortDir = dir;
-  taskPage = 0;
+  resetTaskLoadMore();
   renderTasks();
 };
 
@@ -4062,7 +4066,7 @@ window.applyTaskSearch = function() {
     // Range search only active when BOTH fields are filled
     window._taskRangeFrom = (fromVal !== null && toVal !== null) ? fromVal : null;
     window._taskRangeTo   = (fromVal !== null && toVal !== null) ? toVal   : null;
-    taskPage = 0;
+    resetTaskLoadMore();
     renderTasks();
   }, 180);
 };
@@ -4077,7 +4081,7 @@ window.clearTaskSearch = function() {
   window._taskTitleSearch = '';
   window._taskRangeFrom = null;
   window._taskRangeTo   = null;
-  taskPage = 0;
+  resetTaskLoadMore();
   renderTasks();
 };
 
@@ -4087,7 +4091,7 @@ window.setTaskTypeFilter = function(btn, f) {
     taskTodayOnly = !taskTodayOnly;
     const todayCb = document.getElementById('typeBtnToday');
     if (todayCb) todayCb.checked = taskTodayOnly;
-    taskPage = 0;
+    resetTaskLoadMore();
     renderTasks();
     return;
   }
@@ -4095,7 +4099,7 @@ window.setTaskTypeFilter = function(btn, f) {
   taskTypeFilter = f;
   const sel = document.getElementById('taskTypeFilterBar');
   if (sel) sel.value = f;
-  taskPage = 0;
+  resetTaskLoadMore();
   renderTasks();
 };
 
@@ -4290,24 +4294,24 @@ function renderTasks() {
   }
 
   document.getElementById('tasksList').innerHTML = pinnedHtml + (() => {
-    const totalPages = Math.max(1, Math.ceil(list.length / TASKS_PER_PAGE));
-    if (taskPage >= totalPages) taskPage = totalPages - 1;
-    const pagedList = list.slice(taskPage * TASKS_PER_PAGE, (taskPage + 1) * TASKS_PER_PAGE);
-    const cards = pagedList.map(task => renderTaskCard(task)).join('');
-    const paginationHtml = totalPages <= 1 ? '' : `
-      <div style="grid-column:1/-1;display:flex;align-items:center;justify-content:center;gap:10px;padding:14px 0 6px;font-family:var(--mono);font-size:11px;color:var(--ink2);">
-        <button onclick="setTaskPage(${taskPage - 1})" ${taskPage === 0 ? 'disabled style="opacity:0.35;cursor:not-allowed;"' : 'style="cursor:pointer;"'}
-          style="padding:4px 12px;border-radius:6px;border:1px solid var(--border2);background:var(--jt-light);color:var(--jt);font-family:var(--mono);font-size:11px;font-weight:700;">◀</button>
-        <span style="font-weight:600;">Page ${taskPage + 1} of ${totalPages} &nbsp;·&nbsp; ${list.length} tasks</span>
-        <button onclick="setTaskPage(${taskPage + 1})" ${taskPage >= totalPages - 1 ? 'disabled style="opacity:0.35;cursor:not-allowed;"' : 'style="cursor:pointer;"'}
-          style="padding:4px 12px;border-radius:6px;border:1px solid var(--border2);background:var(--jt-light);color:var(--jt);font-family:var(--mono);font-size:11px;font-weight:700;">▶</button>
-      </div>`;
-    return cards + paginationHtml;
+    const visibleList = list.slice(0, taskLoadedCount);
+    const cards = visibleList.map(task => renderTaskCard(task)).join('');
+    const remaining = list.length - visibleList.length;
+    const loadMoreHtml = remaining > 0 ? `
+      <div style="grid-column:1/-1;display:flex;align-items:center;justify-content:center;padding:14px 0 6px;">
+        <button onclick="loadMoreTasks()" style="padding:8px 20px;border-radius:8px;border:1px solid var(--border2);background:var(--jt-light);color:var(--jt);font-family:var(--mono);font-size:12px;font-weight:700;cursor:pointer;">
+          ↓ Load More (${remaining} more · ${list.length} total)
+        </button>
+      </div>` : (list.length > TASKS_PER_PAGE ? `
+      <div style="grid-column:1/-1;text-align:center;padding:14px 0 6px;font-family:var(--mono);font-size:11px;color:var(--ink3);">
+        — all ${list.length} tasks loaded —
+      </div>` : '');
+    return cards + loadMoreHtml;
   })();
 }
 
-window.setTaskPage = function(page) {
-  taskPage = Math.max(0, page);
+window.loadMoreTasks = function() {
+  taskLoadedCount += TASKS_PER_PAGE;
   renderTasks();
 };
 
