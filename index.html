@@ -4502,12 +4502,20 @@ function renderTaskCard(task) {
   // Links
   const linksHtml = (task.links||[]).length
     ? `<div style="display:flex;flex-direction:column;gap:3px;margin-top:4px;">
-        ${(task.links||[]).map((l,i)=>`<div style="display:flex;flex-wrap:wrap;gap:4px;align-items:center;">
-          ${l.searchKeyword ? `<span style="font-family:var(--mono);font-size:9.5px;color:var(--ink2);background:var(--panel2, var(--surface2));border:1px solid var(--line, var(--border));border-radius:99px;padding:1px 8px;" title="Search Keyword">🔍 ${l.searchKeyword}</span>` : ''}
-          ${l.topicName ? `<span style="font-family:var(--mono);font-size:9.5px;color:var(--ink2);background:var(--panel2, var(--surface2));border:1px solid var(--line, var(--border));border-radius:99px;padding:1px 8px;" title="Topic timestamp">🏷 ${l.topicName} · ${l.topicMss||"0'00"}</span>` : ''}
-          ${l.videoLink ? `<button onclick="copyToClipboard('${l.videoLink}')" style="font-family:var(--mono);font-size:9.5px;color:var(--jt);background:var(--jt-light);border:1px solid var(--jt-border);border-radius:99px;padding:1px 8px;cursor:pointer;" title="${l.videoLink}">📋 🎬</button>` : ''}
-          ${l.thumbLink ? `<button onclick="copyToClipboard('${l.thumbLink}')" style="font-family:var(--mono);font-size:9.5px;color:var(--jt);background:var(--jt-light);border:1px solid var(--jt-border);border-radius:99px;padding:1px 8px;cursor:pointer;" title="${l.thumbLink}">📋 🖼</button>` : ''}
-        </div>`).join('')}
+        ${(task.links||[]).map((l,i)=>{
+          const isLegacy = !l.searchKeyword && !l.topicName && !l.videoLink && !l.thumbLink && (l.label || l.url);
+          if (isLegacy) {
+            return `<div style="display:flex;flex-wrap:wrap;gap:4px;align-items:center;">
+              <button onclick="copyLink('${task.id}',${i})" style="font-family:var(--mono);font-size:9.5px;color:var(--jt);background:var(--jt-light);border:1px solid var(--jt-border);border-radius:99px;padding:1px 8px;cursor:pointer;" title="${htmlEscape(l.url)}">📋 ${htmlEscape(l.label||l.url)}</button>
+            </div>`;
+          }
+          return `<div style="display:flex;flex-wrap:wrap;gap:4px;align-items:center;">
+          ${l.searchKeyword ? `<button onclick="copyToClipboard('${jsEscape(l.searchKeyword)}')" style="font-family:var(--mono);font-size:9.5px;color:var(--ink2);background:var(--panel2, var(--surface2));border:1px solid var(--line, var(--border));border-radius:99px;padding:1px 8px;cursor:pointer;" title="Click to copy keyword">🔍 ${htmlEscape(l.searchKeyword)}</button>` : ''}
+          ${l.topicName ? `<button onclick="copyToClipboard('${jsEscape(l.topicName)}')" style="font-family:var(--mono);font-size:9.5px;color:var(--ink2);background:var(--panel2, var(--surface2));border:1px solid var(--line, var(--border));border-radius:99px;padding:1px 8px;cursor:pointer;" title="Click to copy topic name only (not the timestamp)">🏷 ${htmlEscape(l.topicName)} · ${htmlEscape(l.topicMss||"0'00")}</button>` : ''}
+          ${l.videoLink ? `<button onclick="copyToClipboard('${jsEscape(l.videoLink)}')" style="font-family:var(--mono);font-size:9.5px;color:var(--jt);background:var(--jt-light);border:1px solid var(--jt-border);border-radius:99px;padding:1px 8px;cursor:pointer;" title="${htmlEscape(l.videoLink)}">📋 🎬</button>` : ''}
+          ${l.thumbLink ? `<button onclick="copyToClipboard('${jsEscape(l.thumbLink)}')" style="font-family:var(--mono);font-size:9.5px;color:var(--jt);background:var(--jt-light);border:1px solid var(--jt-border);border-radius:99px;padding:1px 8px;cursor:pointer;" title="${htmlEscape(l.thumbLink)}">📋 🖼</button>` : ''}
+        </div>`;
+        }).join('')}
        </div>` : '';
 
   // Reward
@@ -5994,20 +6002,31 @@ function renderLinksModalList(taskId) {
     container.innerHTML = `<div style="font-family:var(--mono);font-size:12.1px;color:var(--ink3);text-align:center;padding:10px;">No links added yet</div>`;
     return;
   }
-  container.innerHTML = links.map((l, i) => `
+  container.innerHTML = links.map((l, i) => {
+    const isLegacy = !l.searchKeyword && !l.topicName && !l.videoLink && !l.thumbLink && (l.label || l.url);
+    if (isLegacy) {
+      return `<div style="display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 12px;">
+        <button onclick="copyLink('${taskId}',${i})" style="font-family:var(--mono);font-size:12.1px;color:var(--jt);background:var(--jt-light);border:1px solid var(--jt-border);border-radius:6px;padding:4px 10px;cursor:pointer;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left;">📋 ${htmlEscape(l.label||l.url)}</button>
+        <span style="font-family:var(--mono);font-size:9.9px;color:var(--ink3);flex-shrink:0;overflow:hidden;text-overflow:ellipsis;max-width:120px;" title="${htmlEscape(l.url)}">${htmlEscape(l.url)}</span>
+        <button onclick="deleteLink('${taskId}',${i})" style="flex-shrink:0;background:var(--red-light);color:var(--red);border:1px solid var(--red-border);border-radius:4px;width:22px;height:22px;cursor:pointer;font-size:12.1px;">✕</button>
+      </div>`;
+    }
+    return `
     <div style="display:flex;flex-direction:column;gap:5px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 12px;">
       <div style="display:flex;align-items:center;gap:8px;">
-        <div style="flex:1;min-width:0;font-family:var(--mono);font-size:12.1px;color:var(--ink1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
-          ${l.topicName ? `🏷 ${l.topicName} · ${l.topicMss||"0'00"}` : ''}${l.topicName && l.searchKeyword ? ' · ' : ''}${l.searchKeyword ? `🔍 ${l.searchKeyword}` : ''}
-          ${!l.topicName && !l.searchKeyword ? '(no keyword/topic set)' : ''}
+        <div style="flex:1;min-width:0;display:flex;flex-wrap:wrap;gap:4px;">
+          ${l.topicName ? `<button onclick="copyToClipboard('${jsEscape(l.topicName)}')" style="font-family:var(--mono);font-size:11px;color:var(--jt);background:var(--jt-light);border:1px solid var(--jt-border);border-radius:6px;padding:2px 8px;cursor:pointer;" title="Click to copy topic name only (not the timestamp)">🏷 ${htmlEscape(l.topicName)} · ${htmlEscape(l.topicMss||"0'00")}</button>` : ''}
+          ${l.searchKeyword ? `<button onclick="copyToClipboard('${jsEscape(l.searchKeyword)}')" style="font-family:var(--mono);font-size:11px;color:var(--jt);background:var(--jt-light);border:1px solid var(--jt-border);border-radius:6px;padding:2px 8px;cursor:pointer;" title="Click to copy keyword">🔍 ${htmlEscape(l.searchKeyword)}</button>` : ''}
+          ${!l.topicName && !l.searchKeyword ? `<span style="font-family:var(--mono);font-size:11px;color:var(--ink3);">(no keyword/topic set)</span>` : ''}
         </div>
         <button onclick="deleteLink('${taskId}',${i})" style="flex-shrink:0;background:var(--red-light);color:var(--red);border:1px solid var(--red-border);border-radius:4px;width:22px;height:22px;cursor:pointer;font-size:12.1px;">✕</button>
       </div>
       <div style="display:flex;flex-wrap:wrap;gap:4px;">
-        ${l.videoLink ? `<button onclick="copyToClipboard('${l.videoLink}')" style="font-family:var(--mono);font-size:9.9px;color:var(--jt);background:var(--jt-light);border:1px solid var(--jt-border);border-radius:6px;padding:3px 8px;cursor:pointer;" title="${l.videoLink}">📋 🎬 Video</button>` : ''}
-        ${l.thumbLink ? `<button onclick="copyToClipboard('${l.thumbLink}')" style="font-family:var(--mono);font-size:9.9px;color:var(--jt);background:var(--jt-light);border:1px solid var(--jt-border);border-radius:6px;padding:3px 8px;cursor:pointer;" title="${l.thumbLink}">📋 🖼 Thumb</button>` : ''}
+        ${l.videoLink ? `<button onclick="copyToClipboard('${jsEscape(l.videoLink)}')" style="font-family:var(--mono);font-size:9.9px;color:var(--jt);background:var(--jt-light);border:1px solid var(--jt-border);border-radius:6px;padding:3px 8px;cursor:pointer;" title="${htmlEscape(l.videoLink)}">📋 🎬 Video</button>` : ''}
+        ${l.thumbLink ? `<button onclick="copyToClipboard('${jsEscape(l.thumbLink)}')" style="font-family:var(--mono);font-size:9.9px;color:var(--jt);background:var(--jt-light);border:1px solid var(--jt-border);border-radius:6px;padding:3px 8px;cursor:pointer;" title="${htmlEscape(l.thumbLink)}">📋 🖼 Thumb</button>` : ''}
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 window.addLink = function() {
@@ -6180,6 +6199,16 @@ async function loadLatestDataFile(fileId, fileName) {
     toast('✗ Load failed: ' + err.message);
     throw err;
   }
+}
+
+// Safe-embedding helpers for building onclick='...' JS-string args and
+// HTML attribute/text content out of arbitrary user text (keywords, topic
+// names, etc. may contain quotes/apostrophes — m'ss itself has one).
+function jsEscape(s) {
+  return String(s == null ? '' : s).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+}
+function htmlEscape(s) {
+  return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
 window.copyToClipboard = function(text) {
