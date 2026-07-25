@@ -2605,16 +2605,17 @@ TaskRec01: task assigned, timer started.</div>
     <input type="hidden" id="linksModalTaskId" value="ev1c13790irmplcu7sb">
     <!-- Existing links list -->
     <div id="linksModalList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
-    <div style="display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 12px;">
-      <button onclick="copyLink('ev1c13790irmplcu7sb',0)" style="font-family:var(--mono);font-size:12.1px;color:var(--jt);background:var(--jt-light);border:1px solid var(--jt-border);border-radius:6px;padding:4px 10px;cursor:pointer;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left;">📋 VIDEO LINK</button>
-      <span style="font-family:var(--mono);font-size:9.9px;color:var(--ink3);flex-shrink:0;overflow:hidden;text-overflow:ellipsis;max-width:120px;" title="https://www.youtube.com/watch?v=bN2Lza5SV0E">https://www.youtube.com/watch?v=bN2Lza5SV0E</span>
-      <button onclick="deleteLink('ev1c13790irmplcu7sb',0)" style="flex-shrink:0;background:var(--red-light);color:var(--red);border:1px solid var(--red-border);border-radius:4px;width:22px;height:22px;cursor:pointer;font-size:12.1px;">✕</button>
-    </div></div>
+    </div>
     <!-- Add new link -->
     <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;display:flex;flex-direction:column;gap:8px;">
       <div style="font-family:var(--mono);font-size:11px;color:var(--ink3);text-transform:uppercase;font-weight:600;">Add New Link</div>
-      <div class="field"><label>Label (optional)</label><input type="text" id="newLinkLabel" placeholder="e.g. YouTube video, Google search..." onkeydown="if(event.key==='Enter')addLink()"></div>
-      <div class="field"><label>URL</label><input type="text" id="newLinkUrl" placeholder="https://..." onkeydown="if(event.key==='Enter')addLink()"></div>
+      <div class="field"><label>Search Keyword</label><input type="text" id="newLinkKeyword" placeholder="e.g. best budget phone"></div>
+      <div class="form-row">
+        <div class="field"><label>Topic Name</label><input type="text" id="newLinkTopicName" placeholder="e.g. intro, pricing, outro"></div>
+        <div class="field"><label>m'ss</label><input type="text" id="newLinkTopicMss" placeholder="0'00"></div>
+      </div>
+      <div class="field"><label>Video Link</label><input type="text" id="newLinkVideoLink" placeholder="paste full link or just the video ID" onblur="normalizeLinkField('newLinkVideoLink','youtube')" onkeydown="if(event.key==='Enter')addLink()"></div>
+      <div class="field"><label>Thumbnail Link</label><input type="text" id="newLinkThumbLink" placeholder="paste full link or just the ID" onblur="normalizeLinkField('newLinkThumbLink','thumb')" onkeydown="if(event.key==='Enter')addLink()"></div>
       <button class="btn-primary" style="width:100%;" onclick="addLink()">+ Add Link</button>
     </div>
     <div class="modal-actions" style="margin-top:14px;">
@@ -4155,11 +4156,23 @@ function renderTasks() {
   let list = tasks.filter(t => {
     // Search filters (title search + range search) — apply to ALL tasks
     // (including archived) FIRST so search works on archived tasks too.
-    const titleQ = (window._taskTitleSearch || '').trim().toLowerCase();
+    const titleQRaw = (window._taskTitleSearch || '').trim();
+    const titleQ = titleQRaw.toLowerCase();
     const rangeFrom = window._taskRangeFrom;
     const rangeTo = window._taskRangeTo;
     if (titleQ) {
-      if (!(t.title||'').toLowerCase().startsWith(titleQ)) return false;
+      // Title: startsWith, case-insensitive (unchanged behavior).
+      const matchesTitle = (t.title||'').toLowerCase().startsWith(titleQ);
+      // Video/thumbnail IDs are case-sensitive by nature (YouTube/ibb.co IDs
+      // mix upper & lower case) — match exact ID, case-sensitive. Also accept
+      // a full link pasted into the search box, not just the bare ID.
+      // These live per-link now (a task can have several video/topic entries).
+      const searchVideoId = extractYoutubeId(titleQRaw) || titleQRaw;
+      const searchThumbId = extractThumbId(titleQRaw) || titleQRaw;
+      const links = t.links || [];
+      const matchesVideoId = links.some(l => l.videoId && l.videoId === searchVideoId);
+      const matchesThumbId = links.some(l => l.thumbId && l.thumbId === searchThumbId);
+      if (!matchesTitle && !matchesVideoId && !matchesThumbId) return false;
     }
     if (rangeFrom !== null && rangeTo !== null) {
       const num = parseFloat(t.title);
@@ -4488,11 +4501,13 @@ function renderTaskCard(task) {
 
   // Links
   const linksHtml = (task.links||[]).length
-    ? `<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px;">
-        ${(task.links||[]).map((l,i)=>`<button onclick="copyLink('${task.id}',${i})"
-          style="font-family:var(--mono);font-size:9.5px;color:var(--jt);background:var(--jt-light);
-          border:1px solid var(--jt-border);border-radius:99px;padding:1px 8px;cursor:pointer;"
-          title="${l.url}">📋 ${l.label||l.url}</button>`).join('')}
+    ? `<div style="display:flex;flex-direction:column;gap:3px;margin-top:4px;">
+        ${(task.links||[]).map((l,i)=>`<div style="display:flex;flex-wrap:wrap;gap:4px;align-items:center;">
+          ${l.searchKeyword ? `<span style="font-family:var(--mono);font-size:9.5px;color:var(--ink2);background:var(--panel2, var(--surface2));border:1px solid var(--line, var(--border));border-radius:99px;padding:1px 8px;" title="Search Keyword">🔍 ${l.searchKeyword}</span>` : ''}
+          ${l.topicName ? `<span style="font-family:var(--mono);font-size:9.5px;color:var(--ink2);background:var(--panel2, var(--surface2));border:1px solid var(--line, var(--border));border-radius:99px;padding:1px 8px;" title="Topic timestamp">🏷 ${l.topicName} · ${l.topicMss||"0'00"}</span>` : ''}
+          ${l.videoLink ? `<button onclick="copyToClipboard('${l.videoLink}')" style="font-family:var(--mono);font-size:9.5px;color:var(--jt);background:var(--jt-light);border:1px solid var(--jt-border);border-radius:99px;padding:1px 8px;cursor:pointer;" title="${l.videoLink}">📋 🎬</button>` : ''}
+          ${l.thumbLink ? `<button onclick="copyToClipboard('${l.thumbLink}')" style="font-family:var(--mono);font-size:9.5px;color:var(--jt);background:var(--jt-light);border:1px solid var(--jt-border);border-radius:99px;padding:1px 8px;cursor:pointer;" title="${l.thumbLink}">📋 🖼</button>` : ''}
+        </div>`).join('')}
        </div>` : '';
 
   // Reward
@@ -4740,6 +4755,53 @@ document.addEventListener('paste', e => {
     }
   }
 });
+
+// ─────────────────────────────────────────
+// LINK NORMALIZATION (Video Link / Thumbnail Link)
+// Paste a full link OR just the ID — either way we derive both.
+// ─────────────────────────────────────────
+function extractYoutubeId(val) {
+  val = (val || '').trim();
+  if (!val) return '';
+  let m = val.match(/[?&]v=([A-Za-z0-9_-]{6,})/);
+  if (m) return m[1].split(/[?&]/)[0];
+  m = val.match(/youtu\.be\/([A-Za-z0-9_-]{6,})/);
+  if (m) return m[1].split(/[?&]/)[0];
+  m = val.match(/youtube\.com\/shorts\/([A-Za-z0-9_-]{6,})/);
+  if (m) return m[1].split(/[?&]/)[0];
+  if (/^https?:\/\//i.test(val)) return ''; // some other URL, can't parse an ID out of it
+  return val.split(/[?&\/\s]/)[0]; // treat as raw ID
+}
+function extractThumbId(val) {
+  val = (val || '').trim();
+  if (!val) return '';
+  let m = val.match(/ibb\.co\/([A-Za-z0-9]+)/i);
+  if (m) return m[1];
+  if (/^https?:\/\//i.test(val)) return '';
+  return val.split(/[?&\/\s]/)[0];
+}
+// Returns {fullLink, id} for a pasted value given a kind ('youtube' | 'thumb')
+function normalizeLinkValue(val, kind) {
+  val = (val || '').trim();
+  if (!val) return { fullLink: '', id: '' };
+  const isFullLink = /^https?:\/\//i.test(val);
+  if (kind === 'youtube') {
+    const id = extractYoutubeId(val);
+    const fullLink = isFullLink ? val : (id ? `https://www.youtube.com/watch?v=${id}` : val);
+    return { fullLink, id };
+  } else {
+    const id = extractThumbId(val);
+    const fullLink = isFullLink ? val : (id ? `https://ibb.co/${id}` : val);
+    return { fullLink, id };
+  }
+}
+// Wired to onblur of the Video Link / Thumbnail Link inputs — rewrites the
+// field to the full link in-place once the person tabs/clicks away.
+window.normalizeLinkField = function(inputId, kind) {
+  const el = document.getElementById(inputId); if (!el) return;
+  const { fullLink } = normalizeLinkValue(el.value, kind);
+  if (fullLink) el.value = fullLink;
+};
 
 window.addTask = function() {
   if (!requireAdminForTaskEdit()) return;
@@ -5915,8 +5977,11 @@ window.openLinksModal = function(taskId) {
   const t = tasks.find(t => t.id===taskId); if(!t) return;
   document.getElementById('linksModalTaskId').value = taskId;
   document.getElementById('linksModalTaskName').textContent = `Task: ${t.title}`;
-  document.getElementById('newLinkLabel').value = '';
-  document.getElementById('newLinkUrl').value = '';
+  document.getElementById('newLinkKeyword').value = '';
+  document.getElementById('newLinkTopicName').value = '';
+  document.getElementById('newLinkTopicMss').value = '';
+  document.getElementById('newLinkVideoLink').value = '';
+  document.getElementById('newLinkThumbLink').value = '';
   renderLinksModalList(taskId);
   openModal('linksModal');
 };
@@ -5930,23 +5995,50 @@ function renderLinksModalList(taskId) {
     return;
   }
   container.innerHTML = links.map((l, i) => `
-    <div style="display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 12px;">
-      <button onclick="copyLink('${taskId}',${i})" style="font-family:var(--mono);font-size:12.1px;color:var(--jt);background:var(--jt-light);border:1px solid var(--jt-border);border-radius:6px;padding:4px 10px;cursor:pointer;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left;">📋 ${l.label||l.url}</button>
-      <span style="font-family:var(--mono);font-size:9.9px;color:var(--ink3);flex-shrink:0;overflow:hidden;text-overflow:ellipsis;max-width:120px;" title="${l.url}">${l.url}</span>
-      <button onclick="deleteLink('${taskId}',${i})" style="flex-shrink:0;background:var(--red-light);color:var(--red);border:1px solid var(--red-border);border-radius:4px;width:22px;height:22px;cursor:pointer;font-size:12.1px;">✕</button>
+    <div style="display:flex;flex-direction:column;gap:5px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 12px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <div style="flex:1;min-width:0;font-family:var(--mono);font-size:12.1px;color:var(--ink1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+          ${l.topicName ? `🏷 ${l.topicName} · ${l.topicMss||"0'00"}` : ''}${l.topicName && l.searchKeyword ? ' · ' : ''}${l.searchKeyword ? `🔍 ${l.searchKeyword}` : ''}
+          ${!l.topicName && !l.searchKeyword ? '(no keyword/topic set)' : ''}
+        </div>
+        <button onclick="deleteLink('${taskId}',${i})" style="flex-shrink:0;background:var(--red-light);color:var(--red);border:1px solid var(--red-border);border-radius:4px;width:22px;height:22px;cursor:pointer;font-size:12.1px;">✕</button>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px;">
+        ${l.videoLink ? `<button onclick="copyToClipboard('${l.videoLink}')" style="font-family:var(--mono);font-size:9.9px;color:var(--jt);background:var(--jt-light);border:1px solid var(--jt-border);border-radius:6px;padding:3px 8px;cursor:pointer;" title="${l.videoLink}">📋 🎬 Video</button>` : ''}
+        ${l.thumbLink ? `<button onclick="copyToClipboard('${l.thumbLink}')" style="font-family:var(--mono);font-size:9.9px;color:var(--jt);background:var(--jt-light);border:1px solid var(--jt-border);border-radius:6px;padding:3px 8px;cursor:pointer;" title="${l.thumbLink}">📋 🖼 Thumb</button>` : ''}
+      </div>
     </div>`).join('');
 }
 
 window.addLink = function() {
   const taskId = document.getElementById('linksModalTaskId').value;
-  const label = document.getElementById('newLinkLabel').value.trim();
-  let url = document.getElementById('newLinkUrl').value.trim();
-  if (!url) { toast('Enter a URL'); return; }
+  const searchKeyword = document.getElementById('newLinkKeyword').value.trim();
+  const topicName = document.getElementById('newLinkTopicName').value.trim();
+  const topicMss = document.getElementById('newLinkTopicMss').value.trim() || "0'00";
+  const videoNorm = normalizeLinkValue(document.getElementById('newLinkVideoLink').value, 'youtube');
+  const thumbNorm = normalizeLinkValue(document.getElementById('newLinkThumbLink').value, 'thumb');
+  if (!searchKeyword && !topicName && !videoNorm.fullLink && !thumbNorm.fullLink) {
+    toast('Fill in at least one field'); return;
+  }
   const t = tasks.find(t => t.id===taskId); if(!t) return;
   if (!t.links) t.links = [];
-  t.links.push({label, url});
-  document.getElementById('newLinkLabel').value = '';
-  document.getElementById('newLinkUrl').value = '';
+  t.links.push({
+    searchKeyword,
+    topicName,
+    topicMss,
+    videoLink: videoNorm.fullLink,
+    videoId: videoNorm.id,
+    thumbLink: thumbNorm.fullLink,
+    thumbId: thumbNorm.id,
+    // Legacy fields kept in sync so any old label/url-based code still works.
+    label: topicName || searchKeyword,
+    url: videoNorm.fullLink || thumbNorm.fullLink
+  });
+  document.getElementById('newLinkKeyword').value = '';
+  document.getElementById('newLinkTopicName').value = '';
+  document.getElementById('newLinkTopicMss').value = '';
+  document.getElementById('newLinkVideoLink').value = '';
+  document.getElementById('newLinkThumbLink').value = '';
   renderLinksModalList(taskId);
   taskPage = 0;
   renderTasks();
@@ -6090,20 +6182,23 @@ async function loadLatestDataFile(fileId, fileName) {
   }
 }
 
-window.copyLink = function(taskId, index) {
-  const t = tasks.find(t => t.id===taskId); if(!t||!t.links) return;
-  const url = t.links[index]?.url; if(!url) return;
-  navigator.clipboard.writeText(url).then(() => {
+window.copyToClipboard = function(text) {
+  if (!text) return;
+  navigator.clipboard.writeText(text).then(() => {
     toast('Link copied!');
   }).catch(() => {
-    // fallback for older browsers
     const ta = document.createElement('textarea');
-    ta.value = url; ta.style.position='fixed'; ta.style.opacity='0';
+    ta.value = text; ta.style.position='fixed'; ta.style.opacity='0';
     document.body.appendChild(ta); ta.select();
     document.execCommand('copy');
     document.body.removeChild(ta);
     toast('Link copied!');
   });
+};
+window.copyLink = function(taskId, index) {
+  const t = tasks.find(t => t.id===taskId); if(!t||!t.links) return;
+  const url = t.links[index]?.url; if(!url) return;
+  copyToClipboard(url);
 };
 
 function checkPayoutReadyAll() {
