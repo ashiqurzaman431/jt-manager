@@ -163,51 +163,51 @@
   /* JumpTask icon-matched theme: navy base (#333750), accent blue (#374E99), light periwinkle ink (#C8D5FC) */
   --bg:       #14151f;
   --bg-flat:  #14151f;
-  --surface:  rgba(51, 55, 80, 0.45);
-  --surface2: rgba(58, 63, 92, 0.50);
-  --surface3: rgba(68, 73, 106, 0.55);
-  --border:   rgba(200,213,252,0.08);
-  --border2:  rgba(200,213,252,0.13);
+  --surface:  rgba(51, 55, 80, 0.58);
+  --surface2: rgba(58, 63, 92, 0.62);
+  --surface3: rgba(68, 73, 106, 0.68);
+  --border:   rgba(200,213,252,0.14);
+  --border2:  rgba(200,213,252,0.22);
   --ink:  #FFFFFF;
-  --ink2: #c2c8e8;
-  --ink3: #8b91b5;
-  --neon-green:  #6ee7a8;
-  --neon-blue:   #4C6EF5;
-  --neon-purple: #8b7cf5;
-  --neon-pink:   #4C6EF5;
+  --ink2: #d8dcf7;
+  --ink3: #a1a7cc;
+  --neon-green:  #22c55e;
+  --neon-blue:   #3355FF;
+  --neon-purple: #8b5cf6;
+  --neon-pink:   #3355FF;
   --glow-green:  none;
   --glow-blue:   none;
   --glow-purple: none;
   --glow-pink:   none;
-  --jt:        #4C6EF5;
-  --jt2:       #374E99;
-  --jt-light:  rgba(76, 110, 245, 0.18);
-  --jt-border: rgba(76, 110, 245, 0.45);
-  --jt-grad:   linear-gradient(135deg, #8AA6FF 0%, #4C6EF5 100%);
+  --jt:        #3355FF;
+  --jt2:       #2C46D6;
+  --jt-light:  rgba(51, 85, 255, 0.24);
+  --jt-border: rgba(51, 85, 255, 0.55);
+  --jt-grad:   linear-gradient(135deg, #6E8CFF 0%, #3355FF 100%);
   --nav-dark:  rgba(51, 55, 80, 0.6);
   --nav-ink:   #14151f;
-  --green:        #6ee7a8;
-  --green-light:  rgba(110, 231, 168, 0.14);
-  --green-border: rgba(110, 231, 168, 0.32);
-  --amber:        #fbbf67;
-  --amber-light:  rgba(251, 191, 103, 0.16);
-  --amber-border: rgba(251, 191, 103, 0.35);
-  --red:        #ff7d8f;
-  --red-light:  rgba(255, 125, 143, 0.14);
-  --red-border: rgba(255, 125, 143, 0.32);
-  --purple:        #a78bfa;
-  --purple-light:  rgba(167, 139, 250, 0.16);
-  --purple-border: rgba(167, 139, 250, 0.35);
-  --gray:        #a4a9c6;
-  --gray-light:  rgba(164, 169, 198, 0.10);
-  --gray-border: rgba(164, 169, 198, 0.22);
+  --green:        #22c55e;
+  --green-light:  rgba(34, 197, 94, 0.20);
+  --green-border: rgba(34, 197, 94, 0.42);
+  --amber:        #f59e0b;
+  --amber-light:  rgba(245, 158, 11, 0.22);
+  --amber-border: rgba(245, 158, 11, 0.44);
+  --red:        #ef4444;
+  --red-light:  rgba(239, 68, 68, 0.20);
+  --red-border: rgba(239, 68, 68, 0.42);
+  --purple:        #8b5cf6;
+  --purple-light:  rgba(139, 92, 246, 0.22);
+  --purple-border: rgba(139, 92, 246, 0.44);
+  --gray:        #b8bede;
+  --gray-light:  rgba(184, 190, 222, 0.14);
+  --gray-border: rgba(184, 190, 222, 0.30);
   --mono: 'Geist Mono', 'JetBrains Mono', monospace;
   --sans: 'Inter', 'DM Sans', sans-serif;
   --radius: 22px; --radius-sm: 14px;
-  --shadow:    0 4px 20px rgba(0,0,0,0.35);
-  --shadow-md: 0 14px 40px rgba(0,0,0,0.48);
-  --glow:      0 0 0 1px rgba(76,110,245,0.32), 0 4px 24px rgba(76,110,245,0.28);
-  --theme-bg-body: radial-gradient(circle at 15% 0%, #333750 0%, #1c1e2d 45%, #0f1019 100%);
+  --shadow:    0 4px 20px rgba(0,0,0,0.40);
+  --shadow-md: 0 14px 40px rgba(0,0,0,0.54);
+  --glow:      0 0 0 1px rgba(51,85,255,0.42), 0 4px 24px rgba(51,85,255,0.36);
+  --theme-bg-body: radial-gradient(circle at 15% 0%, #3d4280 0%, #1c1e2d 45%, #0f1019 100%);
   --nav-h: 72px;
 }
 * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
@@ -793,6 +793,132 @@ body {
   flex-direction: column;
 }
 #accDockPanelBody .acc-list-items { max-height: none; flex: 1; overflow-y: visible; }
+
+/* ── TASK SWITCHER (floating card, Task Manager tab only — anchored next to its own dock tab, NOT a full slide panel) ── */
+#taskSwitcherTab {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  background: var(--jt-grad);
+  color: #fff;
+  width: 28px;
+  padding: 14px 0 30px;
+  border-radius: 10px 0 0 10px;
+  cursor: pointer;
+  box-shadow: -2px 0 12px rgba(0,0,0,0.18);
+  transition: width 0.2s, background 0.15s;
+  writing-mode: vertical-rl;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  user-select: none;
+}
+#taskSwitcherTab:hover, #taskSwitcherTab.ts-panel-open { background: linear-gradient(135deg,#1976D2,#1565C0); }
+#taskSwitcherTab.ts-hidden { display: none; }
+#taskSwitcherPanel {
+  position: fixed;
+  top: 50%;
+  right: 42px;
+  width: 172px;
+  max-height: 46vh;
+  max-width: calc(100vw - 60px);
+  background: rgba(37, 40, 61, 0.98);
+  border: 1px solid var(--jt-border);
+  border-radius: 12px;
+  box-shadow: 0 16px 40px rgba(0,0,0,0.4);
+  z-index: 850;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(8px) scale(0.96);
+  transform-origin: right center;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  overflow: hidden;
+}
+#taskSwitcherPanel.ts-open {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(0) scale(1);
+}
+#taskSwitcherPanel.ts-hidden { display: none; }
+#taskSwitcherHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 10px 6px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  background: linear-gradient(135deg, rgba(154,158,166,0.10), rgba(154,147,184,0.06));
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--jt);
+}
+#taskSwitcherBody { flex: 1; overflow-y: auto; padding: 4px; display: flex; flex-direction: column; gap: 1px; }
+.ts-acc-item {
+  display: flex;
+  align-items: center;
+  padding: 2px 3px;
+  cursor: pointer;
+  border-radius: 6px;
+}
+.ts-acc-name {
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink);
+  padding: 4px 7px;
+  transition: color 0.12s;
+}
+.ts-acc-item:hover .ts-acc-name { color: var(--jt); }
+.ts-acc-name.selected { color: var(--jt); font-weight: 700; }
+
+/* ── Selected-account chip row (appears under the task filter bar once an account is picked from the Switcher) ── */
+#taskAccSwitcherRow { display: none; align-items: center; gap: 6px; padding: 0 0 10px 0; flex-wrap: wrap; }
+#taskAccSwitcherRow.visible { display: flex; }
+.task-acc-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--jt);
+  background: var(--jt-light);
+  border: 1px solid var(--jt-border);
+  border-radius: 99px;
+  padding: 4px 6px 4px 10px;
+}
+.task-acc-chip-mode {
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--ink2);
+  background: var(--surface3);
+  border: 1px solid var(--border2);
+  border-radius: 99px;
+  padding: 2px 7px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.task-acc-chip-mode:hover { background: var(--surface2); color: var(--ink); }
+.task-acc-chip-close {
+  cursor: pointer;
+  color: var(--ink3);
+  font-size: 12px;
+  line-height: 1;
+  padding: 1px 2px;
+  border-radius: 50%;
+  transition: color 0.15s, background 0.15s;
+}
+.task-acc-chip-close:hover { color: var(--red); background: var(--red-light); }
+
 
 /* ── PAYOUT SETTINGS DOCK PANEL (docked right, like AC & Accounts) ── */
 #payDockPanel {
@@ -1763,12 +1889,12 @@ select option { background: var(--surface3); color: var(--ink); }
    TASKSHOT — scoped styles
    ═══════════════════════════════════════════ */
 #page-taskshot {
-  --ts-accent: #4C6EF5;
-  --ts-accent2: #34d399;
-  --ts-danger: #ff6b7a;
-  --ts-text2: #9aa0c4;
+  --ts-accent: #3355FF;
+  --ts-accent2: #16d391;
+  --ts-danger: #ef4444;
+  --ts-text2: #adb2d4;
   --ts-slot-bg: var(--surface);
-  --ts-slot-border: rgba(255,255,255,0.14);
+  --ts-slot-border: rgba(255,255,255,0.18);
 }
 #page-taskshot .slot {
   background: var(--ts-slot-bg);
@@ -2123,14 +2249,6 @@ select option { background: var(--surface3); color: var(--ink); }
           <option value="youtube">▶ YouTube</option>
         </select>
       </div>
-      <div style="display:flex;align-items:center;gap:5px;">
-        <span style="font-family:var(--mono);font-size:10px;color:var(--ink3);white-space:nowrap;">Account</span>
-        <select id="taskAccountFilterBar" onchange="setTaskAccountFilter(this.value)" style="font-family:var(--mono);font-size:11.5px;padding:5px 8px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--surface2);color:var(--ink);cursor:pointer;outline:none;"><option value="all">All Accounts</option></select>
-        <label id="taskAccExceptLabel" style="display:none;font-family:var(--mono);font-size:11px;color:var(--ink2);align-items:center;gap:5px;cursor:pointer;">
-          <input type="checkbox" id="taskAccExceptCb" onchange="setTaskAccountExcept(this.checked)" style="accent-color:var(--jt);width:13px;height:13px;">
-          Except
-        </label>
-      </div>
       <div id="taskSortBar" style="display:flex;align-items:center;gap:5px;">
         <span style="font-family:var(--mono);font-size:10px;color:var(--ink3);white-space:nowrap;">Sort</span>
         <select id="taskSortSelect" onchange="setTaskSortDropdown(this.value)" style="font-family:var(--mono);font-size:11.5px;padding:5px 8px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--surface2);color:var(--ink);cursor:pointer;outline:none;">
@@ -2170,6 +2288,8 @@ select option { background: var(--surface3); color: var(--ink); }
         </label>
       </div>
     </div>
+
+    <div id="taskAccSwitcherRow"></div>
 
     <div id="tagFilterBar" style="display:flex;align-items:center;gap:6px;padding:6px 0 2px 0;flex-wrap:wrap;">
       <span style="font-family:var(--mono);font-size:10px;color:var(--ink3);">Tags:</span>
@@ -3523,7 +3643,9 @@ window.setAccSortDropdown = function(s) {
 // NAVIGATION
 // ─────────────────────────────────────────
 const NAV_IDS = { dashboard: 'navDash', tasks: 'navTasks', accounts: 'navAccounts', earnings: 'navEarnings', taskshot: 'navTaskshot' };
+let currentPageId = 'dashboard';
 function showPage(id) {
+  currentPageId = id;
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('page-' + id).classList.add('active');
@@ -3552,6 +3674,8 @@ function showPage(id) {
   setTaPanelVisibility(id === 'tasks');
   // Accounts dock panel: only visible on Accounts tab
   if (typeof setAccDockVisibility === 'function') setAccDockVisibility(id === 'accounts');
+  // Task Switcher (account filter for tasks): only visible on Task Manager tab
+  if (typeof setTaskSwitcherVisibility === 'function') setTaskSwitcherVisibility(id === 'tasks');
   // Payout settings dock panel: only visible on Accounts tab (open by default)
   if (typeof setPayDockVisibility === 'function') setPayDockVisibility(id === 'accounts');
   // Hide scroll-to-top when leaving tasks page
@@ -4001,11 +4125,13 @@ window.setTaskAccountFilter = function(accId) {
   const lbl = document.getElementById('taskAccExceptLabel');
   if (lbl) lbl.style.display = (accId !== 'all') ? 'flex' : 'none';
   renderTaskAccountFilterBar();
+  renderTaskAccSwitcherChip();
   resetTaskLoadMore();
   renderTasks();
 };
 window.setTaskAccountExcept = function(val) {
   taskAccountFilterExcept = val;
+  renderTaskAccSwitcherChip();
   resetTaskLoadMore();
   renderTasks();
 };
@@ -4019,6 +4145,58 @@ function renderTaskAccountFilterBar() {
   ].join('');
   sel.value = prev;
 }
+
+// Horizontal chip shown under the filter bar once an account is picked from the Switcher dock.
+function renderTaskAccSwitcherChip() {
+  const row = document.getElementById('taskAccSwitcherRow');
+  if (!row) return;
+  if (taskAccountFilter === 'all') {
+    row.classList.remove('visible');
+    row.innerHTML = '';
+    return;
+  }
+  const acc = accounts.find(a => a.id === taskAccountFilter);
+  const name = acc ? acc.name : 'Selected account';
+  row.classList.add('visible');
+  row.innerHTML = `
+    <div class="task-acc-chip">
+      👤 ${name}
+      <span class="task-acc-chip-mode" onclick="setTaskAccountExcept(${!taskAccountFilterExcept})" title="Click to switch mode">${taskAccountFilterExcept ? 'Except' : 'Only'}</span>
+      <span class="task-acc-chip-close" onclick="setTaskAccountFilter('all')" title="Clear">✕</span>
+    </div>`;
+}
+
+// Task Switcher list + selection — defined here (inside the same closure as `accounts` /
+// `taskAccountFilter`) because the dock's toggle/hover logic lives in a later, separate
+// <script> tag that has no closure access to those variables.
+let _tsLastSelectedId = null; // keeps the most recently picked account pinned to the top
+
+window.renderTaskSwitcherList = function() {
+  const body = document.getElementById('taskSwitcherListItems');
+  if (!body) return;
+  const list = accounts.filter(a => !a.deleted);
+  if (!list.length) {
+    body.innerHTML = `<div style="padding:16px;text-align:center;font-family:var(--mono);font-size:11px;color:var(--ink3);">No accounts yet</div>`;
+    return;
+  }
+  if (_tsLastSelectedId) {
+    const i = list.findIndex(a => a.id === _tsLastSelectedId);
+    if (i > 0) list.unshift(list.splice(i, 1)[0]);
+  }
+  body.innerHTML = list.map(a => `
+    <div class="ts-acc-item" onclick="selectTaskSwitcherAcc('${a.id}')">
+      <span class="ts-acc-name ${taskAccountFilter===a.id?'selected':''}">${countryFlag(a.country) ? countryFlag(a.country)+' ' : ''}${a.name}</span>
+    </div>`).join('');
+};
+
+window.selectTaskSwitcherAcc = function(id) {
+  window.setTaskAccountFilter(taskAccountFilter === id ? 'all' : id);
+  if (taskAccountFilter !== 'all') _tsLastSelectedId = id;
+  window.renderTaskSwitcherList();
+  if (typeof _tsOpen !== 'undefined' && _tsOpen && typeof window.toggleTaskSwitcher === 'function') {
+    window.toggleTaskSwitcher();
+  }
+};
 
 window.setTaskTypeFilterDropdown = function(f) {
   taskTodayOnly = false;
@@ -8404,6 +8582,9 @@ document.addEventListener('paste', function(e) {
   <div id="taTab" class="ta-hidden" onclick="toggleTaskAddPanel()">
     + TASK
   </div>
+  <div id="taskSwitcherTab" class="ts-hidden" onclick="toggleTaskSwitcher()">
+    👤 Switcher
+  </div>
   <div id="accDockTab" class="acc-dock-hidden" onclick="toggleAccDock()">
     👤 Accounts
     <span id="accDockTabCount">0</span>
@@ -8446,6 +8627,9 @@ window.toggleActionCenter = function() {
     }
     if (typeof _payDockOpen !== 'undefined' && _payDockOpen && typeof window.togglePayDock === 'function') {
       window.togglePayDock();
+    }
+    if (typeof _tsOpen !== 'undefined' && _tsOpen && typeof window.toggleTaskSwitcher === 'function') {
+      window.toggleTaskSwitcher();
     }
     panel.classList.add('ac-open');
     tab.style.display = 'none';
@@ -8614,6 +8798,16 @@ function setAcPanelVisibility(visible) {
   </div>
 </div>
 
+<!-- ── TASK SWITCHER (floating, Task Manager tab only — picks the account used to filter the task list) ── -->
+<div id="taskSwitcherPanel" class="ts-hidden">
+  <div id="taskSwitcherHeader">
+    <span>👤 Switcher</span>
+  </div>
+  <div id="taskSwitcherBody">
+    <div id="taskSwitcherListItems"><div style="padding:16px;text-align:center;font-family:var(--mono);font-size:11px;color:var(--ink3);">No accounts yet</div></div>
+  </div>
+</div>
+
 <!-- ── PAYOUT SETTINGS DOCK PANEL (fixed, right-docked) ── -->
 <div id="payDockPanel" class="pay-dock-hidden">
   <div id="payDockPanelHeader">
@@ -8682,7 +8876,7 @@ function setAcPanelVisibility(visible) {
 </div>
 
 <script>
-// ── ACCOUNTS DOCK PANEL LOGIC ─────────────────────────────────────────────
+// ── ACCOUNTS DOCK PANEL LOGIC (Accounts tab — unchanged, original slide panel) ─────────────
 let _accDockOpen = false;
 let _accDockToggling = false;
 
@@ -8729,6 +8923,92 @@ function setAccDockVisibility(visible) {
     panel.classList.remove('acc-dock-open');
   }
 }
+
+// ── TASK SWITCHER LOGIC (Task Manager tab only — separate, floating card, does not touch Accounts tab) ──
+// NOTE: renderTaskSwitcherList / selectTaskSwitcherAcc are defined earlier, inside the app's main
+// DOMContentLoaded closure, because that's where `accounts` / `taskAccountFilter` actually live.
+let _tsOpen = false;
+let _tsToggling = false;
+
+function positionTaskSwitcher() {
+  const tab = document.getElementById('taskSwitcherTab');
+  const panel = document.getElementById('taskSwitcherPanel');
+  if (!tab || !panel) return;
+  const r = tab.getBoundingClientRect();
+  const panelHeight = panel.offsetHeight || 240;
+  let top = r.top + r.height / 2 - panelHeight / 2;
+  top = Math.max(10, Math.min(top, window.innerHeight - panelHeight - 10));
+  panel.style.top = top + 'px';
+}
+
+window.toggleTaskSwitcher = function() {
+  if (_tsToggling) return;
+  _tsToggling = true;
+  _tsOpen = !_tsOpen;
+  const panel = document.getElementById('taskSwitcherPanel');
+  const tab   = document.getElementById('taskSwitcherTab');
+  if (_tsOpen) {
+    if (typeof _acOpen !== 'undefined' && _acOpen && typeof window.toggleActionCenter === 'function') {
+      window.toggleActionCenter();
+    }
+    if (typeof _taOpen !== 'undefined' && _taOpen && typeof window.toggleTaskAddPanel === 'function') {
+      window.toggleTaskAddPanel();
+    }
+    if (typeof window.renderTaskSwitcherList === 'function') window.renderTaskSwitcherList();
+    positionTaskSwitcher();
+    panel.classList.add('ts-open');
+    tab.classList.add('ts-panel-open');
+  } else {
+    panel.classList.remove('ts-open');
+    tab.classList.remove('ts-panel-open');
+  }
+  setTimeout(() => { _tsToggling = false; }, 50);
+};
+
+function setTaskSwitcherVisibility(visible) {
+  const panel = document.getElementById('taskSwitcherPanel');
+  const tab   = document.getElementById('taskSwitcherTab');
+  if (!panel || !tab) return;
+  if (visible) {
+    tab.classList.remove('ts-hidden');
+    panel.classList.remove('ts-hidden');
+  } else {
+    tab.classList.add('ts-hidden');
+    panel.classList.add('ts-hidden');
+    panel.classList.remove('ts-open');
+    tab.classList.remove('ts-panel-open');
+    _tsOpen = false;
+  }
+}
+
+// Hover-to-open on desktop, tap on mobile (Task Switcher tab only)
+(function() {
+  const isDesktopHover = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+  if (!isDesktopHover) return;
+
+  const tab = document.getElementById('taskSwitcherTab');
+  const panel = document.getElementById('taskSwitcherPanel');
+  if (!tab || !panel) return;
+
+  let closeTimer = null;
+
+  function openInstantly() {
+    if (closeTimer) { clearTimeout(closeTimer); closeTimer = null; }
+    if (tab.classList.contains('ts-hidden')) return;
+    if (!_tsOpen) window.toggleTaskSwitcher();
+  }
+  function scheduleClose() {
+    if (closeTimer) clearTimeout(closeTimer);
+    closeTimer = setTimeout(() => {
+      if (_tsOpen) window.toggleTaskSwitcher();
+    }, 180);
+  }
+
+  tab.addEventListener('mouseenter', openInstantly);
+  tab.addEventListener('mouseleave', scheduleClose);
+  panel.addEventListener('mouseenter', () => { if (closeTimer) { clearTimeout(closeTimer); closeTimer = null; } });
+  panel.addEventListener('mouseleave', scheduleClose);
+})();
 
 // ── PAYOUT SETTINGS DOCK PANEL LOGIC ──────────────────────────────────────
 let _payDockOpen = true;
@@ -8804,6 +9084,9 @@ window.toggleTaskAddPanel = function() {
     if (typeof _payDockOpen !== 'undefined' && _payDockOpen && typeof window.togglePayDock === 'function') {
       window.togglePayDock();
     }
+    if (typeof _tsOpen !== 'undefined' && _tsOpen && typeof window.toggleTaskSwitcher === 'function') {
+      window.toggleTaskSwitcher();
+    }
     panel.classList.add('ta-open');
     tab.style.display = 'none';
     tab.classList.add('ta-panel-open');
@@ -8874,6 +9157,8 @@ document.addEventListener('click', function(e) {
   const accDockTab   = document.getElementById('accDockTab');
   const payDockPanel = document.getElementById('payDockPanel');
   const payDockTab   = document.getElementById('payDockTab');
+  const tsPanel = document.getElementById('taskSwitcherPanel');
+  const tsTab   = document.getElementById('taskSwitcherTab');
 
   if (typeof _acOpen !== 'undefined' && _acOpen && acPanel && acTab &&
       !_pathContains(e, acPanel) && !_pathContains(e, acTab)) {
@@ -8890,6 +9175,10 @@ document.addEventListener('click', function(e) {
   if (typeof _payDockOpen !== 'undefined' && _payDockOpen && payDockPanel && payDockTab &&
       !_pathContains(e, payDockPanel) && !_pathContains(e, payDockTab)) {
     window.togglePayDock();
+  }
+  if (typeof _tsOpen !== 'undefined' && _tsOpen && tsPanel && tsTab &&
+      !_pathContains(e, tsPanel) && !_pathContains(e, tsTab)) {
+    window.toggleTaskSwitcher();
   }
 });
 </script>
