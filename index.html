@@ -794,6 +794,151 @@ body {
 }
 #accDockPanelBody .acc-list-items { max-height: none; flex: 1; overflow-y: visible; }
 
+/* ── SETS DOCK PANEL (docked right, like AC & Accounts) ── */
+#setsDockPanel {
+  position: fixed;
+  top: 0; right: 0;
+  height: 100vh;
+  width: 300px;
+  max-width: 100vw;
+  background: rgba(51, 55, 80, 0.61);
+  border-left: 1.5px solid var(--jt-border);
+  box-shadow: -4px 0 24px rgba(0,0,0,0.10);
+  z-index: 800;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform 0.25s cubic-bezier(0.4,0,0.2,1);
+}
+#setsDockPanel.sets-dock-open { transform: translateX(0); }
+#setsDockPanel.sets-dock-hidden { display: none; }
+#setsDockTab {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  background: var(--jt-grad);
+  color: #fff;
+  width: 28px;
+  padding: 14px 0 30px;
+  border-radius: 10px 0 0 10px;
+  cursor: pointer;
+  box-shadow: -2px 0 12px rgba(0,0,0,0.18);
+  transition: width 0.2s, background 0.15s;
+  writing-mode: vertical-rl;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  user-select: none;
+}
+#setsDockTab:hover { background: linear-gradient(135deg,#1976D2,#1565C0); }
+#setsDockTab.sets-dock-hidden { display: none; }
+#setsDockTab.sets-dock-panel-open { pointer-events: none; }
+#setsDockTabCount {
+  position: absolute;
+  left: 50%;
+  bottom: 10px;
+  transform: translateX(-50%);
+  display: inline-block;
+  background: rgba(255,255,255,0.25);
+  border-radius: 99px;
+  padding: 2px 6px;
+  font-size: 10px;
+  font-weight: 700;
+  writing-mode: horizontal-tb;
+  min-width: 18px;
+  text-align: center;
+}
+#setsDockPanelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 14px 12px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  background: linear-gradient(135deg, rgba(154,158,166,0.10), rgba(154,147,184,0.06));
+}
+#setsDockPanelTitle {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--jt);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  line-height: 1;
+  white-space: nowrap;
+}
+#setsDockPanelTitle > span:first-child {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px;
+  font-size: 13px;
+}
+#setsDockCollapseBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--jt);
+  font-size: 16px;
+  line-height: 1;
+  padding: 2px 4px;
+  border-radius: 6px;
+  transition: background 0.15s;
+}
+#setsDockCollapseBtn:hover { background: var(--jt-border); }
+#setsDockToolbar {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex-shrink: 0;
+}
+#setsDockPanelBody {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  padding: 10px 12px;
+}
+.set-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  margin-bottom: 7px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.set-row:hover { border-color: var(--jt-border); }
+.set-row.set-row-active { border-color: var(--jt); background: var(--jt-light); }
+.set-row-name { flex: 1; font-family: var(--mono); font-size: 12px; color: var(--ink); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.set-row-count { font-family: var(--mono); font-size: 9.5px; color: var(--ink3); background: var(--surface3); border-radius: 99px; padding: 2px 7px; flex-shrink: 0; }
+.set-row-actions { display: flex; gap: 4px; flex-shrink: 0; }
+.set-row-actions button { background: none; border: none; cursor: pointer; color: var(--ink3); font-size: 12.5px; padding: 2px 5px; border-radius: 5px; }
+.set-row-actions button:hover { background: var(--jt-border); color: var(--jt); }
+.set-task-pick-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--ink2);
+}
+.set-task-pick-row:hover { background: var(--surface2); }
+.set-task-pick-row input { accent-color: var(--jt); width: 13px; height: 13px; flex-shrink: 0; }
+.set-task-pick-row span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
 /* ── TASK SWITCHER (floating card, Task Manager tab only — anchored next to its own dock tab, NOT a full slide panel) ── */
 #taskSwitcherTab {
   position: relative;
@@ -3686,6 +3831,8 @@ function showPage(id) {
   if (typeof setTaskSwitcherVisibility === 'function') setTaskSwitcherVisibility(id === 'tasks');
   // Payout settings dock panel: only visible on Accounts tab (open by default)
   if (typeof setPayDockVisibility === 'function') setPayDockVisibility(id === 'accounts');
+  // Sets dock panel: only visible on Task Management tab
+  if (typeof setSetsDockVisibility === 'function') setSetsDockVisibility(id === 'tasks');
   // Hide scroll-to-top when leaving tasks page
   const stBtn = document.getElementById('taskScrollTopBtn');
   if (stBtn) stBtn.style.display = 'none';
@@ -4407,6 +4554,11 @@ function renderTasks() {
       const hasAcc = (t.assignments||[]).some(a => a.accountId === taskAccountFilter);
       if (taskAccountFilterExcept ? hasAcc : !hasAcc) return false;
     }
+    // Set filter: only show tasks belonging to the selected Set
+    if (typeof taskSetFilter !== 'undefined' && taskSetFilter !== 'all') {
+      const activeSet = (typeof taskSets !== 'undefined' ? taskSets : []).find(s => s.id === taskSetFilter);
+      if (!activeSet || !(activeSet.taskIds || []).includes(t.id)) return false;
+    }
     // Tag filter
     if (activeTagFilters.size > 0) {
       const matchTag = (activeTagFilters.has('fresh') && isTagFresh(t))
@@ -4464,7 +4616,7 @@ function renderTasks() {
       if (hasAssigned) assignedCount++;
       if (getTaskDayKey(t.createdAt) === todayDayKey) todayCount++;
     });
-    const isFiltered = taskTypeFilter !== 'all' || taskAccountFilter !== 'all' || taskTodayOnly || taskAssignedOnly || !!window._taskDateFrom || !!window._taskDateTo;
+    const isFiltered = taskTypeFilter !== 'all' || taskAccountFilter !== 'all' || taskTodayOnly || taskAssignedOnly || !!window._taskDateFrom || !!window._taskDateTo || (typeof taskSetFilter !== 'undefined' && taskSetFilter !== 'all');
     const totalLabel = isFiltered ? `${displayList.length} <span style="opacity:0.6;font-weight:400;">/ ${runningTasks.length}</span>` : `${runningTasks.length}`;
     countChipEl.innerHTML = `
       <div style="display:flex;gap:8px;flex-wrap:wrap;padding:8px 0 12px;">
@@ -6322,6 +6474,7 @@ function buildSaveJSON() {
     auditLog: JSON.parse(JSON.stringify(auditLog)),
     bugLog: JSON.parse(JSON.stringify(bugLog)),
     taskshotHistory: tsHistory.slice(),
+    taskSets: JSON.parse(JSON.stringify(typeof taskSets !== 'undefined' ? taskSets : [])),
   };
 }
 
@@ -6338,6 +6491,7 @@ function loadDataJson(payload) {
   if (Array.isArray(payload.auditLog)) { auditLog.length = 0; auditLog.push(...payload.auditLog); }
   if (Array.isArray(payload.taskshotHistory)) { tsHistory = payload.taskshotHistory.slice(); }
   if (Array.isArray(payload.bugLog)) { bugLog.length = 0; bugLog.push(...payload.bugLog); }
+  if (Array.isArray(payload.taskSets) && typeof taskSets !== 'undefined') { taskSets.length = 0; taskSets.push(...payload.taskSets); }
   if (payload.savedAt) {
     const dv = document.getElementById('dvBadge');
     if (dv) dv.textContent = `DV: ${payload.savedAt}`;
@@ -6351,6 +6505,7 @@ function loadDataJson(payload) {
   renderDashboard();
   renderAccList();
   renderAuditLog();
+  if (typeof renderSetsList === 'function') renderSetsList();
   taskPage = 0;
   renderTasks();
 }
@@ -8510,6 +8665,7 @@ renderActionCenter();
 // Sync AC panel visibility with whichever page is active on load
 setAcPanelVisibility(document.getElementById('page-tasks') && document.getElementById('page-tasks').classList.contains('active'));
 setTaPanelVisibility(document.getElementById('page-tasks') && document.getElementById('page-tasks').classList.contains('active'));
+if (typeof setSetsDockVisibility === 'function') setSetsDockVisibility(document.getElementById('page-tasks') && document.getElementById('page-tasks').classList.contains('active'));
 renderAuditLog();
 // Pre-populate earnings history so it's ready when user clicks the tab
 populateEhAccountSelect();
@@ -8619,6 +8775,10 @@ document.addEventListener('paste', function(e) {
   <div id="payDockTab" class="pay-dock-hidden" onclick="togglePayDock()">
     💵 Payout
   </div>
+  <div id="setsDockTab" class="sets-dock-hidden" onclick="toggleSetsDock()">
+    🗂 Sets
+    <span id="setsDockTabCount">0</span>
+  </div>
 </div>
 
 <div id="acPanel" class="ac-hidden">
@@ -8657,6 +8817,9 @@ window.toggleActionCenter = function() {
     }
     if (typeof _tsOpen !== 'undefined' && _tsOpen && typeof window.toggleTaskSwitcher === 'function') {
       window.toggleTaskSwitcher();
+    }
+    if (typeof _setsDockOpen !== 'undefined' && _setsDockOpen && typeof window.toggleSetsDock === 'function') {
+      window.toggleSetsDock();
     }
     panel.classList.add('ac-open');
     tab.style.display = 'none';
@@ -8902,6 +9065,205 @@ function setAcPanelVisibility(visible) {
   </div>
 </div>
 
+<!-- ── SETS DOCK PANEL (fixed, right-docked, Task Manager tab only) ── -->
+<div id="setsDockPanel" class="sets-dock-hidden">
+  <div id="setsDockPanelHeader">
+    <div id="setsDockPanelTitle">
+      <span>🗂</span> Sets
+      <span class="version-badge" style="font-size:9.9px;" id="setsDockPanelCount">0</span>
+    </div>
+    <button id="setsDockCollapseBtn" onclick="toggleSetsDock()" title="Collapse">›</button>
+  </div>
+
+  <!-- LIST VIEW -->
+  <div id="setsListView">
+    <div id="setsDockToolbar">
+      <button class="btn-primary" style="width:100%;padding:8px 10px;font-size:12.1px;" onclick="openSetEditor(null)">+ New Set</button>
+    </div>
+    <div id="setsDockPanelBody">
+      <div class="set-row ${'' /* placeholder, real active class set in JS */}" onclick="applyTaskSet('all')" id="setRowAll">
+        <span class="set-row-name">All Tasks</span>
+      </div>
+      <div id="setsListItems"><div style="padding:24px;text-align:center;font-family:var(--mono);font-size:11.5px;color:var(--ink3);">No sets yet — create one above</div></div>
+    </div>
+  </div>
+
+  <!-- EDITOR VIEW (create/edit a set: name + task checklist) -->
+  <div id="setsEditorView" style="display:none;flex:1;overflow:hidden;flex-direction:column;">
+    <div style="padding:10px 12px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:8px;flex-shrink:0;">
+      <input type="text" id="setNameInput" placeholder="Set name…" style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:12.1px;padding:7px 10px;outline:none;">
+      <input type="text" id="setTaskSearchInput" oninput="renderSetTaskPicker()" placeholder="🔍 Search tasks…" style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:12.1px;padding:7px 10px;outline:none;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <span id="setPickCount" style="font-family:var(--mono);font-size:10px;color:var(--ink3);">0 selected</span>
+        <div style="display:flex;gap:6px;">
+          <button class="btn-secondary" style="padding:5px 10px;font-size:11px;" onclick="closeSetEditor()">Cancel</button>
+          <button class="btn-primary" style="padding:5px 12px;font-size:11px;" onclick="saveTaskSet()">Save</button>
+        </div>
+      </div>
+    </div>
+    <div id="setTaskPickerList" style="flex:1;overflow-y:auto;padding:8px 10px;"></div>
+  </div>
+</div>
+
+<script>
+// ── SETS DOCK PANEL LOGIC (Task Manager tab only) ──────────────────────────
+function escapeHtml(str) {
+  return String(str == null ? '' : str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+let taskSets = []; // { id, name, taskIds: [] }
+let taskSetFilter = 'all'; // 'all' or a set id
+let _setsDockOpen = false;
+let _setsDockToggling = false;
+let _setsEditingId = null; // null while creating a new set
+let _setsEditorPicked = new Set();
+
+window.toggleSetsDock = function() {
+  if (_setsDockToggling) return;
+  _setsDockToggling = true;
+  _setsDockOpen = !_setsDockOpen;
+  const panel = document.getElementById('setsDockPanel');
+  const tab   = document.getElementById('setsDockTab');
+  if (_setsDockOpen) {
+    if (typeof _acOpen !== 'undefined' && _acOpen && typeof window.toggleActionCenter === 'function') window.toggleActionCenter();
+    if (typeof _taOpen !== 'undefined' && _taOpen && typeof window.toggleTaskAddPanel === 'function') window.toggleTaskAddPanel();
+    if (typeof _accDockOpen !== 'undefined' && _accDockOpen && typeof window.toggleAccDock === 'function') window.toggleAccDock();
+    if (typeof _payDockOpen !== 'undefined' && _payDockOpen && typeof window.togglePayDock === 'function') window.togglePayDock();
+    closeSetEditor();
+    renderSetsList();
+    panel.classList.add('sets-dock-open');
+    tab.style.display = 'none';
+    tab.classList.add('sets-dock-panel-open');
+  } else {
+    panel.classList.remove('sets-dock-open');
+    tab.style.display = '';
+    tab.classList.remove('sets-dock-panel-open');
+  }
+  setTimeout(() => { _setsDockToggling = false; }, 50);
+};
+
+function setSetsDockVisibility(visible) {
+  const panel = document.getElementById('setsDockPanel');
+  const tab   = document.getElementById('setsDockTab');
+  if (!panel || !tab) return;
+  if (visible) {
+    panel.classList.remove('sets-dock-hidden');
+    tab.classList.remove('sets-dock-hidden');
+    if (!_setsDockOpen) tab.style.display = '';
+    else tab.style.display = 'none';
+  } else {
+    panel.classList.add('sets-dock-hidden');
+    tab.classList.add('sets-dock-hidden');
+    _setsDockOpen = false;
+    panel.classList.remove('sets-dock-open');
+  }
+}
+
+function updateSetsDockTabCount() {
+  const el = document.getElementById('setsDockTabCount');
+  if (el) el.textContent = taskSets.length;
+  const pc = document.getElementById('setsDockPanelCount');
+  if (pc) pc.textContent = taskSets.length;
+}
+
+function renderSetsList() {
+  updateSetsDockTabCount();
+  const allRow = document.getElementById('setRowAll');
+  if (allRow) allRow.classList.toggle('set-row-active', taskSetFilter === 'all');
+  const wrap = document.getElementById('setsListItems');
+  if (!wrap) return;
+  if (!taskSets.length) {
+    wrap.innerHTML = `<div style="padding:24px;text-align:center;font-family:var(--mono);font-size:11.5px;color:var(--ink3);">No sets yet — create one above</div>`;
+    return;
+  }
+  wrap.innerHTML = taskSets.map(s => `
+    <div class="set-row ${taskSetFilter === s.id ? 'set-row-active' : ''}" onclick="applyTaskSet('${s.id}')">
+      <span class="set-row-name">${escapeHtml(s.name)}</span>
+      <span class="set-row-count">${(s.taskIds||[]).length}</span>
+      <div class="set-row-actions">
+        <button onclick="event.stopPropagation();openSetEditor('${s.id}')" title="Edit">✎</button>
+        <button onclick="event.stopPropagation();deleteTaskSet('${s.id}')" title="Delete">🗑</button>
+      </div>
+    </div>`).join('');
+}
+
+window.applyTaskSet = function(id) {
+  taskSetFilter = id;
+  renderSetsList();
+  taskPage = 0;
+  renderTasks();
+};
+
+window.openSetEditor = function(id) {
+  _setsEditingId = id;
+  const set = id ? taskSets.find(s => s.id === id) : null;
+  _setsEditorPicked = new Set(set ? (set.taskIds || []) : []);
+  document.getElementById('setNameInput').value = set ? set.name : '';
+  document.getElementById('setTaskSearchInput').value = '';
+  document.getElementById('setsListView').style.display = 'none';
+  document.getElementById('setsEditorView').style.display = 'flex';
+  renderSetTaskPicker();
+};
+
+window.closeSetEditor = function() {
+  _setsEditingId = null;
+  _setsEditorPicked = new Set();
+  document.getElementById('setsEditorView').style.display = 'none';
+  document.getElementById('setsListView').style.display = '';
+};
+
+function renderSetTaskPicker() {
+  const q = (document.getElementById('setTaskSearchInput').value || '').trim().toLowerCase();
+  const list = tasks.filter(t => !t.archived && (!q || (t.title||'').toLowerCase().includes(q)));
+  const wrap = document.getElementById('setTaskPickerList');
+  if (!list.length) {
+    wrap.innerHTML = `<div style="padding:16px;text-align:center;font-family:var(--mono);font-size:11px;color:var(--ink3);">No tasks found</div>`;
+  } else {
+    wrap.innerHTML = list.map(t => `
+      <label class="set-task-pick-row">
+        <input type="checkbox" data-taskid="${t.id}" ${_setsEditorPicked.has(t.id) ? 'checked' : ''} onchange="toggleSetPick('${t.id}', this.checked)">
+        <span>${escapeHtml(t.title || t.id)}</span>
+      </label>`).join('');
+  }
+  const countEl = document.getElementById('setPickCount');
+  if (countEl) countEl.textContent = `${_setsEditorPicked.size} selected`;
+}
+
+window.toggleSetPick = function(taskId, checked) {
+  if (checked) _setsEditorPicked.add(taskId);
+  else _setsEditorPicked.delete(taskId);
+  const countEl = document.getElementById('setPickCount');
+  if (countEl) countEl.textContent = `${_setsEditorPicked.size} selected`;
+};
+
+window.saveTaskSet = function() {
+  const name = (document.getElementById('setNameInput').value || '').trim();
+  if (!name) { toast('Enter a name for this set.'); return; }
+  const taskIds = Array.from(_setsEditorPicked);
+  if (_setsEditingId) {
+    const s = taskSets.find(s => s.id === _setsEditingId);
+    if (s) { s.name = name; s.taskIds = taskIds; }
+  } else {
+    taskSets.push({ id: 'set_' + Date.now() + '_' + Math.random().toString(36).slice(2,7), name, taskIds });
+  }
+  if (typeof markUnsaved === 'function') markUnsaved(true);
+  closeSetEditor();
+  renderSetsList();
+  toast('✓ Set saved — ' + name);
+};
+
+window.deleteTaskSet = function(id) {
+  const s = taskSets.find(s => s.id === id);
+  if (!s) return;
+  if (!confirm(`Delete set "${s.name}"?`)) return;
+  taskSets = taskSets.filter(s => s.id !== id);
+  if (taskSetFilter === id) taskSetFilter = 'all';
+  if (typeof markUnsaved === 'function') markUnsaved(true);
+  renderSetsList();
+  taskPage = 0;
+  renderTasks();
+};
+</script>
+
 <script>
 // ── ACCOUNTS DOCK PANEL LOGIC (Accounts tab — unchanged, original slide panel) ─────────────
 let _accDockOpen = false;
@@ -8922,6 +9284,9 @@ window.toggleAccDock = function() {
     }
     if (typeof _payDockOpen !== 'undefined' && _payDockOpen && typeof window.togglePayDock === 'function') {
       window.togglePayDock();
+    }
+    if (typeof _setsDockOpen !== 'undefined' && _setsDockOpen && typeof window.toggleSetsDock === 'function') {
+      window.toggleSetsDock();
     }
     panel.classList.add('acc-dock-open');
     tab.style.display = 'none';
@@ -9057,6 +9422,9 @@ window.togglePayDock = function() {
     if (typeof _accDockOpen !== 'undefined' && _accDockOpen && typeof window.toggleAccDock === 'function') {
       window.toggleAccDock();
     }
+    if (typeof _setsDockOpen !== 'undefined' && _setsDockOpen && typeof window.toggleSetsDock === 'function') {
+      window.toggleSetsDock();
+    }
     panel.classList.add('pay-dock-open');
     tab.style.display = 'none';
     tab.classList.add('pay-dock-panel-open');
@@ -9113,6 +9481,9 @@ window.toggleTaskAddPanel = function() {
     }
     if (typeof _tsOpen !== 'undefined' && _tsOpen && typeof window.toggleTaskSwitcher === 'function') {
       window.toggleTaskSwitcher();
+    }
+    if (typeof _setsDockOpen !== 'undefined' && _setsDockOpen && typeof window.toggleSetsDock === 'function') {
+      window.toggleSetsDock();
     }
     panel.classList.add('ta-open');
     tab.style.display = 'none';
