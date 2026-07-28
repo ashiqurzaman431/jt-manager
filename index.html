@@ -3656,6 +3656,7 @@ let accounts = [];
 /*EMBEDDED_TASKS_START*/
 let tasks = [];
 /*EMBEDDED_TASKS_END*/
+window.tasks = tasks; // expose live reference so scripts outside this closure (e.g. Sets dock panel) can read it
 
 /*EMBEDDED_SETTINGS_START*/
 let globalSettings = { "jmptRate": 0, "defaultGoogleReward": 0.04, "defaultYoutubeReward": 0.02, "payoutThreshold": 0.5, "customDevices": [], "appVersion": "1.0" };
@@ -9557,7 +9558,13 @@ document.addEventListener('click', function(e) {
   const payDockTab   = document.getElementById('payDockTab');
   const tsPanel = document.getElementById('taskSwitcherPanel');
   const tsTab   = document.getElementById('taskSwitcherTab');
+  const setsPanel = document.getElementById('setsDockPanel');
+  const setsTab   = document.getElementById('setsDockTab');
 
+  if (typeof _setsDockOpen !== 'undefined' && _setsDockOpen && setsPanel && setsTab &&
+      !_pathContains(e, setsPanel) && !_pathContains(e, setsTab)) {
+    window.toggleSetsDock();
+  }
   if (typeof _acOpen !== 'undefined' && _acOpen && acPanel && acTab &&
       !_pathContains(e, acPanel) && !_pathContains(e, acTab)) {
     window.toggleActionCenter();
