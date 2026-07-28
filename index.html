@@ -461,6 +461,36 @@ body {
   align-items: flex-end;
   gap: 6px;
 }
+/* ── LEFT-EDGE SET/ACCOUNT NAME LABEL (Task Manager tab only) ──
+   Mirrors #dockTabsWrap's position on the opposite edge, but this is a
+   plain informational label (no background, no interaction) rather than
+   a functional dock — bigger, bolder, higher-contrast text. */
+#taskSideLabel {
+  position: fixed;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 801;
+  display: none;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+  pointer-events: none;
+}
+#taskSideLabel.visible { display: flex; }
+.task-side-label-line {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-family: var(--sans);
+  font-weight: 800;
+  font-size: 18px;
+  letter-spacing: 0.5px;
+  color: var(--ink);
+  padding: 6px 4px;
+  line-height: 1.15;
+}
+.task-side-label-line.set-line { color: var(--jt); }
+.task-side-label-line.acc-line:empty { display: none; }
 /* The collapsed tab badge sticking out from right edge */
 #acTab {
   position: relative;
@@ -2440,8 +2470,6 @@ select option { background: var(--surface3); color: var(--ink); }
       </div>
     </div>
 
-    <div id="taskAccSwitcherRow"></div>
-
     <div id="tagFilterBar" style="display:flex;align-items:center;gap:6px;padding:6px 0 2px 0;flex-wrap:wrap;">
       <span style="font-family:var(--mono);font-size:10px;color:var(--ink3);">Tags:</span>
       <button class="tag-filter-btn tag-fresh-btn" id="tagBtnFresh" onclick="toggleTagFilter('fresh')">🌱 Fresh</button>
@@ -3834,6 +3862,8 @@ function showPage(id) {
   if (typeof setPayDockVisibility === 'function') setPayDockVisibility(id === 'accounts');
   // Sets dock panel: only visible on Task Management tab
   if (typeof setSetsDockVisibility === 'function') setSetsDockVisibility(id === 'tasks');
+  // Left-edge Set/Account name label: only visible on Task Management tab
+  if (typeof renderTaskSideLabel === 'function') renderTaskSideLabel();
   // Hide scroll-to-top when leaving tasks page
   const stBtn = document.getElementById('taskScrollTopBtn');
   if (stBtn) stBtn.style.display = 'none';
@@ -4304,22 +4334,41 @@ function renderTaskAccountFilterBar() {
 
 // Horizontal chip shown under the filter bar once an account is picked from the Switcher dock.
 function renderTaskAccSwitcherChip() {
+  renderTaskSideLabel();
+}
+
+// Renders the left-edge Set name / Account name label (Task Manager tab only).
+// Also keeps the Except/Only mode toggle + clear control alive — these used to
+// live inside the old name chip, so they're kept as a compact control-only row.
+function renderTaskSideLabel() {
+  const setName = (typeof taskSetFilter !== 'undefined' && taskSetFilter !== 'all'
+    && typeof taskSets !== 'undefined' && taskSets.find(s => s.id === taskSetFilter))
+    ? taskSets.find(s => s.id === taskSetFilter).name
+    : 'All Tasks';
+  const acc = taskAccountFilter !== 'all' ? accounts.find(a => a.id === taskAccountFilter) : null;
+
+  const setEl = document.getElementById('taskSideSetName');
+  if (setEl) setEl.textContent = setName;
+  const accEl = document.getElementById('taskSideAccName');
+  if (accEl) accEl.textContent = acc ? acc.name : '';
+  const wrap = document.getElementById('taskSideLabel');
+  if (wrap) wrap.classList.toggle('visible', currentPageId === 'tasks');
+
+  // Except/Only toggle + clear control (functional, not the name display)
   const row = document.getElementById('taskAccSwitcherRow');
-  if (!row) return;
-  if (taskAccountFilter === 'all') {
-    row.classList.remove('visible');
-    row.innerHTML = '';
-    return;
+  if (row) {
+    if (taskAccountFilter === 'all') {
+      row.classList.remove('visible');
+      row.innerHTML = '';
+    } else {
+      row.classList.add('visible');
+      row.innerHTML = `
+        <div class="task-acc-chip">
+          <span class="task-acc-chip-mode" onclick="setTaskAccountExcept(${!taskAccountFilterExcept})" title="Click to switch mode">${taskAccountFilterExcept ? 'Except' : 'Only'}</span>
+          <span class="task-acc-chip-close" onclick="setTaskAccountFilter('all')" title="Clear">✕</span>
+        </div>`;
+    }
   }
-  const acc = accounts.find(a => a.id === taskAccountFilter);
-  const name = acc ? acc.name : 'Selected account';
-  row.classList.add('visible');
-  row.innerHTML = `
-    <div class="task-acc-chip">
-      👤 ${name}
-      <span class="task-acc-chip-mode" onclick="setTaskAccountExcept(${!taskAccountFilterExcept})" title="Click to switch mode">${taskAccountFilterExcept ? 'Except' : 'Only'}</span>
-      <span class="task-acc-chip-close" onclick="setTaskAccountFilter('all')" title="Clear">✕</span>
-    </div>`;
 }
 
 // Task Switcher list + selection — defined here (inside the same closure as `accounts` /
@@ -4536,6 +4585,11 @@ function renderTasks() {
       if (window._taskDateTo && taskDayKey > window._taskDateTo) return false;
     }
 
+    // Set filter: only show tasks belonging to the selected Set (applies to ALL tasks, incl. archived/error)
+    if (typeof taskSetFilter !== 'undefined' && taskSetFilter !== 'all') {
+      const activeSet = (typeof taskSets !== 'undefined' ? taskSets : []).find(s => s.id === taskSetFilter);
+      if (!activeSet || !(activeSet.taskIds || []).includes(t.id)) return false;
+    }
     // Archived: hide if hideArchived is checked; archived tasks skip all other filters below
     if (t.archived) {
       return !hideArchived; // show only if user unchecked the hide box
@@ -4554,11 +4608,6 @@ function renderTasks() {
     if (taskAccountFilter !== 'all') {
       const hasAcc = (t.assignments||[]).some(a => a.accountId === taskAccountFilter);
       if (taskAccountFilterExcept ? hasAcc : !hasAcc) return false;
-    }
-    // Set filter: only show tasks belonging to the selected Set
-    if (typeof taskSetFilter !== 'undefined' && taskSetFilter !== 'all') {
-      const activeSet = (typeof taskSets !== 'undefined' ? taskSets : []).find(s => s.id === taskSetFilter);
-      if (!activeSet || !(activeSet.taskIds || []).includes(t.id)) return false;
     }
     // Tag filter
     if (activeTagFilters.size > 0) {
@@ -8757,6 +8806,12 @@ document.addEventListener('paste', function(e) {
 }); // DOMContentLoaded
 </script>
 
+<!-- ── LEFT-EDGE SET/ACCOUNT NAME LABEL (Task Manager tab only) ── -->
+<div id="taskSideLabel">
+  <span class="task-side-label-line set-line" id="taskSideSetName">All Tasks</span>
+  <span class="task-side-label-line acc-line" id="taskSideAccName"></span>
+</div>
+
 <!-- ── ACTION CENTER PANEL (fixed, right-docked) ── -->
 <div id="dockTabsWrap">
   <div id="acTab" class="ac-hidden" onclick="toggleActionCenter()">
@@ -9191,7 +9246,10 @@ window.applyTaskSet = function(id) {
   taskSetFilter = id;
   renderSetsList();
   taskPage = 0;
+  taskLoadedCount = TASKS_PER_PAGE;
   renderTasks();
+  renderTaskSideLabel();
+  if (_setsDockOpen) toggleSetsDock();
 };
 
 window.openSetEditor = function(id) {
@@ -9262,6 +9320,7 @@ window.deleteTaskSet = function(id) {
   renderSetsList();
   taskPage = 0;
   renderTasks();
+  renderTaskSideLabel();
 };
 </script>
 
