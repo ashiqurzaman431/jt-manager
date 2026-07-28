@@ -2235,6 +2235,12 @@ select option { background: var(--surface3); color: var(--ink); }
         <input type="number" id="taskRangeFrom" placeholder="From" oninput="applyTaskSearch()" style="width:72px;font-family:var(--mono);font-size:11.5px;padding:5px 6px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--surface2);color:var(--ink);outline:none;">
         <span style="font-family:var(--mono);font-size:10px;color:var(--ink3);">–</span>
         <input type="number" id="taskRangeTo" placeholder="To" oninput="applyTaskSearch()" style="width:72px;font-family:var(--mono);font-size:11.5px;padding:5px 6px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--surface2);color:var(--ink);outline:none;">
+      </div>
+      <div style="display:flex;align-items:center;gap:5px;">
+        <span style="font-family:var(--mono);font-size:10px;color:var(--ink3);white-space:nowrap;">📅 Date</span>
+        <input type="date" id="taskDateFrom" oninput="applyTaskSearch()" style="font-family:var(--mono);font-size:11.5px;padding:5px 6px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--surface2);color:var(--ink);outline:none;color-scheme:dark;">
+        <span style="font-family:var(--mono);font-size:10px;color:var(--ink3);">–</span>
+        <input type="date" id="taskDateTo" oninput="applyTaskSearch()" style="font-family:var(--mono);font-size:11.5px;padding:5px 6px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--surface2);color:var(--ink);outline:none;color-scheme:dark;">
         <button onclick="clearTaskSearch()" style="font-family:var(--mono);font-size:10px;padding:4px 8px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--surface3);color:var(--ink2);cursor:pointer;" title="Clear search">✕</button>
       </div>
     </div>
@@ -3574,6 +3580,8 @@ function resetTaskLoadMore() {
 window._taskTitleSearch = '';
 window._taskRangeFrom = null;
 window._taskRangeTo = null;
+window._taskDateFrom = null; // date filter (YYYY-MM-DD), matched against task.createdAt day-key
+window._taskDateTo = null;
 let accRightTab = 'active'; // 'active' | 'history'
 let assigningTaskId = null;
 let thumbBase64 = null;
@@ -4238,12 +4246,17 @@ window.applyTaskSearch = function() {
     const titleEl = document.getElementById('taskTitleSearch');
     const fromEl  = document.getElementById('taskRangeFrom');
     const toEl    = document.getElementById('taskRangeTo');
+    const dateFromEl = document.getElementById('taskDateFrom');
+    const dateToEl   = document.getElementById('taskDateTo');
     window._taskTitleSearch = titleEl ? titleEl.value : '';
     const fromVal = fromEl && fromEl.value !== '' ? parseFloat(fromEl.value) : null;
     const toVal   = toEl && toEl.value !== '' ? parseFloat(toEl.value) : null;
     // Range search only active when BOTH fields are filled
     window._taskRangeFrom = (fromVal !== null && toVal !== null) ? fromVal : null;
     window._taskRangeTo   = (fromVal !== null && toVal !== null) ? toVal   : null;
+    // Date filter: each side works independently (from-only or to-only is fine)
+    window._taskDateFrom = (dateFromEl && dateFromEl.value !== '') ? dateFromEl.value : null;
+    window._taskDateTo   = (dateToEl && dateToEl.value !== '') ? dateToEl.value : null;
     resetTaskLoadMore();
     renderTasks();
   }, 180);
@@ -4253,12 +4266,18 @@ window.clearTaskSearch = function() {
   const titleEl = document.getElementById('taskTitleSearch');
   const fromEl  = document.getElementById('taskRangeFrom');
   const toEl    = document.getElementById('taskRangeTo');
+  const dateFromEl = document.getElementById('taskDateFrom');
+  const dateToEl   = document.getElementById('taskDateTo');
   if (titleEl) titleEl.value = '';
   if (fromEl)  fromEl.value  = '';
   if (toEl)    toEl.value    = '';
+  if (dateFromEl) dateFromEl.value = '';
+  if (dateToEl)   dateToEl.value   = '';
   window._taskTitleSearch = '';
   window._taskRangeFrom = null;
   window._taskRangeTo   = null;
+  window._taskDateFrom = null;
+  window._taskDateTo   = null;
   resetTaskLoadMore();
   renderTasks();
 };
@@ -4360,6 +4379,14 @@ function renderTasks() {
       const num = parseFloat(t.title);
       if (isNaN(num) || num < rangeFrom || num > rangeTo) return false;
     }
+    // Date filter: matches the task's day-key (5pm-cutoff aware, same as Fresh/Today tags)
+    // against the selected date range. Either side (from/to) can be used alone.
+    if (window._taskDateFrom || window._taskDateTo) {
+      const taskDayKey = getTaskDayKey(t.createdAt);
+      if (!taskDayKey) return false;
+      if (window._taskDateFrom && taskDayKey < window._taskDateFrom) return false;
+      if (window._taskDateTo && taskDayKey > window._taskDateTo) return false;
+    }
 
     // Archived: hide if hideArchived is checked; archived tasks skip all other filters below
     if (t.archived) {
@@ -4437,7 +4464,7 @@ function renderTasks() {
       if (hasAssigned) assignedCount++;
       if (getTaskDayKey(t.createdAt) === todayDayKey) todayCount++;
     });
-    const isFiltered = taskTypeFilter !== 'all' || taskAccountFilter !== 'all' || taskTodayOnly || taskAssignedOnly;
+    const isFiltered = taskTypeFilter !== 'all' || taskAccountFilter !== 'all' || taskTodayOnly || taskAssignedOnly || !!window._taskDateFrom || !!window._taskDateTo;
     const totalLabel = isFiltered ? `${displayList.length} <span style="opacity:0.6;font-weight:400;">/ ${runningTasks.length}</span>` : `${runningTasks.length}`;
     countChipEl.innerHTML = `
       <div style="display:flex;gap:8px;flex-wrap:wrap;padding:8px 0 12px;">
