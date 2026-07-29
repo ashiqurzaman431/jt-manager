@@ -8773,6 +8773,16 @@ waitForFirebase(() => {
 // It needs a few things that only exist in here — expose them now that they're all initialized. ──
 window.toast = toast;
 window.markUnsaved = markUnsaved;
+// ── Bridge: the Sets dock panel (applyTaskSet, saveTaskSet, deleteTaskSet, etc.) lives in
+// its own <script> block AFTER this closure, so it can't see renderTasks, renderTaskSideLabel,
+// forceTaskListRepaint, or TASKS_PER_PAGE — those are closure-local. Referencing TASKS_PER_PAGE
+// there threw "TASKS_PER_PAGE is not defined", aborting applyTaskSet()/saveTaskSet() before they
+// ever reached renderTasks()/renderTaskSideLabel(). That's why the Set filter didn't actually
+// filter the task list, and why the set name / task list didn't refresh instantly on rename/edit.
+window.renderTasks = renderTasks;
+window.renderTaskSideLabel = renderTaskSideLabel;
+window.forceTaskListRepaint = forceTaskListRepaint;
+window.resetTaskLoadedCount = function() { taskLoadedCount = TASKS_PER_PAGE; };
 window.tsCreateYoutubeTaskForSlot = function(slotTitle) {
   const existing = tasks.find(t => t.title === slotTitle && !t.archived);
   if (existing) return false;
@@ -9263,7 +9273,7 @@ window.applyTaskSet = function(id) {
   taskSetFilter = id;
   renderSetsList();
   taskPage = 0;
-  taskLoadedCount = TASKS_PER_PAGE;
+  if (typeof window.resetTaskLoadedCount === 'function') window.resetTaskLoadedCount();
   renderTasks();
   renderTaskSideLabel();
   if (_setsDockOpen) toggleSetsDock();
@@ -9325,6 +9335,8 @@ window.saveTaskSet = function() {
   if (typeof markUnsaved === 'function') markUnsaved(true);
   closeSetEditor();
   renderSetsList();
+  renderTasks();
+  renderTaskSideLabel();
   toast('✓ Set saved — ' + name);
 };
 
