@@ -827,21 +827,30 @@ body {
 /* ── SETS DOCK PANEL (docked right, like AC & Accounts) ── */
 #setsDockPanel {
   position: fixed;
-  top: 0; right: 0;
-  height: 100vh;
-  width: 300px;
-  max-width: 100vw;
-  background: rgba(51, 55, 80, 0.61);
-  border-left: 1.5px solid var(--jt-border);
-  box-shadow: -4px 0 24px rgba(0,0,0,0.10);
-  z-index: 800;
+  top: 50%;
+  right: 42px;
+  width: 220px;
+  max-height: 50vh;
+  max-width: calc(100vw - 60px);
+  background: rgba(37, 40, 61, 0.98);
+  border: 1px solid var(--jt-border);
+  border-radius: 12px;
+  box-shadow: 0 16px 40px rgba(0,0,0,0.4);
+  z-index: 850;
   display: flex;
   flex-direction: column;
-  transform: translateX(100%);
-  transition: transform 0.25s cubic-bezier(0.4,0,0.2,1);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(8px) scale(0.96);
+  transform-origin: right center;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  overflow: hidden;
 }
-#setsDockPanel.sets-dock-open { transform: translateX(0); }
-#setsDockPanel:not(.sets-dock-open) { pointer-events: none; }
+#setsDockPanel.sets-dock-open {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(0) scale(1);
+}
 #setsDockPanel.sets-dock-hidden { display: none; }
 #setsDockTab {
   position: relative;
@@ -887,10 +896,12 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 14px 12px;
+  padding: 7px 10px 6px;
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
   background: linear-gradient(135deg, rgba(154,158,166,0.10), rgba(154,147,184,0.06));
+  font-family: var(--mono);
+  font-size: 11px;
 }
 #setsDockPanelTitle {
   font-family: var(--mono);
@@ -9200,6 +9211,17 @@ let _setsDockToggling = false;
 let _setsEditingId = null; // null while creating a new set
 let _setsEditorPicked = new Set();
 
+function positionSetsDock() {
+  const tab = document.getElementById('setsDockTab');
+  const panel = document.getElementById('setsDockPanel');
+  if (!tab || !panel) return;
+  const r = tab.getBoundingClientRect();
+  const panelHeight = panel.offsetHeight || 240;
+  let top = r.top + r.height / 2 - panelHeight / 2;
+  top = Math.max(10, Math.min(top, window.innerHeight - panelHeight - 10));
+  panel.style.top = top + 'px';
+}
+
 window.toggleSetsDock = function() {
   if (_setsDockToggling) return;
   _setsDockToggling = true;
@@ -9213,12 +9235,11 @@ window.toggleSetsDock = function() {
     if (typeof _payDockOpen !== 'undefined' && _payDockOpen && typeof window.togglePayDock === 'function') window.togglePayDock();
     closeSetEditor();
     renderSetsList();
+    positionSetsDock();
     panel.classList.add('sets-dock-open');
-    tab.style.display = 'none';
     tab.classList.add('sets-dock-panel-open');
   } else {
     panel.classList.remove('sets-dock-open');
-    tab.style.display = '';
     tab.classList.remove('sets-dock-panel-open');
   }
   setTimeout(() => { _setsDockToggling = false; }, 50);
@@ -9231,13 +9252,12 @@ function setSetsDockVisibility(visible) {
   if (visible) {
     panel.classList.remove('sets-dock-hidden');
     tab.classList.remove('sets-dock-hidden');
-    if (!_setsDockOpen) tab.style.display = '';
-    else tab.style.display = 'none';
   } else {
     panel.classList.add('sets-dock-hidden');
     tab.classList.add('sets-dock-hidden');
-    _setsDockOpen = false;
     panel.classList.remove('sets-dock-open');
+    tab.classList.remove('sets-dock-panel-open');
+    _setsDockOpen = false;
   }
 }
 
@@ -9483,6 +9503,35 @@ function setTaskSwitcherVisibility(visible) {
     if (closeTimer) clearTimeout(closeTimer);
     closeTimer = setTimeout(() => {
       if (_tsOpen) window.toggleTaskSwitcher();
+    }, 180);
+  }
+
+  tab.addEventListener('mouseenter', openInstantly);
+  tab.addEventListener('mouseleave', scheduleClose);
+  panel.addEventListener('mouseenter', () => { if (closeTimer) { clearTimeout(closeTimer); closeTimer = null; } });
+  panel.addEventListener('mouseleave', scheduleClose);
+})();
+
+// Hover-to-open on desktop, tap on mobile (Sets dock panel only)
+(function() {
+  const isDesktopHover = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+  if (!isDesktopHover) return;
+
+  const tab = document.getElementById('setsDockTab');
+  const panel = document.getElementById('setsDockPanel');
+  if (!tab || !panel) return;
+
+  let closeTimer = null;
+
+  function openInstantly() {
+    if (closeTimer) { clearTimeout(closeTimer); closeTimer = null; }
+    if (tab.classList.contains('sets-dock-hidden')) return;
+    if (!_setsDockOpen) window.toggleSetsDock();
+  }
+  function scheduleClose() {
+    if (closeTimer) clearTimeout(closeTimer);
+    closeTimer = setTimeout(() => {
+      if (_setsDockOpen) window.toggleSetsDock();
     }, 180);
   }
 
