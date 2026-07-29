@@ -841,6 +841,7 @@ body {
   transition: transform 0.25s cubic-bezier(0.4,0,0.2,1);
 }
 #setsDockPanel.sets-dock-open { transform: translateX(0); }
+#setsDockPanel:not(.sets-dock-open) { pointer-events: none; }
 #setsDockPanel.sets-dock-hidden { display: none; }
 #setsDockTab {
   position: relative;
@@ -4314,13 +4315,28 @@ window.setTaskAccountFilter = function(accId) {
   renderTaskAccSwitcherChip();
   resetTaskLoadMore();
   renderTasks();
+  forceTaskListRepaint();
 };
 window.setTaskAccountExcept = function(val) {
   taskAccountFilterExcept = val;
   renderTaskAccSwitcherChip();
   resetTaskLoadMore();
   renderTasks();
+  forceTaskListRepaint();
 };
+
+// Some mobile WebViews / PWA contexts don't flush a repaint after a JS-driven
+// DOM change until the next touch event fires — so a set/account selection
+// updates #tasksList correctly in the DOM, but the screen visually looks
+// unchanged until an unrelated tap forces the browser to paint. This nudges
+// a repaint immediately instead of waiting on that.
+function forceTaskListRepaint() {
+  const el = document.getElementById('tasksList');
+  if (!el) return;
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => { void el.offsetHeight; });
+  });
+}
 
 function renderTaskAccountFilterBar() {
   const sel = document.getElementById('taskAccountFilterBar');
@@ -4401,6 +4417,7 @@ window.selectTaskSwitcherAcc = function(id) {
   if (typeof _tsOpen !== 'undefined' && _tsOpen && typeof window.toggleTaskSwitcher === 'function') {
     window.toggleTaskSwitcher();
   }
+  if (typeof forceTaskListRepaint === 'function') forceTaskListRepaint();
 };
 
 window.setTaskTypeFilterDropdown = function(f) {
@@ -9250,6 +9267,7 @@ window.applyTaskSet = function(id) {
   renderTasks();
   renderTaskSideLabel();
   if (_setsDockOpen) toggleSetsDock();
+  forceTaskListRepaint();
 };
 
 window.openSetEditor = function(id) {
