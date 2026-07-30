@@ -169,8 +169,8 @@
   --border:   rgba(200,213,252,0.14);
   --border2:  rgba(200,213,252,0.22);
   --ink:  #FFFFFF;
-  --ink2: #d8dcf7;
-  --ink3: #a1a7cc;
+  --ink2: #e4e7fb;
+  --ink3: #c1c7ec;
   --neon-green:  #22c55e;
   --neon-blue:   #3355FF;
   --neon-purple: #8b5cf6;
@@ -240,10 +240,19 @@ body {
   background-attachment: fixed;
   color: var(--ink);
   font-family: var(--sans);
+  font-weight: 500;
   letter-spacing: -0.01em;
   min-height: 100vh;
   padding-bottom: 80px;
   overflow-x: hidden;
+}
+
+/* Bolder, higher-contrast labels/meta text app-wide (uppercase mono labels,
+   field labels, section titles) — layered on top of the body-wide weight bump above. */
+.info-label, .stat-chip-label, .dash-meta-label, .earnings-label,
+.acc-stat-mini-label, .acc-task-stat-label, .sess-section-title,
+.field label, .acc-info-title, .set-row-name, .topbar-sub {
+  font-weight: 700;
 }
 
 /* #rain-canvas removed — was a full-screen 60fps GPU/CPU drain, see JS removal note */
@@ -2850,6 +2859,12 @@ TaskRec01: task assigned, timer started.</div>
           <button type="button" onclick="addCustomDevice()" style="padding:8px 12px;background:var(--jt-light);color:var(--jt);border:1px solid var(--jt-border);border-radius:var(--radius-sm);font-family:var(--mono);font-size:11px;cursor:pointer;white-space:nowrap;">+ Add Device</button>
         </div>
       </div>
+      <div class="field">
+        <label>Linked Set</label>
+        <select id="accModalLinkedSet" style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:14.3px;padding:9px 10px;outline:none;">
+          <option value="">— None —</option>
+        </select>
+      </div>
       <div class="field"><label>Notes</label><textarea id="accModalNotes" placeholder="Optional notes..."></textarea></div>
     </div>
     <div class="modal-actions">
@@ -4322,6 +4337,19 @@ window.setTaskAccountFilter = function(accId) {
   if (cb) cb.checked = taskAccountFilterExcept;
   const lbl = document.getElementById('taskAccExceptLabel');
   if (lbl) lbl.style.display = (accId !== 'all') ? 'flex' : 'none';
+
+  // Accounts and Sets are linked: switching to an account whose "Linked Set"
+  // is configured (in the Add/Edit Account modal) auto-applies that Set too.
+  // Switching to "All Accounts", or to an account with no linked Set, falls
+  // back to "All Tasks".
+  if (typeof taskSetFilter !== 'undefined') {
+    const acc = accId !== 'all' ? accounts.find(a => a.id === accId) : null;
+    const wantSetId = (acc && acc.linkedSetId) || 'all';
+    const setsList = (typeof taskSets !== 'undefined' ? taskSets : []);
+    taskSetFilter = (wantSetId !== 'all' && setsList.some(s => s.id === wantSetId)) ? wantSetId : 'all';
+    if (typeof renderSetsList === 'function') renderSetsList();
+  }
+
   renderTaskAccountFilterBar();
   renderTaskAccSwitcherChip();
   resetTaskLoadMore();
@@ -6070,6 +6098,7 @@ function renderAccDetail(accId) {
           <div class="info-row"><div class="info-label">Country</div><div class="info-val">${countryFlag(acc.country) ? countryFlag(acc.country)+' ' : ''}${acc.country||'—'}</div></div>
           ${acc.device ? `<div class="info-row"><div class="info-label">Device</div><div class="info-val"><span style="font-family:var(--mono);font-size:11px;background:var(--purple-light);color:var(--purple);border:1px solid var(--purple-border);border-radius:99px;padding:2px 10px;">${acc.device}</span></div></div>` : ''}
           <div class="info-row"><div class="info-label">Status</div><div class="info-val"><span class="acc-status-pill ${acc.status}">${statusLabel(acc.status)}</span></div></div>
+          ${acc.linkedSetId && (typeof taskSets !== 'undefined') && taskSets.find(s=>s.id===acc.linkedSetId) ? `<div class="info-row"><div class="info-label">Linked Set</div><div class="info-val">${escapeHtml(taskSets.find(s=>s.id===acc.linkedSetId).name)}</div></div>` : ''}
           ${acc.notes ? `<div class="info-row"><div class="info-label">Notes</div><div class="info-val" style="font-size:12.1px;color:var(--ink3);">${acc.notes}</div></div>` : ''}
         </div>
         <div class="acc-stats-mini" style="grid-template-columns:1fr 1fr;gap:8px;">
@@ -6298,8 +6327,21 @@ window.openAddAccountModal = function() {
   document.getElementById('accModalStatus').value = 'active';
   const devSel = document.getElementById('accModalDevice');
   if (devSel) devSel.value = '';
+  populateAccModalLinkedSet('');
   openModal('accModal');
 };
+
+// Fills the Linked Set dropdown in the Add/Edit Account modal from the current
+// taskSets list, and selects `selectedId` if it still exists.
+function populateAccModalLinkedSet(selectedId) {
+  const sel = document.getElementById('accModalLinkedSet');
+  if (!sel) return;
+  const list = (typeof taskSets !== 'undefined' ? taskSets : []);
+  sel.innerHTML = ['<option value="">— None —</option>',
+    ...list.map(s => `<option value="${s.id}">${escapeHtml(s.name)}</option>`)
+  ].join('');
+  sel.value = (selectedId && list.some(s => s.id === selectedId)) ? selectedId : '';
+}
 window.openEditAccountModal = function(id) {
   const acc = accounts.find(a => a.id===id); if(!acc) return;
   document.getElementById('accModalTitle').textContent = 'Edit Account';
@@ -6311,6 +6353,7 @@ window.openEditAccountModal = function(id) {
   const devSel = document.getElementById('accModalDevice');
   if (devSel) { ensureDeviceOptions(devSel, acc.device||''); }
   document.getElementById('accModalNotes').value = acc.notes||'';
+  populateAccModalLinkedSet(acc.linkedSetId||'');
   openModal('accModal');
 };
 window.saveAccount = function() {
@@ -6318,12 +6361,14 @@ window.saveAccount = function() {
   const name = document.getElementById('accModalName').value.trim();
   if (!name) { toast('Name is required'); return; }
   const deviceSel = document.getElementById('accModalDevice');
+  const linkedSetSel = document.getElementById('accModalLinkedSet');
   const data = {
     name,
     walletAddress: document.getElementById('accModalWallet').value.trim(),
     country: document.getElementById('accModalCountry').value.trim(),
     status: document.getElementById('accModalStatus').value,
     device: deviceSel ? deviceSel.value : '',
+    linkedSetId: linkedSetSel ? (linkedSetSel.value || null) : null,
     notes: document.getElementById('accModalNotes').value.trim(),
   };
   if (id) {
@@ -6332,6 +6377,12 @@ window.saveAccount = function() {
   } else {
     pushUndo('Add account ' + (data.name||''));
     accounts.push({ id: uid(), ...data, payoutHistory: [], createdAt: now() });
+  }
+  // Accounts and Sets are linked: if the edited account is currently the
+  // active Task Switcher selection, immediately re-apply its (possibly
+  // just-changed) linked Set so the Task Manager tab reflects it right away.
+  if (id && typeof taskAccountFilter !== 'undefined' && taskAccountFilter === id) {
+    if (typeof window.setTaskAccountFilter === 'function') window.setTaskAccountFilter(id);
   }
   // Auto payout_ready check for all accounts with a multiplier set
   checkPayoutReadyAll();
@@ -9366,6 +9417,8 @@ window.deleteTaskSet = function(id) {
   if (!confirm(`Delete set "${s.name}"?`)) return;
   taskSets = taskSets.filter(s => s.id !== id);
   if (taskSetFilter === id) taskSetFilter = 'all';
+  // Accounts and Sets are linked — unlink any account that pointed at the deleted set.
+  accounts.forEach(a => { if (a.linkedSetId === id) a.linkedSetId = null; });
   if (typeof markUnsaved === 'function') markUnsaved(true);
   renderSetsList();
   taskPage = 0;
