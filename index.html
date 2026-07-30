@@ -9342,6 +9342,16 @@ function renderSetsList() {
 
 window.applyTaskSet = function(id) {
   taskSetFilter = id;
+  // Accounts and Sets are linked: whatever Set you pick while an account is
+  // active in the Task Switcher becomes that account's remembered Set, so
+  // switching away and back to this account restores it automatically.
+  if (typeof taskAccountFilter !== 'undefined' && taskAccountFilter !== 'all') {
+    const acc = accounts.find(a => a.id === taskAccountFilter);
+    if (acc) {
+      acc.linkedSetId = (id === 'all') ? null : id;
+      if (typeof markUnsaved === 'function') markUnsaved(true);
+    }
+  }
   renderSetsList();
   taskPage = 0;
   if (typeof window.resetTaskLoadedCount === 'function') window.resetTaskLoadedCount();
