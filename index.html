@@ -4330,6 +4330,17 @@ window.setTaskSortDir = function(btn, dir) {
 };
 
 window.setTaskAccountFilter = function(accId) {
+  const prevAccId = taskAccountFilter;
+
+  // Accounts and Sets are linked, in both directions:
+  // 1) Before leaving the current account, remember whatever Set it was
+  //    showing — so its state is never lost even if it was never explicitly
+  //    saved via the Sets panel or the Edit Account modal.
+  if (typeof taskSetFilter !== 'undefined' && prevAccId !== 'all' && prevAccId !== accId) {
+    const prevAcc = accounts.find(a => a.id === prevAccId);
+    if (prevAcc) prevAcc.linkedSetId = (taskSetFilter === 'all') ? null : taskSetFilter;
+  }
+
   taskAccountFilter = accId;
   // Default to "except" mode: show tasks NOT assigned to the selected account
   taskAccountFilterExcept = (accId !== 'all');
@@ -4338,15 +4349,21 @@ window.setTaskAccountFilter = function(accId) {
   const lbl = document.getElementById('taskAccExceptLabel');
   if (lbl) lbl.style.display = (accId !== 'all') ? 'flex' : 'none';
 
-  // Accounts and Sets are linked: switching to an account whose "Linked Set"
-  // is configured (in the Add/Edit Account modal) auto-applies that Set too.
-  // Switching to "All Accounts", or to an account with no linked Set, falls
-  // back to "All Tasks".
+  // 2) Switching to an account restores whatever Set it has linked/remembered.
+  //    If the account has no link yet, the currently active Set is left
+  //    exactly as-is (never force-reset) — that's what was getting lost
+  //    before. Switching to "All Accounts" always resets to "All Tasks".
   if (typeof taskSetFilter !== 'undefined') {
-    const acc = accId !== 'all' ? accounts.find(a => a.id === accId) : null;
-    const wantSetId = (acc && acc.linkedSetId) || 'all';
     const setsList = (typeof taskSets !== 'undefined' ? taskSets : []);
-    taskSetFilter = (wantSetId !== 'all' && setsList.some(s => s.id === wantSetId)) ? wantSetId : 'all';
+    if (accId === 'all') {
+      taskSetFilter = 'all';
+    } else {
+      const acc = accounts.find(a => a.id === accId);
+      if (acc && acc.linkedSetId && setsList.some(s => s.id === acc.linkedSetId)) {
+        taskSetFilter = acc.linkedSetId;
+      }
+      // else: no link for this account — leave taskSetFilter untouched.
+    }
     if (typeof renderSetsList === 'function') renderSetsList();
   }
 
