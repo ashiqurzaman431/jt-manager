@@ -1792,6 +1792,36 @@ select option { background: var(--surface3); color: var(--ink); }
 .acc-active-task-status.rewarded { background:rgba(123,184,148,0.12); color:#8fbf9f; border:1px solid rgba(123,184,148,0.28); }
 .acc-active-task-times { font-family:var(--mono); font-size:9.9px; color:var(--ink3); line-height:1.8; }
 .acc-active-task-times span { color:var(--ink2); }
+
+/* Compact 3-column active task grid */
+.acc-task-grid { display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; }
+@media (max-width:720px) { .acc-task-grid { grid-template-columns:repeat(2, 1fr); } }
+.acc-task-card {
+  background:var(--surface2); border:1px solid var(--border);
+  border-radius:var(--radius-sm); padding:9px 8px 9px 10px; margin-bottom:0;
+  display:flex; align-items:center; gap:6px; cursor:pointer;
+  transition:border-color 0.12s, background 0.12s;
+  user-select:none;
+}
+.acc-task-card:hover { border-color:var(--border2); }
+.acc-task-card.selected { border-color:var(--jt); background:var(--jt-light); }
+.acc-task-card-title {
+  flex:1; min-width:0; font-family:var(--mono); font-size:12px; font-weight:600;
+  color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.acc-task-card-dot {
+  flex-shrink:0; width:22px; height:22px; border-radius:6px; border:none;
+  background:transparent; color:var(--ink3); font-size:15px; line-height:1;
+  cursor:pointer; display:flex; align-items:center; justify-content:center;
+  transition:background 0.12s, color 0.12s;
+}
+.acc-task-card-dot:hover { background:var(--surface3); color:var(--ink); }
+.acc-task-card-status-dot {
+  flex-shrink:0; width:7px; height:7px; border-radius:50%;
+}
+.acc-task-card-status-dot.assigned { background:#cba15a; }
+.acc-task-card-status-dot.completed { background:#9a9ea6; }
+.acc-task-card-status-dot.rewarded { background:#8fbf9f; }
 .acc-task-status-btns { display:flex; gap:4px; margin-top:6px; flex-wrap:wrap; }
 .btn-status-change {
   font-family:var(--mono); font-size:9.9px; padding:3px 8px; border-radius:99px;
@@ -3078,6 +3108,17 @@ TaskRec01: task assigned, timer started.</div>
       <button class="btn-secondary" style="color:var(--red);border-color:var(--red-border);" onclick="removeThumbModal()">🗑 Remove</button>
       <button class="btn-secondary" onclick="closeModal('thumbModal')">Cancel</button>
     </div>
+  </div>
+</div>
+
+<!-- MODAL: Active Task Detail (accounts tab, compact card → 3-dot) -->
+<div class="modal-overlay" id="taskDetailModal">
+  <div class="modal" style="max-width:440px;">
+    <div class="modal-title">
+      <span id="tdmTitle">Task</span>
+      <button class="modal-close" onclick="closeModal('taskDetailModal')">✕</button>
+    </div>
+    <div class="modal-fields" id="tdmBody"></div>
   </div>
 </div>
 
@@ -5984,41 +6025,16 @@ function renderAccDetail(accId) {
       <button class="btn-status-change" onclick="bulkUpdateStatus('${accId}','rewarded')" style="background:var(--green-light);color:var(--green);border-color:var(--green-border);font-size:11px;padding:4px 10px;">✓ Rewarded</button>
       <button class="btn-remove-task" onclick="bulkRemove('${accId}')" style="font-size:11px;padding:4px 10px;">✕ Remove</button>
     </div>
-    ${sortedActive.map(({task, assignment}, idx) => {
-      const serial = sortedActive.length - idx;
-      const accTaskIconHtml = task.thumbnail
-        ? `<img src="${task.thumbnail}" style="width:28px;height:20px;object-fit:cover;border-radius:3px;flex-shrink:0;">`
-        : '';
-      const jmptForTask = (() => {
-        const r = globalSettings.jmptRate||0;
-        const usd = parseFloat(assignment.reward||task.defaultReward||0);
-        return r > 0 ? ((usd/0.01)*r).toFixed(4) : '—';
-      })();
+    <div class="acc-task-grid">
+    ${sortedActive.map(({task, assignment}) => {
       return `
-    <div class="acc-active-task" id="atask-${assignment.id}" style="padding:7px 10px;">
-      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-        <span style="font-family:var(--mono);font-size:9.9px;color:var(--ink3);flex-shrink:0;min-width:18px;">#${serial}</span>
-        <input type="checkbox" class="bulk-task-cb" data-taskid="${task.id}" data-asgnid="${assignment.id}" onchange="updateBulkCount('${accId}')" style="accent-color:var(--jt);width:13px;height:13px;flex-shrink:0;">
-        ${accTaskIconHtml}
-        <span style="font-family:var(--mono);font-size:12.1px;font-weight:600;color:var(--ink);flex:1;min-width:40px;">${task.title}</span>
-        <span style="font-family:var(--mono);font-size:9.9px;color:var(--ink3);">${fmtUSDT(assignment.reward||task.defaultReward)} · ${jmptForTask} JMPT</span>
-        <span class="acc-active-task-status ${assignment.status}">${assignment.status}</span>
-      </div>
-      <div style="display:flex;align-items:center;gap:6px;margin-top:5px;flex-wrap:wrap;">
-        <span style="font-family:var(--mono);font-size:9.9px;color:var(--ink3);">Assigned: <strong>${fmtDateTime(assignment.assignedAt)}</strong>${assignment.completedAt?` · Done: <strong>${fmtDateTime(assignment.completedAt)}</strong>`:''}</span>
-        ${assignment.statusNote ? `<span style="font-family:var(--mono);font-size:9.9px;color:var(--purple);background:var(--purple-light);border:1px solid var(--purple-border);border-radius:4px;padding:1px 6px;">📝 ${assignment.statusNote}</span>` : ''}
-      </div>
-      ${assignment.acDescription ? `
-      <div style="margin-top:6px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:7px 10px;">
-        <div style="font-family:var(--mono);font-size:8.8px;color:var(--ink3);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:4px;">⏱ Task Records</div>
-        <div style="font-family:var(--mono);font-size:10px;color:var(--ink2);line-height:1.8;white-space:pre-line;">${assignment.acDescription}</div>
-      </div>` : ''}
-      <div class="acc-task-status-btns" style="margin-top:5px;">
-        ${assignment.status==='assigned' ? `<button class="btn-status-change" onclick="changeTaskStatus('${task.id}','${assignment.id}','completed')">→ Completed</button>` : ''}
-        ${assignment.status==='completed' ? `<button class="btn-status-change" onclick="changeTaskStatus('${task.id}','${assignment.id}','rewarded')">→ Rewarded</button>` : ''}
-        ${assignment.status==='assigned' ? `<button class="btn-remove-task" onclick="removeTaskFromAccount('${task.id}','${assignment.id}')">✕</button>` : ''}
-      </div>
+    <div class="acc-task-card" id="atask-${assignment.id}" onclick="toggleTaskCardSelect(event,'${assignment.id}','${accId}')">
+      <input type="checkbox" class="bulk-task-cb" data-taskid="${task.id}" data-asgnid="${assignment.id}" onchange="updateBulkCount('${accId}')" style="display:none;">
+      <span class="acc-task-card-status-dot ${assignment.status}" title="${assignment.status}"></span>
+      <span class="acc-task-card-title">${task.title}</span>
+      <button type="button" class="acc-task-card-dot" onclick="event.stopPropagation();openTaskDetailModal('${task.id}','${assignment.id}')">⋮</button>
     </div>`;}).join('')}
+    </div>
   ` : `<div class="empty-state"><div class="es-icon">✦</div>No active tasks</div>`;
 
   // History: tasks + payouts merged and sorted
@@ -6236,6 +6252,38 @@ window.markActionComplete = function(taskId, asgnId) {
   toast('Status → completed');
 };
 
+window.openTaskDetailModal = function(taskId, asgnId) {
+  const task = tasks.find(t => t.id===taskId); if(!task) return;
+  const assignment = (task.assignments||[]).find(a => a.id===asgnId); if(!assignment) return;
+  const jmptForTask = (() => {
+    const r = globalSettings.jmptRate||0;
+    const usd = parseFloat(assignment.reward||task.defaultReward||0);
+    return r > 0 ? ((usd/0.01)*r).toFixed(4) : '—';
+  })();
+  document.getElementById('tdmTitle').textContent = task.title;
+  document.getElementById('tdmBody').innerHTML = `
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+      <span class="acc-active-task-status ${assignment.status}">${assignment.status}</span>
+      <span style="font-family:var(--mono);font-size:11px;color:var(--ink3);">${fmtUSDT(assignment.reward||task.defaultReward)} · ${jmptForTask} JMPT</span>
+    </div>
+    <div class="acc-active-task-times">
+      Assigned: <span>${fmtDateTime(assignment.assignedAt)}</span>${assignment.completedAt?`<br>Done: <span>${fmtDateTime(assignment.completedAt)}</span>`:''}
+    </div>
+    ${assignment.statusNote ? `<div style="font-family:var(--mono);font-size:10.5px;color:var(--purple);background:var(--purple-light);border:1px solid var(--purple-border);border-radius:4px;padding:4px 8px;">📝 ${assignment.statusNote}</div>` : ''}
+    ${assignment.acDescription ? `
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:7px 10px;">
+      <div style="font-family:var(--mono);font-size:8.8px;color:var(--ink3);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:4px;">⏱ Task Records</div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--ink2);line-height:1.8;white-space:pre-line;">${assignment.acDescription}</div>
+    </div>` : ''}
+    <div class="acc-task-status-btns" style="margin-top:2px;">
+      ${assignment.status==='assigned' ? `<button class="btn-status-change" onclick="closeModal('taskDetailModal');changeTaskStatus('${task.id}','${assignment.id}','completed')">→ Completed</button>` : ''}
+      ${assignment.status==='completed' ? `<button class="btn-status-change" onclick="closeModal('taskDetailModal');changeTaskStatus('${task.id}','${assignment.id}','rewarded')">→ Rewarded</button>` : ''}
+      ${assignment.status==='assigned' ? `<button class="btn-remove-task" onclick="closeModal('taskDetailModal');removeTaskFromAccount('${task.id}','${assignment.id}')">✕ Remove</button>` : ''}
+    </div>
+  `;
+  openModal('taskDetailModal');
+};
+
 window.removeTaskFromAccount = function(taskId, asgnId) {
   const task = tasks.find(t => t.id===taskId); if(!task) return;
   task.assignments = (task.assignments||[]).filter(a => a.id!==asgnId);
@@ -6271,7 +6319,21 @@ window.updateBulkCount = function(accId) {
 
 window.toggleSelectAll = function(accId) {
   const all = document.getElementById('bulkSelectAll');
-  document.querySelectorAll('.bulk-task-cb').forEach(cb => cb.checked = all.checked);
+  document.querySelectorAll('.bulk-task-cb').forEach(cb => {
+    cb.checked = all.checked;
+    const card = document.getElementById('atask-' + cb.dataset.asgnid);
+    if (card) card.classList.toggle('selected', all.checked);
+  });
+  updateBulkCount(accId);
+};
+
+// Clicking a compact task card toggles its selection (checkbox stays in sync but hidden)
+window.toggleTaskCardSelect = function(event, asgnId, accId) {
+  const cb = document.querySelector(`.bulk-task-cb[data-asgnid="${asgnId}"]`);
+  if (!cb) return;
+  cb.checked = !cb.checked;
+  const card = document.getElementById('atask-' + asgnId);
+  if (card) card.classList.toggle('selected', cb.checked);
   updateBulkCount(accId);
 };
 
