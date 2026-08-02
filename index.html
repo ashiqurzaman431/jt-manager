@@ -4379,7 +4379,7 @@ window.setTaskAccountFilter = function(accId) {
   //    saved via the Sets panel or the Edit Account modal.
   if (typeof taskSetFilter !== 'undefined' && prevAccId !== 'all' && prevAccId !== accId) {
     const prevAcc = accounts.find(a => a.id === prevAccId);
-    if (prevAcc) prevAcc.linkedSetId = (taskSetFilter === 'all') ? null : taskSetFilter;
+    if (prevAcc) prevAcc.linkedSetId = (taskSetFilter === 'all') ? 'all' : taskSetFilter;
   }
 
   taskAccountFilter = accId;
@@ -4400,7 +4400,9 @@ window.setTaskAccountFilter = function(accId) {
       taskSetFilter = 'all';
     } else {
       const acc = accounts.find(a => a.id === accId);
-      if (acc && acc.linkedSetId && setsList.some(s => s.id === acc.linkedSetId)) {
+      if (acc && acc.linkedSetId === 'all') {
+        taskSetFilter = 'all';
+      } else if (acc && acc.linkedSetId && setsList.some(s => s.id === acc.linkedSetId)) {
         taskSetFilter = acc.linkedSetId;
       }
       // else: no link for this account — leave taskSetFilter untouched.
@@ -6131,7 +6133,7 @@ function renderAccDetail(accId) {
           <div class="info-row"><div class="info-label">Country</div><div class="info-val">${countryFlag(acc.country) ? countryFlag(acc.country)+' ' : ''}${acc.country||'—'}</div></div>
           ${acc.device ? `<div class="info-row"><div class="info-label">Device</div><div class="info-val"><span style="font-family:var(--mono);font-size:11px;background:var(--purple-light);color:var(--purple);border:1px solid var(--purple-border);border-radius:99px;padding:2px 10px;">${acc.device}</span></div></div>` : ''}
           <div class="info-row"><div class="info-label">Status</div><div class="info-val"><span class="acc-status-pill ${acc.status}">${statusLabel(acc.status)}</span></div></div>
-          ${acc.linkedSetId && (typeof taskSets !== 'undefined') && taskSets.find(s=>s.id===acc.linkedSetId) ? `<div class="info-row"><div class="info-label">Linked Set</div><div class="info-val">${escapeHtml(taskSets.find(s=>s.id===acc.linkedSetId).name)}</div></div>` : ''}
+          ${acc.linkedSetId === 'all' ? `<div class="info-row"><div class="info-label">Linked Set</div><div class="info-val">All Tasks</div></div>` : (acc.linkedSetId && (typeof taskSets !== 'undefined') && taskSets.find(s=>s.id===acc.linkedSetId) ? `<div class="info-row"><div class="info-label">Linked Set</div><div class="info-val">${escapeHtml(taskSets.find(s=>s.id===acc.linkedSetId).name)}</div></div>` : '')}
           ${acc.notes ? `<div class="info-row"><div class="info-label">Notes</div><div class="info-val" style="font-size:12.1px;color:var(--ink3);">${acc.notes}</div></div>` : ''}
         </div>
         <div class="acc-stats-mini" style="grid-template-columns:1fr 1fr;gap:8px;">
@@ -6417,9 +6419,10 @@ function populateAccModalLinkedSet(selectedId) {
   if (!sel) return;
   const list = (typeof taskSets !== 'undefined' ? taskSets : []);
   sel.innerHTML = ['<option value="">— None —</option>',
+    '<option value="all">All Tasks</option>',
     ...list.map(s => `<option value="${s.id}">${escapeHtml(s.name)}</option>`)
   ].join('');
-  sel.value = (selectedId && list.some(s => s.id === selectedId)) ? selectedId : '';
+  sel.value = (selectedId === 'all' || (selectedId && list.some(s => s.id === selectedId))) ? selectedId : '';
 }
 window.openEditAccountModal = function(id) {
   const acc = accounts.find(a => a.id===id); if(!acc) return;
@@ -9427,7 +9430,7 @@ window.applyTaskSet = function(id) {
   if (typeof taskAccountFilter !== 'undefined' && taskAccountFilter !== 'all') {
     const acc = accounts.find(a => a.id === taskAccountFilter);
     if (acc) {
-      acc.linkedSetId = (id === 'all') ? null : id;
+      acc.linkedSetId = (id === 'all') ? 'all' : id;
       if (typeof markUnsaved === 'function') markUnsaved(true);
     }
   }
