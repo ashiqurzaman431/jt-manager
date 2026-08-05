@@ -525,6 +525,7 @@ body {
 }
 #acTab:hover { background: linear-gradient(135deg,#1976D2,#1565C0); }
 #acTab.ac-hidden { display: none; }
+#acTab.ac-panel-open { pointer-events: none; }
 #acTabCount {
   position: absolute;
   left: 50%;
@@ -845,7 +846,7 @@ body {
   border: 1px solid var(--jt-border);
   border-radius: 12px;
   box-shadow: 0 16px 40px rgba(0,0,0,0.4);
-  z-index: 850;
+  z-index: 950;
   display: flex;
   flex-direction: column;
   opacity: 0;
@@ -8994,6 +8995,10 @@ document.addEventListener('paste', function(e) {
 
 <!-- ── ACTION CENTER PANEL (fixed, right-docked) ── -->
 <div id="dockTabsWrap">
+  <div id="setsDockTab" class="sets-dock-hidden" onclick="toggleSetsDock()">
+    🗂 Sets
+    <span id="setsDockTabCount">0</span>
+  </div>
   <div id="acTab" class="ac-hidden" onclick="toggleActionCenter()">
     ⚡ Action Center
     <span id="acTabCount">0</span>
@@ -9010,10 +9015,6 @@ document.addEventListener('paste', function(e) {
   </div>
   <div id="payDockTab" class="pay-dock-hidden" onclick="togglePayDock()">
     💵 Payout
-  </div>
-  <div id="setsDockTab" class="sets-dock-hidden" onclick="toggleSetsDock()">
-    🗂 Sets
-    <span id="setsDockTabCount">0</span>
   </div>
 </div>
 
@@ -9058,10 +9059,10 @@ window.toggleActionCenter = function() {
       window.toggleSetsDock();
     }
     panel.classList.add('ac-open');
-    tab.style.display = 'none';
+    tab.classList.add('ac-panel-open');
   } else {
     panel.classList.remove('ac-open');
-    tab.style.display = '';
+    tab.classList.remove('ac-panel-open');
   }
 };
 
@@ -9072,13 +9073,13 @@ function setAcPanelVisibility(visible) {
   if (visible) {
     panel.classList.remove('ac-hidden');
     tab.classList.remove('ac-hidden');
-    if (!_acOpen) tab.style.display = '';
-    else tab.style.display = 'none';
+    tab.classList.toggle('ac-panel-open', _acOpen);
   } else {
     panel.classList.add('ac-hidden');
     tab.classList.add('ac-hidden');
     _acOpen = false;
     panel.classList.remove('ac-open');
+    tab.classList.remove('ac-panel-open');
   }
 }
 </script>
@@ -9553,11 +9554,9 @@ window.toggleAccDock = function() {
       window.toggleSetsDock();
     }
     panel.classList.add('acc-dock-open');
-    tab.style.display = 'none';
     tab.classList.add('acc-dock-panel-open');
   } else {
     panel.classList.remove('acc-dock-open');
-    tab.style.display = '';
     tab.classList.remove('acc-dock-panel-open');
   }
   setTimeout(() => { _accDockToggling = false; }, 50);
@@ -9570,8 +9569,7 @@ function setAccDockVisibility(visible) {
   if (visible) {
     panel.classList.remove('acc-dock-hidden');
     tab.classList.remove('acc-dock-hidden');
-    if (!_accDockOpen) tab.style.display = '';
-    else tab.style.display = 'none';
+    tab.classList.toggle('acc-dock-panel-open', _accDockOpen);
   } else {
     panel.classList.add('acc-dock-hidden');
     tab.classList.add('acc-dock-hidden');
@@ -9637,63 +9635,58 @@ function setTaskSwitcherVisibility(visible) {
   }
 }
 
-// Hover-to-open on desktop, tap on mobile (Task Switcher tab only)
-(function() {
+// Hover-to-open on desktop, tap on mobile — shared geometry-based tracker.
+// Rather than relying on mouseenter/mouseleave pairs on two separate elements
+// (which have a real gap between them and can misfire), this watches the
+// mouse position directly against the tab+panel rects (with a small pad to
+// bridge the gap). This means resting the cursor anywhere on the panel — or
+// anywhere between tab and panel — reliably keeps the dock open.
+function setupDockHover(tabId, panelId, hiddenClass, getOpen, toggleFn) {
   const isDesktopHover = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
   if (!isDesktopHover) return;
 
-  const tab = document.getElementById('taskSwitcherTab');
-  const panel = document.getElementById('taskSwitcherPanel');
+  const tab = document.getElementById(tabId);
+  const panel = document.getElementById(panelId);
   if (!tab || !panel) return;
 
   let closeTimer = null;
+  let wasOver = false;
+  const PAD = 16; // bridges the gap between tab and panel
 
-  function openInstantly() {
-    if (closeTimer) { clearTimeout(closeTimer); closeTimer = null; }
-    if (tab.classList.contains('ts-hidden')) return;
-    if (!_tsOpen) window.toggleTaskSwitcher();
-  }
-  function scheduleClose() {
-    if (closeTimer) clearTimeout(closeTimer);
-    closeTimer = setTimeout(() => {
-      if (_tsOpen) window.toggleTaskSwitcher();
-    }, 180);
+  function pointInRect(x, y, rect, pad) {
+    return x >= rect.left - pad && x <= rect.right + pad &&
+           y >= rect.top - pad && y <= rect.bottom + pad;
   }
 
-  tab.addEventListener('mouseenter', openInstantly);
-  tab.addEventListener('mouseleave', scheduleClose);
-  panel.addEventListener('mouseenter', () => { if (closeTimer) { clearTimeout(closeTimer); closeTimer = null; } });
-  panel.addEventListener('mouseleave', scheduleClose);
-})();
-
-// Hover-to-open on desktop, tap on mobile (Sets dock panel only)
-(function() {
-  const isDesktopHover = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
-  if (!isDesktopHover) return;
-
-  const tab = document.getElementById('setsDockTab');
-  const panel = document.getElementById('setsDockPanel');
-  if (!tab || !panel) return;
-
-  let closeTimer = null;
-
-  function openInstantly() {
-    if (closeTimer) { clearTimeout(closeTimer); closeTimer = null; }
-    if (tab.classList.contains('sets-dock-hidden')) return;
-    if (!_setsDockOpen) window.toggleSetsDock();
-  }
-  function scheduleClose() {
-    if (closeTimer) clearTimeout(closeTimer);
-    closeTimer = setTimeout(() => {
-      if (_setsDockOpen) window.toggleSetsDock();
-    }, 180);
+  function isOverGroup(x, y) {
+    if (pointInRect(x, y, tab.getBoundingClientRect(), PAD)) return true;
+    if (getOpen() && pointInRect(x, y, panel.getBoundingClientRect(), PAD)) return true;
+    return false;
   }
 
-  tab.addEventListener('mouseenter', openInstantly);
-  tab.addEventListener('mouseleave', scheduleClose);
-  panel.addEventListener('mouseenter', () => { if (closeTimer) { clearTimeout(closeTimer); closeTimer = null; } });
-  panel.addEventListener('mouseleave', scheduleClose);
-})();
+  function onMove(e) {
+    if (tab.classList.contains(hiddenClass)) return;
+    const over = isOverGroup(e.clientX, e.clientY);
+    if (over) {
+      wasOver = true;
+      if (closeTimer) { clearTimeout(closeTimer); closeTimer = null; }
+      if (!getOpen()) toggleFn();
+    } else if (wasOver) {
+      wasOver = false;
+      if (closeTimer) clearTimeout(closeTimer);
+      closeTimer = setTimeout(() => {
+        if (getOpen() && !isOverGroup(e.clientX, e.clientY)) toggleFn();
+      }, 220);
+    }
+  }
+
+  document.addEventListener('mousemove', onMove, { passive: true });
+}
+
+setupDockHover('taskSwitcherTab', 'taskSwitcherPanel', 'ts-hidden', () => _tsOpen, () => window.toggleTaskSwitcher());
+setupDockHover('setsDockTab', 'setsDockPanel', 'sets-dock-hidden', () => _setsDockOpen, () => window.toggleSetsDock());
+setupDockHover('acTab', 'acPanel', 'ac-hidden', () => _acOpen, () => window.toggleActionCenter());
+setupDockHover('accDockTab', 'accDockPanel', 'acc-dock-hidden', () => _accDockOpen, () => window.toggleAccDock());
 
 // ── PAYOUT SETTINGS DOCK PANEL LOGIC ──────────────────────────────────────
 let _payDockOpen = true;
@@ -9719,11 +9712,9 @@ window.togglePayDock = function() {
       window.toggleSetsDock();
     }
     panel.classList.add('pay-dock-open');
-    tab.style.display = 'none';
     tab.classList.add('pay-dock-panel-open');
   } else {
     panel.classList.remove('pay-dock-open');
-    tab.style.display = '';
     tab.classList.remove('pay-dock-panel-open');
   }
   setTimeout(() => { _payDockToggling = false; }, 50);
@@ -9736,13 +9727,8 @@ function setPayDockVisibility(visible) {
   if (visible) {
     panel.classList.remove('pay-dock-hidden');
     tab.classList.remove('pay-dock-hidden');
-    if (_payDockOpen) {
-      panel.classList.add('pay-dock-open');
-      tab.style.display = 'none';
-      tab.classList.add('pay-dock-panel-open');
-    } else {
-      tab.style.display = '';
-    }
+    tab.classList.toggle('pay-dock-panel-open', _payDockOpen);
+    if (_payDockOpen) panel.classList.add('pay-dock-open');
   } else {
     panel.classList.add('pay-dock-hidden');
     tab.classList.add('pay-dock-hidden');
@@ -9779,11 +9765,9 @@ window.toggleTaskAddPanel = function() {
       window.toggleSetsDock();
     }
     panel.classList.add('ta-open');
-    tab.style.display = 'none';
     tab.classList.add('ta-panel-open');
   } else {
     panel.classList.remove('ta-open');
-    tab.style.display = '';
     tab.classList.remove('ta-panel-open');
   }
   setTimeout(() => { _taToggling = false; }, 50);
@@ -9796,13 +9780,13 @@ function setTaPanelVisibility(visible) {
   if (visible) {
     panel.classList.remove('ta-hidden');
     tab.classList.remove('ta-hidden');
-    if (!_taOpen) tab.style.display = '';
-    else tab.style.display = 'none';
+    tab.classList.toggle('ta-panel-open', _taOpen);
   } else {
     panel.classList.add('ta-hidden');
     tab.classList.add('ta-hidden');
     _taOpen = false;
     panel.classList.remove('ta-open');
+    tab.classList.remove('ta-panel-open');
   }
 }
 
