@@ -854,6 +854,7 @@ body {
   transform-origin: right center;
   transition: opacity 0.15s ease, transform 0.15s ease;
   overflow: hidden;
+  min-height: 0;
 }
 #setsDockPanel.sets-dock-open {
   opacity: 1;
@@ -950,8 +951,16 @@ body {
   gap: 8px;
   flex-shrink: 0;
 }
+#setsListView {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
 #setsDockPanelBody {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
