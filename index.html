@@ -3045,6 +3045,30 @@ TaskRec01: task assigned, timer started.</div>
   </div>
 </div>
 
+<!-- MODAL: Replicate Task -->
+<div class="modal-overlay" id="replicateTaskModal">
+  <div class="modal">
+    <div class="modal-title">
+      <span>Replicate Task</span>
+      <button class="modal-close" onclick="closeModal('replicateTaskModal')">✕</button>
+    </div>
+    <div style="font-family:var(--mono);font-size:11px;color:var(--ink3);margin-bottom:12px;" id="replicateTaskModalSrc"></div>
+    <div class="field" style="margin-bottom:12px;">
+      <label>New Task Title</label>
+      <input type="text" id="replicateTaskModalTitle" placeholder="Enter new title">
+      <input type="hidden" id="replicateTaskModalId">
+    </div>
+    <div style="font-family:var(--mono);font-size:10.5px;color:var(--ink3);margin-bottom:4px;line-height:1.5;">
+      Everything (type, reward, links, thumbnail, preview setting) is copied as-is. The new task starts unassigned with no errors.
+      Drive thumbnail lookup will keep searching under the <b>original</b> title.
+    </div>
+    <div class="modal-actions">
+      <button class="btn-primary" onclick="saveReplicateTask()">Replicate</button>
+      <button class="btn-secondary" onclick="closeModal('replicateTaskModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL: Task Errors -->
 <div class="modal-overlay" id="errorModal">
   <div class="modal" style="max-width:500px;">
@@ -4768,7 +4792,7 @@ function renderTasks() {
       return taskSortDir === 'desc' ? -cmp : cmp;
     }
     if (taskSort === 'alpha') {
-      const cmp = (a.title||a.id||'').localeCompare(b.title||b.id||'');
+      const cmp = (a.title||a.id||'').localeCompare(b.title||b.id||'', undefined, {numeric: true, sensitivity: 'base'});
       return taskSortDir === 'desc' ? -cmp : cmp;
     }
     if (taskSort === 'newest') {
@@ -5071,6 +5095,7 @@ function renderTaskCard(task) {
       ${!task.archived ? `<button class="btn-secondary" style="font-size:10.5px;padding:4px 8px;" onclick="openLinksModal('${task.id}')">🔗</button>` : ''}
       <button class="btn-secondary" style="font-size:10.5px;padding:4px 8px;color:var(--red);border-color:var(--red-border);" onclick="openErrorModal('${task.id}')">⚠ Error</button>
       <button class="btn-secondary" style="font-size:10.5px;padding:4px 8px;" onclick="openEditTaskModal('${task.id}')">✎ Edit</button>
+      <button class="btn-secondary" style="font-size:10.5px;padding:4px 8px;" onclick="openReplicateTaskModal('${task.id}')" title="Duplicate this task under a new title">⎘ Replicate</button>
       ${task.previewButton && !task.archived ? `<button class=\"btn-secondary\" style=\"font-size:10.5px;padding:4px 8px;color:var(--amber);border-color:var(--amber-border);\" onclick=\"openTaskMediaModal('${task.id}')\" title=\"${isYT ? 'View thumbnails' : 'View websites'}\">${isYT ? 'View Thumbnails' : 'View Websites'}</button>` : ''}
       ${!task.archived && isYT ? `<button class="btn-secondary" style="font-size:10.5px;padding:4px 8px;color:var(--amber);border-color:var(--amber-border);" onclick="openThumbModal('${task.id}')" title="${task.thumbnail?'Change thumbnail':'Add thumbnail'}">${task.thumbnail?'🖼 Thumb':'📷 Thumb'}</button>` : ''}
       ${task.archived && task.thumbnail ? `<button class="btn-secondary" style="font-size:10.5px;padding:4px 8px;color:var(--amber);border-color:var(--amber-border);" onclick="removeTaskImage('${task.id}')">🗑 Img</button>` : ''}
@@ -5165,7 +5190,10 @@ window.closeMediaPreviewModal = function() {
 window.openTaskMediaModal = async function(taskId) {
   const t = tasks.find(x => x.id === taskId);
   if (!t) return;
-  const titleText = (t.title || 'Task preview').trim().toLowerCase();
+  // Replicated tasks search Drive under the ORIGINAL task's title —
+  // that's where the matching Drive file actually lives.
+  const searchTitle = t.driveSearchTitle || t.title;
+  const titleText = (searchTitle || 'Task preview').trim().toLowerCase();
   const body = document.getElementById('mediaPreviewBody');
 
   // Local base64 thumbnail — show immediately, no network needed
@@ -5180,7 +5208,7 @@ window.openTaskMediaModal = async function(taskId) {
   body.innerHTML = `<div style="color:#aaa;font-family:monospace;padding:40px;font-size:14px;text-align:center;">Loading thumbnail for <b style="color:#fff;">${t.title}</b>…</div>`;
 
   try {
-    const url = `${THUMB_SCRIPT_URL}?action=findImage&title=${encodeURIComponent(t.title)}`;
+    const url = `${THUMB_SCRIPT_URL}?action=findImage&title=${encodeURIComponent(searchTitle)}`;
     const res = await fetch(url);
     const data = await res.json();
 
@@ -5605,6 +5633,56 @@ window.saveEditTask = function() {
   renderTasks();
   if (selectedAccId) renderAccDetail(selectedAccId);
   toast('Task updated');
+};
+
+// Replicate a task — same everything (type, reward, links, thumbnail,
+// previewButton, quicky) under a new title. New task starts fresh:
+// no assignments, no errors, unarchived. Drive-based thumbnail lookup
+// (openTaskMediaModal) keeps searching under the ORIGINAL task's title
+// via driveSearchTitle, since that's where the matching Drive file lives.
+window.openReplicateTaskModal = function(taskId) {
+  if (!requireAdminForTaskEdit()) return;
+  const t = tasks.find(t => t.id === taskId); if (!t) return;
+  document.getElementById('replicateTaskModalId').value = taskId;
+  document.getElementById('replicateTaskModalSrc').textContent = 'From: ' + t.title;
+  document.getElementById('replicateTaskModalTitle').value = '';
+  openModal('replicateTaskModal');
+  setTimeout(() => document.getElementById('replicateTaskModalTitle').focus(), 50);
+};
+
+window.saveReplicateTask = function() {
+  if (!requireAdminForTaskEdit()) return;
+  const taskId = document.getElementById('replicateTaskModalId').value;
+  const src = tasks.find(t => t.id === taskId); if (!src) return;
+  const newTitle = document.getElementById('replicateTaskModalTitle').value.trim();
+  if (!newTitle) { toast('Please enter a title for the replicated task'); return; }
+  const dup = tasks.find(t => t.title === newTitle && !t.archived);
+  if (dup) { toast('⚠ A running task with this title already exists'); return; }
+
+  pushUndo('Replicate task ' + src.title + ' → ' + newTitle);
+  const clone = {
+    ...src,
+    id: uid(),
+    title: newTitle,
+    // Drive lookups for this clone should still search under the
+    // original title (that's where the matching Drive image lives),
+    // unless the original was itself a replica — then chain through
+    // to whatever title it was already searching under.
+    driveSearchTitle: src.driveSearchTitle || src.title,
+    links: JSON.parse(JSON.stringify(src.links || [])),
+    assignments: [],
+    errors: [],
+    archived: false,
+    archiveCount: 0,
+    permanentArchive: false,
+    createdAt: now(),
+    updatedAt: now()
+  };
+  tasks.push(clone);
+  closeModal('replicateTaskModal');
+  taskPage = 0;
+  renderTasks();
+  toast('Task replicated as "' + newTitle + '"');
 };
 
 window.openRewardModal = function(taskId) {
