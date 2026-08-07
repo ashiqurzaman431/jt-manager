@@ -2960,6 +2960,54 @@ TaskRec01: task assigned, timer started.</div>
   </div>
 </div>
 
+<!-- MODAL: Login Session (Resume / New) -->
+<div class="modal-overlay" id="loginSessModal">
+  <div class="modal">
+    <div class="modal-title">
+      <span>🔐 Log In — <span id="loginSessAccName">—</span></span>
+      <button class="modal-close" onclick="closeModal('loginSessModal')">✕</button>
+    </div>
+    <input type="hidden" id="loginSessAccId">
+    <div style="font-family:var(--mono);font-size:12.1px;color:var(--ink3);margin-bottom:14px;" id="loginSessInfo">—</div>
+    <div class="modal-actions" style="flex-direction:column;gap:8px;">
+      <button class="btn-primary" id="loginSessResumeBtn" style="width:100%;" onclick="resumeLoginSession()">▶ Resume Session</button>
+      <button class="btn-secondary" style="width:100%;" onclick="startNewLoginSession()">🆕 Start New Session</button>
+      <button class="btn-secondary" style="width:100%;" onclick="closeModal('loginSessModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Assign IP to Account (gates task assignment on a new session) -->
+<div class="modal-overlay" id="ipAssignModal">
+  <div class="modal">
+    <div class="modal-title">
+      <span>🌐 Assign IP Address</span>
+      <button class="modal-close" onclick="closeModal('ipAssignModal')">✕</button>
+    </div>
+    <input type="hidden" id="ipAssignAccId">
+    <div style="font-family:var(--mono);font-size:12.1px;color:var(--ink3);margin-bottom:14px;" id="ipAssignAccInfo">—</div>
+    <div class="field" style="margin-bottom:12px;" id="ipAssignPastWrap">
+      <label>Reuse a previous IP for this account</label>
+      <select id="ipAssignPastSelect" onchange="ipAssignPastPicked()">
+        <option value="">— Enter new IP below —</option>
+      </select>
+    </div>
+    <div class="field" style="margin-bottom:12px;">
+      <label>IP Address</label>
+      <input type="text" id="ipAssignInput" placeholder="e.g. 103.21.244.10">
+    </div>
+    <div class="field" style="margin-bottom:12px;">
+      <label>Name (optional)</label>
+      <input type="text" id="ipAssignName" placeholder="e.g. Home, Mobile Data">
+    </div>
+    <div id="ipAssignWarning" style="display:none;font-family:var(--mono);font-size:11px;color:var(--red);background:var(--red-light);border:1px solid var(--red-border);border-radius:8px;padding:8px 12px;margin-bottom:12px;"></div>
+    <div class="modal-actions">
+      <button class="btn-primary" onclick="confirmIpAssign()">Save &amp; Continue</button>
+      <button class="btn-secondary" onclick="closeModal('ipAssignModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL: Task Links -->
 <div class="modal-overlay" id="linksModal">
   <div class="modal" style="max-width:480px;">
@@ -5700,10 +5748,153 @@ window.saveTaskReward = function() {
   closeModal('rewardModal'); taskPage = 0; renderTasks(); toast('Reward updated');
 };
 
+// ─────────────────────────────────────────
+// LOGIN SESSION + PER-ACCOUNT IP MANAGEMENT
+// ─────────────────────────────────────────
+// Each account can hold one activeLoginSession: { id, startedAt, ip, ipName }.
+// ip stays null right after a "New Session" until the first task-assignment
+// attempt, which forces an IP to be set before the assignment proceeds.
+// acc.ipHistory keeps every IP ever used by that account (for reuse).
+// globalSettings.ipRegistry is the cross-account exclusivity list: once an
+// IP appears there tied to one account, no other account can claim it.
+function ipRegistryGet() {
+  if (!globalSettings.ipRegistry) globalSettings.ipRegistry = [];
+  return globalSettings.ipRegistry;
+}
+function findIpOwner(ip) {
+  const entry = ipRegistryGet().find(r => r.ip === ip);
+  return entry ? entry.accountId : null;
+}
+
+// Stashes a task assignment that got interrupted by the IP gate, so it can
+// resume automatically once the IP is confirmed.
+let _pendingTaskAssign = null;
+
+window.openLoginSessionModal = function(accId) {
+  const acc = accounts.find(a => a.id === accId); if (!acc) return;
+  document.getElementById('loginSessAccId').value = accId;
+  document.getElementById('loginSessAccName').textContent = acc.name;
+  const hasSession = !!acc.activeLoginSession;
+  const resumeBtn = document.getElementById('loginSessResumeBtn');
+  if (resumeBtn) resumeBtn.style.display = hasSession ? '' : 'none';
+  document.getElementById('loginSessInfo').textContent = hasSession
+    ? `Current session started ${fmtTime(acc.activeLoginSession.startedAt)}${acc.activeLoginSession.ip ? ' · IP: ' + acc.activeLoginSession.ip : ' · IP not yet set'}`
+    : 'No session on record yet for this account — start a new one.';
+  openModal('loginSessModal');
+};
+
+window.resumeLoginSession = function() {
+  const accId = document.getElementById('loginSessAccId').value;
+  const acc = accounts.find(a => a.id === accId); if (!acc) return;
+  if (!acc.activeLoginSession) { window.startNewLoginSession(); return; }
+  closeModal('loginSessModal');
+  toast('Session resumed for ' + acc.name);
+  renderAccDetail(accId);
+};
+
+window.startNewLoginSession = function() {
+  const accId = document.getElementById('loginSessAccId').value;
+  const acc = accounts.find(a => a.id === accId); if (!acc) return;
+  pushUndo('Start new session for ' + acc.name);
+  acc.activeLoginSession = { id: uid(), startedAt: now(), ip: null, ipName: null };
+  closeModal('loginSessModal');
+  markUnsaved(true);
+  toast('New session started for ' + acc.name + ' — IP will be asked on first task assignment');
+  renderAccDetail(accId);
+};
+
+window.openIpAssignModal = function(accId) {
+  const acc = accounts.find(a => a.id === accId); if (!acc) return;
+  document.getElementById('ipAssignAccId').value = accId;
+  document.getElementById('ipAssignAccInfo').textContent = 'Account: ' + acc.name + ' — this new session needs an IP before a task can be assigned.';
+  const sel = document.getElementById('ipAssignPastSelect');
+  const past = acc.ipHistory || [];
+  sel.innerHTML = ['<option value="">— Enter new IP below —</option>']
+    .concat(past.map(e => `<option value="${escapeHtml(e.ip)}">${escapeHtml(e.ip)}${e.name ? ' (' + escapeHtml(e.name) + ')' : ''}</option>`))
+    .join('');
+  sel.value = '';
+  document.getElementById('ipAssignInput').value = '';
+  document.getElementById('ipAssignName').value = '';
+  const warn = document.getElementById('ipAssignWarning');
+  warn.style.display = 'none'; warn.textContent = '';
+  openModal('ipAssignModal');
+};
+
+window.ipAssignPastPicked = function() {
+  const sel = document.getElementById('ipAssignPastSelect');
+  const accId = document.getElementById('ipAssignAccId').value;
+  const acc = accounts.find(a => a.id === accId);
+  document.getElementById('ipAssignInput').value = sel.value;
+  const entry = acc && (acc.ipHistory||[]).find(e => e.ip === sel.value);
+  document.getElementById('ipAssignName').value = (entry && entry.name) ? entry.name : '';
+};
+
+window.confirmIpAssign = function() {
+  const accId = document.getElementById('ipAssignAccId').value;
+  const acc = accounts.find(a => a.id === accId); if (!acc) return;
+  const ip = document.getElementById('ipAssignInput').value.trim();
+  const name = document.getElementById('ipAssignName').value.trim();
+  const warn = document.getElementById('ipAssignWarning');
+  if (!ip) { warn.textContent = 'Enter an IP address.'; warn.style.display = ''; return; }
+
+  const owner = findIpOwner(ip);
+  if (owner && owner !== accId) {
+    const ownerAcc = accounts.find(a => a.id === owner);
+    warn.textContent = '⚠ This IP is already assigned to ' + (ownerAcc ? ownerAcc.name : 'another account') + ' — pick a different IP.';
+    warn.style.display = '';
+    return;
+  }
+
+  if (!acc.activeLoginSession) acc.activeLoginSession = { id: uid(), startedAt: now(), ip: null, ipName: null };
+  acc.activeLoginSession.ip = ip;
+  acc.activeLoginSession.ipName = name || null;
+
+  if (!acc.ipHistory) acc.ipHistory = [];
+  const existing = acc.ipHistory.find(e => e.ip === ip);
+  if (!existing) {
+    acc.ipHistory.unshift({ ip, name: name || null, assignedAt: now() });
+  } else if (name && !existing.name) {
+    existing.name = name;
+  }
+
+  if (!owner) {
+    ipRegistryGet().push({ ip, name: name || null, accountId: accId, assignedAt: now() });
+  }
+
+  closeModal('ipAssignModal');
+  markUnsaved(true);
+  toast('IP ' + ip + ' assigned to ' + acc.name);
+  renderAccDetail(accId);
+
+  if (_pendingTaskAssign && _pendingTaskAssign.accId === accId) {
+    const p = _pendingTaskAssign; _pendingTaskAssign = null;
+    _doAssign(p.taskId, p.accId, p.customReward);
+  } else {
+    _pendingTaskAssign = null;
+  }
+};
+
 // Shared: actually write the assignment record and refresh UI
 function _doAssign(taskId, accId, customReward) {
   const t = tasks.find(t => t.id===taskId); if(!t) return;
   const accCheck = accounts.find(a => a.id === accId); if(!accCheck) return;
+
+  // ── Login session / IP gate ──
+  // No session at all: nudge the user to Log In first.
+  if (!accCheck.activeLoginSession) {
+    toast('⚠ Start a login session for ' + accCheck.name + ' first (🔐 Log In)');
+    if (selectedAccId === accId) renderAccDetail(accId);
+    return;
+  }
+  // Session exists but has no IP yet (fresh "New Session") — this is the
+  // first task-assignment attempt in this session, so ask for the IP now,
+  // then resume this exact assignment once it's set.
+  if (!accCheck.activeLoginSession.ip) {
+    _pendingTaskAssign = { taskId, accId, customReward };
+    openIpAssignModal(accId);
+    return;
+  }
+
   const asgn = {
     id: uid(),
     accountId: accId,
@@ -6211,8 +6402,30 @@ function renderAccDetail(accId) {
   })() : `<div class="empty-state"><div class="es-icon">📋</div>No history yet</div>`;
 
 
+  const _ls = acc.activeLoginSession;
+  const loginSessBarHtml = _ls
+    ? (_ls.ip
+        ? `<div style="grid-column:1/-1;display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--green-light);border:1px solid var(--green-border);border-radius:0;padding:10px 18px;">
+             <span style="font-family:var(--mono);font-size:11.5px;color:var(--green);font-weight:700;">🟢 Session Active</span>
+             <span style="font-family:var(--mono);font-size:11px;color:var(--ink2);">IP: <b>${escapeHtml(_ls.ip)}</b>${_ls.ipName ? ' ('+escapeHtml(_ls.ipName)+')' : ''}</span>
+             <span style="flex:1;"></span>
+             <button class="btn-secondary" style="font-size:11px;padding:5px 12px;" onclick="openLoginSessionModal('${accId}')">🔐 Log In</button>
+           </div>`
+        : `<div style="grid-column:1/-1;display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--amber-light,rgba(245,158,11,0.12));border:1px solid var(--amber-border,rgba(245,158,11,0.35));border-radius:0;padding:10px 18px;">
+             <span style="font-family:var(--mono);font-size:11.5px;color:var(--amber);font-weight:700;">🟡 New Session — IP not set</span>
+             <span style="font-family:var(--mono);font-size:11px;color:var(--ink3);">Will be asked on first task assignment</span>
+             <span style="flex:1;"></span>
+             <button class="btn-secondary" style="font-size:11px;padding:5px 12px;" onclick="openLoginSessionModal('${accId}')">🔐 Log In</button>
+           </div>`)
+    : `<div style="grid-column:1/-1;display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--surface2);border:1px solid var(--border);border-radius:0;padding:10px 18px;">
+         <span style="font-family:var(--mono);font-size:11.5px;color:var(--ink3);font-weight:700;">⚪ No Active Session</span>
+         <span style="flex:1;"></span>
+         <button class="btn-primary" style="font-size:11px;padding:5px 12px;" onclick="openLoginSessionModal('${accId}')">🔐 Log In</button>
+       </div>`;
+
   document.getElementById('accDetailPanel').innerHTML = `
     <div class="acc-detail-inner">
+      ${loginSessBarHtml}
       <div class="acc-info-col">
         <div class="acc-info-title">Account Details</div>
         <div class="acc-info-fields">
@@ -9958,6 +10171,6 @@ if ('serviceWorker' in navigator) {
          font-size:18px;cursor:pointer;
          box-shadow:0 2px 12px rgba(0,0,0,0.22);
          align-items:center;justify-content:center;">↑</button>
-<script>// 34</script>
+<script>// 35</script>
 <protonpass-root-8df7 data-protonpass-role="root" data-protonpass-theme="dark"></protonpass-root-8df7>
 </body></html>
