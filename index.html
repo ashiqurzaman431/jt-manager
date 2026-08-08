@@ -1216,6 +1216,113 @@ body {
   overflow-y: auto;
   padding: 14px;
 }
+
+/* ── IP CHECKER DOCK PANEL (docked right, like Payout & Accounts) ── */
+#ipDockPanel {
+  position: fixed;
+  top: 0; right: 0;
+  height: 100vh;
+  width: 320px;
+  max-width: 100vw;
+  background: rgba(51, 55, 80, 0.61);
+  border-left: 1.5px solid var(--jt-border);
+  box-shadow: -4px 0 24px rgba(0,0,0,0.10);
+  z-index: 800;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform 0.25s cubic-bezier(0.4,0,0.2,1);
+}
+#ipDockPanel.ip-dock-open {
+  transform: translateX(0);
+}
+#ipDockPanel.ip-dock-hidden {
+  display: none;
+}
+#ipDockTab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  background: var(--jt-grad);
+  color: #fff;
+  width: 28px;
+  padding: 14px 0;
+  border-radius: 10px 0 0 10px;
+  cursor: pointer;
+  box-shadow: -2px 0 12px rgba(0,0,0,0.18);
+  transition: width 0.2s, background 0.15s;
+  writing-mode: vertical-rl;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  user-select: none;
+}
+#ipDockTab:hover { background: linear-gradient(135deg,#1976D2,#1565C0); }
+#ipDockTab.ip-dock-hidden { display: none; }
+#ipDockTab.ip-dock-panel-open { pointer-events: none; }
+#ipDockPanelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 14px 12px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  background: linear-gradient(135deg, rgba(154,158,166,0.10), rgba(154,147,184,0.06));
+}
+#ipDockPanelTitle {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--jt);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  line-height: 1;
+  white-space: nowrap;
+}
+#ipDockPanelTitle > span:first-child {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px;
+  font-size: 13px;
+}
+#ipDockCollapseBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--jt);
+  font-size: 16px;
+  line-height: 1;
+  padding: 2px 4px;
+  border-radius: 6px;
+  transition: background 0.15s;
+}
+#ipDockCollapseBtn:hover { background: var(--jt-border); }
+#ipDockPanelBody {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px;
+}
+#ipCheckerResult {
+  margin-top: 12px;
+}
+.ip-info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--border);
+  font-family: var(--mono);
+  font-size: 11.5px;
+}
+.ip-info-row:last-child { border-bottom: none; }
+.ip-info-label { color: var(--ink3); }
+.ip-info-val { color: var(--ink); font-weight: 600; text-align: right; }
 /* Flow card inside panel */
 .ac-flow-card {
   background: var(--surface2);
@@ -2573,11 +2680,11 @@ select option { background: var(--surface3); color: var(--ink); }
         </div>
         <div class="acc-stats-mini" style="grid-template-columns:1fr 1fr;gap:8px;">
           <div class="acc-stat-mini"><div class="acc-stat-mini-label">USD Balance</div><div class="acc-stat-mini-val" style="color:var(--green);font-weight:700;">$ 0.00</div></div>
-          <div class="acc-stat-mini"><div class="acc-stat-mini-label">JMPT Balance</div><div class="acc-stat-mini-val" style="font-weight:700;">0.0000 JMPT</div></div>
+          <div class="acc-stat-mini"><div class="acc-stat-mini-label">Points Balance</div><div class="acc-stat-mini-val" style="font-weight:700;">0 PTS</div></div>
           <div class="acc-stat-mini"><div class="acc-stat-mini-label">Expected USD</div><div class="acc-stat-mini-val" style="color:var(--amber);font-weight:700;">$ 0.06</div></div>
-          <div class="acc-stat-mini"><div class="acc-stat-mini-label">Expected JMPT</div><div class="acc-stat-mini-val" style="color:var(--amber);font-weight:700;">0.0000 JMPT</div></div>
+          <div class="acc-stat-mini"><div class="acc-stat-mini-label">Expected Points</div><div class="acc-stat-mini-val" style="color:var(--amber);font-weight:700;">0 PTS</div></div>
         </div>
-        <div style="font-family:var(--mono);font-size:9.9px;color:var(--green);background:var(--green-light);border:1px solid var(--green-border);border-radius:6px;padding:6px 10px;margin-top:6px;">💸 If all rewarded: <strong>$ 0.06</strong> / <strong>0.0000 JMPT</strong></div>
+        <div style="font-family:var(--mono);font-size:9.9px;color:var(--green);background:var(--green-light);border:1px solid var(--green-border);border-radius:6px;padding:6px 10px;margin-top:6px;">💸 If all rewarded: <strong>$ 0.06</strong> / <strong>0 PTS</strong></div>
         <div class="acc-task-stats">
           <div class="acc-task-stat"><div class="acc-task-stat-label">Running</div><div class="acc-task-stat-val amber">0</div></div>
           <div class="acc-task-stat"><div class="acc-task-stat-label">Due Rewarded</div><div class="acc-task-stat-val blue">0</div></div>
@@ -2611,7 +2718,7 @@ select option { background: var(--surface3); color: var(--ink); }
         <input type="checkbox" class="bulk-task-cb" data-taskid="rmha6354bmbmpy88ska" data-asgnid="nxl8ocebr2mpy89b7n" onchange="updateBulkCount('ehsz5yr9cfhmpxno92l')" style="accent-color:var(--jt);width:13px;height:13px;flex-shrink:0;">
         
         <span style="font-family:var(--mono);font-size:12.1px;font-weight:600;color:var(--ink);flex:1;min-width:40px;">8798</span>
-        <span style="font-family:var(--mono);font-size:9.9px;color:var(--ink3);">$ 0.02 · — JMPT</span>
+        <span style="font-family:var(--mono);font-size:9.9px;color:var(--ink3);">$ 0.02 · — PTS</span>
         <span class="acc-active-task-status completed">completed</span>
       </div>
       <div style="display:flex;align-items:center;gap:6px;margin-top:5px;flex-wrap:wrap;">
@@ -2638,7 +2745,7 @@ TaskRec01: task assigned, timer started.</div>
         <input type="checkbox" class="bulk-task-cb" data-taskid="ix1ekkiitcbmpy83elk" data-asgnid="zcfmxzunwdampy84g3y" onchange="updateBulkCount('ehsz5yr9cfhmpxno92l')" style="accent-color:var(--jt);width:13px;height:13px;flex-shrink:0;">
         
         <span style="font-family:var(--mono);font-size:12.1px;font-weight:600;color:var(--ink);flex:1;min-width:40px;">8790</span>
-        <span style="font-family:var(--mono);font-size:9.9px;color:var(--ink3);">$ 0.02 · — JMPT</span>
+        <span style="font-family:var(--mono);font-size:9.9px;color:var(--ink3);">$ 0.02 · — PTS</span>
         <span class="acc-active-task-status completed">completed</span>
       </div>
       <div style="display:flex;align-items:center;gap:6px;margin-top:5px;flex-wrap:wrap;">
@@ -2665,7 +2772,7 @@ TaskRec01: task assigned, timer started.</div>
         <input type="checkbox" class="bulk-task-cb" data-taskid="yj1fmjj5kkmpxnvtyd" data-asgnid="c5dc6sqyv9mpxnvz1h" onchange="updateBulkCount('ehsz5yr9cfhmpxno92l')" style="accent-color:var(--jt);width:13px;height:13px;flex-shrink:0;">
         
         <span style="font-family:var(--mono);font-size:12.1px;font-weight:600;color:var(--ink);flex:1;min-width:40px;">2075</span>
-        <span style="font-family:var(--mono);font-size:9.9px;color:var(--ink3);">$ 0.02 · — JMPT</span>
+        <span style="font-family:var(--mono);font-size:9.9px;color:var(--ink3);">$ 0.02 · — PTS</span>
         <span class="acc-active-task-status completed">completed</span>
       </div>
       <div style="display:flex;align-items:center;gap:6px;margin-top:5px;flex-wrap:wrap;">
@@ -2745,7 +2852,7 @@ TaskRec01: task assigned, timer started.</div>
       <div class="stat-chips" id="ehTaskChips" style="margin-bottom:10px;">
       <div class="stat-chip"><div class="stat-chip-label">Rewarded Tasks</div><div class="stat-chip-val blue" style="font-weight:700;">0</div></div>
       <div class="stat-chip"><div class="stat-chip-label">USD Earned</div><div class="stat-chip-val green" style="font-weight:700;">$ 0.00</div></div>
-      <div class="stat-chip"><div class="stat-chip-label">JMPT Earned</div><div class="stat-chip-val purple" style="font-weight:700;">0.0000 JMPT</div></div>
+      <div class="stat-chip"><div class="stat-chip-label">Points Earned</div><div class="stat-chip-val purple" style="font-weight:700;">0 PTS</div></div>
       <div class="stat-chip"><div class="stat-chip-label">Periods Active</div><div class="stat-chip-val gray" style="font-weight:700;">0</div></div>
     </div>
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
@@ -2926,7 +3033,7 @@ TaskRec01: task assigned, timer started.</div>
       <div class="field"><label>Account</label><input type="text" id="payoutModalAccName" readonly="" style="opacity:0.7;cursor:default;"></div>
       <div class="field"><label>Amount (USDT)</label><input type="number" id="payoutModalAmount" placeholder="0.30 (current balance)" step="any" min="0"></div>
       <div class="field"><label>Fees / Charges (USDT)</label><input type="number" id="payoutModalFee" placeholder="0.00" step="any" min="0"></div>
-      <div class="field"><label>JMPT Withdrawn</label><input type="number" id="payoutModalJmpt" placeholder="0.5000 (current JMPT)" step="any" min="0"></div>
+      <div class="field"><label>Points Withdrawn</label><input type="number" id="payoutModalPoints" placeholder="0 (current points)" step="1" min="0"></div>
       <div class="field"><label>Date</label><input type="date" id="payoutModalDate"></div>
       <div class="field"><label>Note (optional)</label><input type="text" id="payoutModalNote" placeholder="e.g. Weekly payout"></div>
     </div>
@@ -2956,54 +3063,6 @@ TaskRec01: task assigned, timer started.</div>
     <div class="modal-actions">
       <button class="btn-primary" onclick="confirmAssign()">Assign Task</button>
       <button class="btn-secondary" onclick="closeModal('assignModal')">Cancel</button>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL: Login Session (Resume / New) -->
-<div class="modal-overlay" id="loginSessModal">
-  <div class="modal">
-    <div class="modal-title">
-      <span>🔐 Log In — <span id="loginSessAccName">—</span></span>
-      <button class="modal-close" onclick="closeModal('loginSessModal')">✕</button>
-    </div>
-    <input type="hidden" id="loginSessAccId">
-    <div style="font-family:var(--mono);font-size:12.1px;color:var(--ink3);margin-bottom:14px;" id="loginSessInfo">—</div>
-    <div class="modal-actions" style="flex-direction:column;gap:8px;">
-      <button class="btn-primary" id="loginSessResumeBtn" style="width:100%;" onclick="resumeLoginSession()">▶ Resume Session</button>
-      <button class="btn-secondary" style="width:100%;" onclick="startNewLoginSession()">🆕 Start New Session</button>
-      <button class="btn-secondary" style="width:100%;" onclick="closeModal('loginSessModal')">Cancel</button>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL: Assign IP to Account (gates task assignment on a new session) -->
-<div class="modal-overlay" id="ipAssignModal">
-  <div class="modal">
-    <div class="modal-title">
-      <span>🌐 Assign IP Address</span>
-      <button class="modal-close" onclick="closeModal('ipAssignModal')">✕</button>
-    </div>
-    <input type="hidden" id="ipAssignAccId">
-    <div style="font-family:var(--mono);font-size:12.1px;color:var(--ink3);margin-bottom:14px;" id="ipAssignAccInfo">—</div>
-    <div class="field" style="margin-bottom:12px;" id="ipAssignPastWrap">
-      <label>Reuse a previous IP for this account</label>
-      <select id="ipAssignPastSelect" onchange="ipAssignPastPicked()">
-        <option value="">— Enter new IP below —</option>
-      </select>
-    </div>
-    <div class="field" style="margin-bottom:12px;">
-      <label>IP Address</label>
-      <input type="text" id="ipAssignInput" placeholder="e.g. 103.21.244.10">
-    </div>
-    <div class="field" style="margin-bottom:12px;">
-      <label>Name (optional)</label>
-      <input type="text" id="ipAssignName" placeholder="e.g. Home, Mobile Data">
-    </div>
-    <div id="ipAssignWarning" style="display:none;font-family:var(--mono);font-size:11px;color:var(--red);background:var(--red-light);border:1px solid var(--red-border);border-radius:8px;padding:8px 12px;margin-bottom:12px;"></div>
-    <div class="modal-actions">
-      <button class="btn-primary" onclick="confirmIpAssign()">Save &amp; Continue</button>
-      <button class="btn-secondary" onclick="closeModal('ipAssignModal')">Cancel</button>
     </div>
   </div>
 </div>
@@ -3236,6 +3295,69 @@ TaskRec01: task assigned, timer started.</div>
     <div class="modal-actions">
       <button class="btn-primary" onclick="confirmAddDevice()">Add Device</button>
       <button class="btn-secondary" onclick="closeModal('addDeviceModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Assign IP (from IP Checker dock) -->
+<div class="modal-overlay" id="ipAssignModal">
+  <div class="modal">
+    <div class="modal-title">
+      <span>Assign IP</span>
+      <button class="modal-close" onclick="closeModal('ipAssignModal')">✕</button>
+    </div>
+    <div style="font-family:var(--mono);font-size:12.1px;color:var(--ink3);margin-bottom:14px;" id="ipAssignModalIpInfo">IP: —</div>
+    <div class="modal-fields">
+      <div class="field">
+        <label>Account</label>
+        <select id="ipAssignModalAccSelect" style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:14.3px;padding:9px 10px;outline:none;"></select>
+      </div>
+      <div class="field">
+        <label>Name (optional)</label>
+        <input type="text" id="ipAssignModalName" placeholder="e.g. Home router, VPN node A…">
+      </div>
+      <div class="field">
+        <label>Location</label>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+          <select id="ipAssignModalLocation" style="flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:14.3px;padding:9px 10px;outline:none;">
+            <option value="">— None —</option>
+          </select>
+          <button type="button" onclick="addCustomIpOption('location')" style="padding:8px 12px;background:var(--jt-light);color:var(--jt);border:1px solid var(--jt-border);border-radius:var(--radius-sm);font-family:var(--mono);font-size:11px;cursor:pointer;white-space:nowrap;">+ Add New</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>App</label>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+          <select id="ipAssignModalApp" style="flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:14.3px;padding:9px 10px;outline:none;">
+            <option value="">— None —</option>
+          </select>
+          <button type="button" onclick="addCustomIpOption('app')" style="padding:8px 12px;background:var(--jt-light);color:var(--jt);border:1px solid var(--jt-border);border-radius:var(--radius-sm);font-family:var(--mono);font-size:11px;cursor:pointer;white-space:nowrap;">+ Add New</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-primary" onclick="confirmIpAssign()">Assign IP</button>
+      <button class="btn-secondary" onclick="closeModal('ipAssignModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Add custom IP Location/App option (shared) -->
+<div class="modal-overlay" id="addIpOptionModal">
+  <div class="modal" style="max-width:360px;">
+    <div class="modal-title">
+      <span id="addIpOptionModalTitle">Add Option</span>
+      <button class="modal-close" onclick="closeModal('addIpOptionModal')">✕</button>
+    </div>
+    <div class="modal-fields">
+      <div class="field">
+        <label id="addIpOptionModalLabel">Name</label>
+        <input type="text" id="addIpOptionInput" placeholder="Type new value…" onkeydown="if(event.key==='Enter')confirmAddIpOption()">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-primary" onclick="confirmAddIpOption()">Add</button>
+      <button class="btn-secondary" onclick="closeModal('addIpOptionModal')">Cancel</button>
     </div>
   </div>
 </div>
@@ -3837,7 +3959,7 @@ let tasks = [];
 window.tasks = tasks; // expose live reference so scripts outside this closure (e.g. Sets dock panel) can read it
 
 /*EMBEDDED_SETTINGS_START*/
-let globalSettings = { "jmptRate": 0, "defaultGoogleReward": 0.04, "defaultYoutubeReward": 0.02, "payoutThreshold": 0.5, "customDevices": [], "appVersion": "1.0" };
+let globalSettings = { "defaultGoogleReward": 0.04, "defaultYoutubeReward": 0.02, "payoutThreshold": 500, "customDevices": [], "appVersion": "1.0" };
 /*EMBEDDED_SETTINGS_END*/
 
 /*EMBEDDED_LOG_START*/
@@ -3988,7 +4110,7 @@ function showPage(id) {
   if (id === 'tasks') { resetTaskLoadMore(); renderTasks(); populateDefaultRewardFields(); }
   if (id === 'accounts') {
     renderAccList();
-    populateGlobalJmptRateField();
+    populatePayoutThresholdField();
     // Bug 5 fix: auto-select first account if none selected yet
     if (!selectedAccId && accounts.length) {
       selectedAccId = accounts[0].id;
@@ -4010,6 +4132,8 @@ function showPage(id) {
   if (typeof setTaskSwitcherVisibility === 'function') setTaskSwitcherVisibility(id === 'tasks');
   // Payout settings dock panel: only visible on Accounts tab (open by default)
   if (typeof setPayDockVisibility === 'function') setPayDockVisibility(id === 'accounts');
+  // IP Checker dock panel: only visible on Accounts tab
+  if (typeof setIpDockVisibility === 'function') setIpDockVisibility(id === 'accounts');
   // Sets dock panel: only visible on Task Management tab
   if (typeof setSetsDockVisibility === 'function') setSetsDockVisibility(id === 'tasks');
   // Left-edge Set/Account name label: only visible on Task Management tab
@@ -4213,13 +4337,13 @@ function renderDashboard() {
     document.getElementById('dashCards').innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="es-icon">◈</div>No accounts yet — add one in Account Management</div>`;
   } else {
     // Single pass over all tasks/assignments to build per-account aggregates.
-    // Previously calcBalance/calcJmptBalance/getAccountActiveTasks were each
+    // Previously calcBalance/calcPointsBalance/getAccountActiveTasks were each
     // called multiple times per account (sort + card + 2x inline calcs),
     // rescanning the entire tasks list every time — this replaces all of
     // that with one O(tasks) pass regardless of account count.
-    const _rate = globalSettings.jmptRate || 0;
+    // Points are fixed at 1000 PTS = $1.
     const _agg = new Map();
-    accounts.forEach(a => { if (!a.deleted) _agg.set(a.id, {activeTasks:[], completedDue:0, pendingUsd:0, pendingJmpt:0, rewardedUsd:0, rewardedJmpt:0}); });
+    accounts.forEach(a => { if (!a.deleted) _agg.set(a.id, {activeTasks:[], completedDue:0, pendingUsd:0, pendingPoints:0, rewardedUsd:0, rewardedPoints:0}); });
     tasks.forEach(task => {
       (task.assignments||[]).forEach(asgn => {
         const agg = _agg.get(asgn.accountId);
@@ -4231,10 +4355,10 @@ function renderDashboard() {
         if (asgn.status === 'completed' || asgn.status === 'assigned') {
           const usd = parseFloat(asgn.reward || task.defaultReward || 0);
           agg.pendingUsd += usd;
-          agg.pendingJmpt += _rate > 0 ? parseFloat(((usd/0.01)*_rate).toFixed(6)) : 0;
+          agg.pendingPoints += Math.round(usd * 1000);
         } else if (asgn.status === 'rewarded') {
           agg.rewardedUsd += parseFloat(asgn.reward || task.defaultReward || 0);
-          agg.rewardedJmpt += parseFloat(asgn.jmptEarned || 0);
+          agg.rewardedPoints += parseFloat(asgn.pointsEarned || 0);
         }
       });
     });
@@ -4242,9 +4366,9 @@ function renderDashboard() {
       if (a.deleted) return;
       const agg = _agg.get(a.id);
       const withdrawn = (a.payoutHistory||[]).reduce((s,p) => s + parseFloat(p.amount||0), 0);
-      const jmptWithdrawn = (a.payoutHistory||[]).reduce((s,p) => s + parseFloat(p.jmptAmount||0), 0);
+      const pointsWithdrawn = (a.payoutHistory||[]).reduce((s,p) => s + parseFloat(p.pointsAmount||0), 0);
       agg.balance = agg.rewardedUsd - withdrawn;
-      agg.jmptBalance = agg.rewardedJmpt - jmptWithdrawn;
+      agg.pointsBalance = agg.rewardedPoints - pointsWithdrawn;
     });
 
     const sortedForDash = [...accounts]
@@ -4265,12 +4389,12 @@ function renderDashboard() {
     document.getElementById('dashCards').innerHTML = sortedForDash.map(a => {
       const agg = _agg.get(a.id);
       const balance = agg.balance;
-      const jmptBal = agg.jmptBalance;
+      const pointsBal = agg.pointsBalance;
       const lastPayout = a.payoutHistory && a.payoutHistory.length ? a.payoutHistory[a.payoutHistory.length-1] : null;
       const lastTaskAssign = getLastTaskTime(a.id);
       const flag = countryFlag(a.country);
       const expectedUsd = balance + agg.pendingUsd;
-      const expectedJmpt = jmptBal + agg.pendingJmpt;
+      const expectedPoints = pointsBal + agg.pendingPoints;
       return `
       <div class="dash-card${a.status==='payout_ready' ? ' dash-card-ready' : ''}">
         <div class="dash-card-head">
@@ -4282,8 +4406,8 @@ function renderDashboard() {
         </div>
         <div class="dash-meta-grid">
           <div class="dash-meta-item">
-            <div class="dash-meta-label">JMPT Balance</div>
-            <div class="dash-meta-val jt">${fmtJmpt(jmptBal)}</div>
+            <div class="dash-meta-label">Points Balance</div>
+            <div class="dash-meta-val jt">${fmtPoints(pointsBal)}</div>
           </div>
           <div class="dash-meta-item">
             <div class="dash-meta-label">USD Balance</div>
@@ -4294,8 +4418,8 @@ function renderDashboard() {
             <div class="dash-meta-val amber">${expectedUsd > 0 ? fmtUSDT(expectedUsd) : '—'}</div>
           </div>
           <div class="dash-meta-item">
-            <div class="dash-meta-label">Expected JMPT</div>
-            <div class="dash-meta-val" style="color:var(--amber);font-weight:700;">${expectedJmpt > 0 ? fmtJmpt(expectedJmpt) : '—'}</div>
+            <div class="dash-meta-label">Expected Points</div>
+            <div class="dash-meta-val" style="color:var(--amber);font-weight:700;">${expectedPoints > 0 ? fmtPoints(expectedPoints) : '—'}</div>
           </div>
         </div>
         <div class="dash-times">
@@ -4334,19 +4458,19 @@ function renderDashboard() {
   document.getElementById('earnWeekRange').textContent = fmtDate(ws.toISOString()) + ' – ' + fmtDate(wsEnd.toISOString());
 }
 
-// Returns JMPT earned from rewarded tasks (using rate stored at reward time)
-function calcJmptBalance(accId) {
-  let jmpt = 0;
+// Returns Points earned from rewarded tasks (fixed: 1000 PTS = $1)
+function calcPointsBalance(accId) {
+  let points = 0;
   tasks.forEach(task => {
     (task.assignments||[]).forEach(asgn => {
       if (asgn.accountId === accId && asgn.status === 'rewarded') {
-        jmpt += parseFloat(asgn.jmptEarned || 0);
+        points += parseFloat(asgn.pointsEarned || 0);
       }
     });
   });
   const acc = accounts.find(a => a.id === accId);
-  const withdrawn = (acc && acc.payoutHistory) ? acc.payoutHistory.reduce((s,p) => s + parseFloat(p.jmptAmount||0), 0) : 0;
-  return jmpt - withdrawn;
+  const withdrawn = (acc && acc.payoutHistory) ? acc.payoutHistory.reduce((s,p) => s + parseFloat(p.pointsAmount||0), 0) : 0;
+  return points - withdrawn;
 }
 
 // USD balance (rewarded USD - withdrawn)
@@ -4364,7 +4488,7 @@ function calcBalance(accId) {
   return earned - withdrawn;
 }
 
-function fmtJmpt(v) { return (parseFloat(v)||0).toFixed(4) + ' JMPT'; }
+function fmtPoints(v) { return Math.round(parseFloat(v)||0) + ' PTS'; }
 
 function getAccountActiveTasks(accId) {
   const result = [];
@@ -5128,7 +5252,7 @@ function renderTaskCard(task) {
        </div>` : '';
 
   // Reward
-  const jmptVal = (()=>{ const r=globalSettings.jmptRate||0; const u=parseFloat(task.defaultReward||0); return r>0?((u/0.01)*r).toFixed(4):'—'; })();
+  const pointsVal = Math.round(parseFloat(task.defaultReward||0) * 1000);
 
   // Action buttons
   const actions = hasError ? `
@@ -5171,7 +5295,7 @@ function renderTaskCard(task) {
       <!-- Reward row -->
       <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;">
         <span style="font-family:var(--mono);font-size:11px;font-weight:700;color:var(--green);">${fmtUSDT(task.defaultReward)}</span>
-        <span style="font-family:var(--mono);font-size:10px;color:var(--ink3);">/ ${jmptVal} JMPT</span>
+        <span style="font-family:var(--mono);font-size:10px;color:var(--ink3);">/ ${pointsVal} PTS</span>
         <span class="task-reward-edit" onclick="openRewardModal('${task.id}')" style="font-size:9.5px;">✎</span>
       </div>
       <!-- Status counts -->
@@ -5749,151 +5873,140 @@ window.saveTaskReward = function() {
 };
 
 // ─────────────────────────────────────────
-// LOGIN SESSION + PER-ACCOUNT IP MANAGEMENT
+// IP CHECKER — proxy/IP registry (Accounts tab dock)
 // ─────────────────────────────────────────
-// Each account can hold one activeLoginSession: { id, startedAt, ip, ipName }.
-// ip stays null right after a "New Session" until the first task-assignment
-// attempt, which forces an IP to be set before the assignment proceeds.
-// acc.ipHistory keeps every IP ever used by that account (for reuse).
-// globalSettings.ipRegistry is the cross-account exclusivity list: once an
-// IP appears there tied to one account, no other account can claim it.
+// One IP can only ever belong to one account — permanent, not reassignable.
+// globalSettings.ipRegistry: [{ ip, accountId, name, location, app, firstAssignedAt }]
+// globalSettings.ipLocations / ipApps: custom dropdown option lists (grow via "+ Add new")
 function ipRegistryGet() {
   if (!globalSettings.ipRegistry) globalSettings.ipRegistry = [];
   return globalSettings.ipRegistry;
 }
-function findIpOwner(ip) {
-  const entry = ipRegistryGet().find(r => r.ip === ip);
-  return entry ? entry.accountId : null;
+function ipLocationsGet() {
+  if (!globalSettings.ipLocations) globalSettings.ipLocations = [];
+  return globalSettings.ipLocations;
+}
+function ipAppsGet() {
+  if (!globalSettings.ipApps) globalSettings.ipApps = [];
+  return globalSettings.ipApps;
+}
+function findIpEntry(ip) {
+  return ipRegistryGet().find(r => r.ip === ip) || null;
 }
 
-// Stashes a task assignment that got interrupted by the IP gate, so it can
-// resume automatically once the IP is confirmed.
-let _pendingTaskAssign = null;
+// ── IP Checker dock: search + result render ──
+let _ipCheckerLastSearched = '';
 
-window.openLoginSessionModal = function(accId) {
-  const acc = accounts.find(a => a.id === accId); if (!acc) return;
-  document.getElementById('loginSessAccId').value = accId;
-  document.getElementById('loginSessAccName').textContent = acc.name;
-  const hasSession = !!acc.activeLoginSession;
-  const resumeBtn = document.getElementById('loginSessResumeBtn');
-  if (resumeBtn) resumeBtn.style.display = hasSession ? '' : 'none';
-  document.getElementById('loginSessInfo').textContent = hasSession
-    ? `Current session started ${fmtTime(acc.activeLoginSession.startedAt)}${acc.activeLoginSession.ip ? ' · IP: ' + acc.activeLoginSession.ip : ' · IP not yet set'}`
-    : 'No session on record yet for this account — start a new one.';
-  openModal('loginSessModal');
-};
+window.searchIpChecker = function() {
+  const inp = document.getElementById('ipCheckerInput');
+  const ip = (inp ? inp.value : '').trim();
+  const resultEl = document.getElementById('ipCheckerResult');
+  if (!resultEl) return;
+  if (!ip) { resultEl.innerHTML = ''; return; }
+  _ipCheckerLastSearched = ip;
 
-window.resumeLoginSession = function() {
-  const accId = document.getElementById('loginSessAccId').value;
-  const acc = accounts.find(a => a.id === accId); if (!acc) return;
-  if (!acc.activeLoginSession) { window.startNewLoginSession(); return; }
-  closeModal('loginSessModal');
-  toast('Session resumed for ' + acc.name);
-  renderAccDetail(accId);
-};
-
-window.startNewLoginSession = function() {
-  const accId = document.getElementById('loginSessAccId').value;
-  const acc = accounts.find(a => a.id === accId); if (!acc) return;
-  pushUndo('Start new session for ' + acc.name);
-  acc.activeLoginSession = { id: uid(), startedAt: now(), ip: null, ipName: null };
-  closeModal('loginSessModal');
-  markUnsaved(true);
-  toast('New session started for ' + acc.name + ' — IP will be asked on first task assignment');
-  renderAccDetail(accId);
-};
-
-window.openIpAssignModal = function(accId) {
-  const acc = accounts.find(a => a.id === accId); if (!acc) return;
-  document.getElementById('ipAssignAccId').value = accId;
-  document.getElementById('ipAssignAccInfo').textContent = 'Account: ' + acc.name + ' — this new session needs an IP before a task can be assigned.';
-  const sel = document.getElementById('ipAssignPastSelect');
-  const past = acc.ipHistory || [];
-  sel.innerHTML = ['<option value="">— Enter new IP below —</option>']
-    .concat(past.map(e => `<option value="${escapeHtml(e.ip)}">${escapeHtml(e.ip)}${e.name ? ' (' + escapeHtml(e.name) + ')' : ''}</option>`))
-    .join('');
-  sel.value = '';
-  document.getElementById('ipAssignInput').value = '';
-  document.getElementById('ipAssignName').value = '';
-  const warn = document.getElementById('ipAssignWarning');
-  warn.style.display = 'none'; warn.textContent = '';
-  openModal('ipAssignModal');
-};
-
-window.ipAssignPastPicked = function() {
-  const sel = document.getElementById('ipAssignPastSelect');
-  const accId = document.getElementById('ipAssignAccId').value;
-  const acc = accounts.find(a => a.id === accId);
-  document.getElementById('ipAssignInput').value = sel.value;
-  const entry = acc && (acc.ipHistory||[]).find(e => e.ip === sel.value);
-  document.getElementById('ipAssignName').value = (entry && entry.name) ? entry.name : '';
-};
-
-window.confirmIpAssign = function() {
-  const accId = document.getElementById('ipAssignAccId').value;
-  const acc = accounts.find(a => a.id === accId); if (!acc) return;
-  const ip = document.getElementById('ipAssignInput').value.trim();
-  const name = document.getElementById('ipAssignName').value.trim();
-  const warn = document.getElementById('ipAssignWarning');
-  if (!ip) { warn.textContent = 'Enter an IP address.'; warn.style.display = ''; return; }
-
-  const owner = findIpOwner(ip);
-  if (owner && owner !== accId) {
-    const ownerAcc = accounts.find(a => a.id === owner);
-    warn.textContent = '⚠ This IP is already assigned to ' + (ownerAcc ? ownerAcc.name : 'another account') + ' — pick a different IP.';
-    warn.style.display = '';
+  const entry = findIpEntry(ip);
+  if (!entry) {
+    resultEl.innerHTML = `
+      <div style="text-align:center;padding:18px 6px;">
+        <div style="font-family:var(--mono);font-size:11.5px;color:var(--ink3);margin-bottom:12px;">This IP has never been used.</div>
+        <button class="btn-primary" style="width:100%;padding:8px 10px;font-size:12.1px;" onclick="openIpAssignModal('${escapeHtml(ip)}')">+ Assign This IP</button>
+      </div>`;
     return;
   }
 
-  if (!acc.activeLoginSession) acc.activeLoginSession = { id: uid(), startedAt: now(), ip: null, ipName: null };
-  acc.activeLoginSession.ip = ip;
-  acc.activeLoginSession.ipName = name || null;
+  const acc = accounts.find(a => a.id === entry.accountId);
+  resultEl.innerHTML = `
+    <div class="ip-info-row"><span class="ip-info-label">IP</span><span class="ip-info-val">${escapeHtml(entry.ip)}</span></div>
+    <div class="ip-info-row"><span class="ip-info-label">Account</span><span class="ip-info-val">${escapeHtml(acc ? acc.name : '— unknown —')}</span></div>
+    <div class="ip-info-row"><span class="ip-info-label">Name</span><span class="ip-info-val">${escapeHtml(entry.name || '—')}</span></div>
+    <div class="ip-info-row"><span class="ip-info-label">Location</span><span class="ip-info-val">${escapeHtml(entry.location || '—')}</span></div>
+    <div class="ip-info-row"><span class="ip-info-label">App</span><span class="ip-info-val">${escapeHtml(entry.app || '—')}</span></div>
+    <div class="ip-info-row"><span class="ip-info-label">First Assigned</span><span class="ip-info-val">${fmtDate(entry.firstAssignedAt)}</span></div>`;
+};
 
-  if (!acc.ipHistory) acc.ipHistory = [];
-  const existing = acc.ipHistory.find(e => e.ip === ip);
-  if (!existing) {
-    acc.ipHistory.unshift({ ip, name: name || null, assignedAt: now() });
-  } else if (name && !existing.name) {
-    existing.name = name;
-  }
+// ── IP Assign modal ──
+window.openIpAssignModal = function(ip) {
+  if (findIpEntry(ip)) { toast('⚠ This IP is already assigned'); return; }
+  document.getElementById('ipAssignModalIpInfo').textContent = 'IP: ' + ip;
+  document.getElementById('ipAssignModalIpInfo').dataset.ip = ip;
+  document.getElementById('ipAssignModalName').value = '';
 
-  if (!owner) {
-    ipRegistryGet().push({ ip, name: name || null, accountId: accId, assignedAt: now() });
-  }
+  const accSel = document.getElementById('ipAssignModalAccSelect');
+  const eligible = accounts.filter(a => !a.deleted);
+  accSel.innerHTML = eligible.length
+    ? eligible.map(a => `<option value="${a.id}">${escapeHtml(a.name)} (${escapeHtml(a.country||'—')})</option>`).join('')
+    : '<option disabled>No accounts available</option>';
+  accSel.selectedIndex = 0;
 
+  populateIpOptionSelect('location');
+  populateIpOptionSelect('app');
+  openModal('ipAssignModal');
+};
+
+function populateIpOptionSelect(kind) {
+  const sel = document.getElementById(kind === 'location' ? 'ipAssignModalLocation' : 'ipAssignModalApp');
+  if (!sel) return;
+  const list = kind === 'location' ? ipLocationsGet() : ipAppsGet();
+  const prevVal = sel.value;
+  sel.innerHTML = '<option value="">— None —</option>' + list.map(v => `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`).join('');
+  if (list.includes(prevVal)) sel.value = prevVal;
+}
+
+let _addIpOptionKind = null;
+window.addCustomIpOption = function(kind) {
+  _addIpOptionKind = kind;
+  document.getElementById('addIpOptionModalTitle').textContent = kind === 'location' ? 'Add Location' : 'Add App';
+  document.getElementById('addIpOptionModalLabel').textContent = kind === 'location' ? 'Location Name' : 'App Name';
+  const inp = document.getElementById('addIpOptionInput');
+  inp.value = '';
+  openModal('addIpOptionModal');
+  setTimeout(() => inp.focus(), 80);
+};
+
+window.confirmAddIpOption = function() {
+  const inp = document.getElementById('addIpOptionInput');
+  const val = (inp ? inp.value : '').trim();
+  if (!val) { toast('Enter a value'); return; }
+  const kind = _addIpOptionKind;
+  closeModal('addIpOptionModal');
+  const list = kind === 'location' ? ipLocationsGet() : ipAppsGet();
+  const existing = list.find(v => v.toLowerCase() === val.toLowerCase());
+  const finalVal = existing || val;
+  if (!existing) list.push(val);
+  populateIpOptionSelect(kind);
+  const sel = document.getElementById(kind === 'location' ? 'ipAssignModalLocation' : 'ipAssignModalApp');
+  if (sel) sel.value = finalVal;
+  toast((kind === 'location' ? 'Location' : 'App') + ' added: ' + finalVal);
+};
+
+window.confirmIpAssign = function() {
+  const ip = document.getElementById('ipAssignModalIpInfo').dataset.ip;
+  if (!ip) return;
+  if (findIpEntry(ip)) { toast('⚠ This IP is already assigned'); closeModal('ipAssignModal'); return; }
+  const accId = document.getElementById('ipAssignModalAccSelect').value;
+  const acc = accounts.find(a => a.id === accId);
+  if (!acc) { toast('Select an account'); return; }
+  const name = document.getElementById('ipAssignModalName').value.trim();
+  const location = document.getElementById('ipAssignModalLocation').value;
+  const app = document.getElementById('ipAssignModalApp').value;
+
+  ipRegistryGet().push({
+    ip, accountId: accId, name, location, app, firstAssignedAt: now()
+  });
   closeModal('ipAssignModal');
   markUnsaved(true);
-  toast('IP ' + ip + ' assigned to ' + acc.name);
-  renderAccDetail(accId);
+  toast('IP assigned → ' + acc.name);
 
-  if (_pendingTaskAssign && _pendingTaskAssign.accId === accId) {
-    const p = _pendingTaskAssign; _pendingTaskAssign = null;
-    _doAssign(p.taskId, p.accId, p.customReward);
-  } else {
-    _pendingTaskAssign = null;
-  }
+  const checkerInp = document.getElementById('ipCheckerInput');
+  if (checkerInp) checkerInp.value = ip;
+  window.searchIpChecker();
 };
 
 // Shared: actually write the assignment record and refresh UI
 function _doAssign(taskId, accId, customReward) {
   const t = tasks.find(t => t.id===taskId); if(!t) return;
   const accCheck = accounts.find(a => a.id === accId); if(!accCheck) return;
-
-  // ── Login session / IP gate ──
-  // No session at all: nudge the user to Log In first.
-  if (!accCheck.activeLoginSession) {
-    toast('⚠ Start a login session for ' + accCheck.name + ' first (🔐 Log In)');
-    if (selectedAccId === accId) renderAccDetail(accId);
-    return;
-  }
-  // Session exists but has no IP yet (fresh "New Session") — this is the
-  // first task-assignment attempt in this session, so ask for the IP now,
-  // then resume this exact assignment once it's set.
-  if (!accCheck.activeLoginSession.ip) {
-    _pendingTaskAssign = { taskId, accId, customReward };
-    openIpAssignModal(accId);
-    return;
-  }
 
   const asgn = {
     id: uid(),
@@ -6264,28 +6377,28 @@ function renderAccDetail(accId) {
 
   const activeTasks = getAccountActiveTasks(accId);
   const balance = calcBalance(accId);
-  const jmptBalance = calcJmptBalance(accId);
+  const pointsBalance = calcPointsBalance(accId);
   const totalWithdrawn = (acc.payoutHistory||[]).reduce((s,p) => s + parseFloat(p.amount||0), 0);
   const tStats = getAccountTaskStats(accId);
 
   // Expected = current balance + all active (assigned + completed) tasks
   // This shows what the account will have if every active task gets rewarded
-  const rate = globalSettings.jmptRate || 0;
-  let pendingJmpt = 0;
+  // Points are fixed at 1000 PTS = $1.
+  let pendingPoints = 0;
   let pendingUsd = 0;
   tasks.forEach(task => {
     (task.assignments||[]).forEach(asgn => {
       if (asgn.accountId === accId && (asgn.status === 'completed' || asgn.status === 'assigned')) {
         const usd = parseFloat(asgn.reward || task.defaultReward || 0);
         pendingUsd += usd;
-        pendingJmpt += rate > 0 ? parseFloat(((usd / 0.01) * rate).toFixed(6)) : 0;
+        pendingPoints += Math.round(usd * 1000);
       }
     });
   });
   const expectedUsd = balance + pendingUsd;
-  const expectedJmpt = jmptBalance + pendingJmpt;
-  const payoutIfRewarded = (expectedJmpt >= 0.5 || expectedUsd > 0)
-    ? `<div style="font-family:var(--mono);font-size:9.9px;color:var(--green);background:var(--green-light);border:1px solid var(--green-border);border-radius:6px;padding:6px 10px;margin-top:6px;">💸 If all rewarded: <strong>${fmtUSDT(expectedUsd)}</strong> / <strong>${fmtJmpt(expectedJmpt)}</strong></div>`
+  const expectedPoints = pointsBalance + pendingPoints;
+  const payoutIfRewarded = (expectedPoints > 0 || expectedUsd > 0)
+    ? `<div style="font-family:var(--mono);font-size:9.9px;color:var(--green);background:var(--green-light);border:1px solid var(--green-border);border-radius:6px;padding:6px 10px;margin-top:6px;">💸 If all rewarded: <strong>${fmtUSDT(expectedUsd)}</strong> / <strong>${fmtPoints(expectedPoints)}</strong></div>`
     : '';
 
   // Right column content — active tasks with bulk select
@@ -6383,7 +6496,7 @@ function renderAccDetail(accId) {
       <div class="history-date-header">${group.dateKey}</div>
       ${group.items.map(item => item.type==='task'
         ? `<div class="history-item task-hist">
-            <div class="history-item-head"><div class="history-item-title">${item.task.title}</div><div class="history-item-amount">${fmtUSDT(item.asgn.reward||item.task.defaultReward)}${item.asgn.jmptEarned ? ` · <span style="color:var(--jt)">${fmtJmpt(item.asgn.jmptEarned)}</span>` : ''}</div></div>
+            <div class="history-item-head"><div class="history-item-title">${item.task.title}</div><div class="history-item-amount">${fmtUSDT(item.asgn.reward||item.task.defaultReward)}${item.asgn.pointsEarned ? ` · <span style="color:var(--jt)">${fmtPoints(item.asgn.pointsEarned)}</span>` : ''}</div></div>
             <div class="history-item-meta">Rewarded · ${fmtTime(item.asgn.rewardedAt)} · <span style="text-transform:uppercase;font-size:9.9px;">${item.task.type}</span>${item.asgn.statusNote ? ` · 📝 ${item.asgn.statusNote}` : ''}</div>
           </div>`
         : `<div class="history-item payout-hist">
@@ -6394,7 +6507,7 @@ function renderAccDetail(accId) {
               </div>
               <div class="history-item-amount" style="color:var(--green);font-size:15.4px;">-${fmtUSDT(item.payout.amount)}</div>
             </div>
-            <div class="history-item-meta" style="color:var(--green);opacity:0.8;">Payout${item.payout.recordedAt ? ` · ${fmtTime(item.payout.recordedAt)}` : ''}${item.payout.jmptAmount ? ` · ${fmtJmpt(item.payout.jmptAmount)} JMPT` : ''}${item.payout.fee ? ` · Fee: ${fmtUSDT(item.payout.fee)}` : ''}</div>
+            <div class="history-item-meta" style="color:var(--green);opacity:0.8;">Payout${item.payout.recordedAt ? ` · ${fmtTime(item.payout.recordedAt)}` : ''}${item.payout.pointsAmount ? ` · ${fmtPoints(item.payout.pointsAmount)}` : ''}${item.payout.fee ? ` · Fee: ${fmtUSDT(item.payout.fee)}` : ''}</div>
           </div>`
       ).join('')}
     `).join('')}
@@ -6402,30 +6515,8 @@ function renderAccDetail(accId) {
   })() : `<div class="empty-state"><div class="es-icon">📋</div>No history yet</div>`;
 
 
-  const _ls = acc.activeLoginSession;
-  const loginSessBarHtml = _ls
-    ? (_ls.ip
-        ? `<div style="grid-column:1/-1;display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--green-light);border:1px solid var(--green-border);border-radius:0;padding:10px 18px;">
-             <span style="font-family:var(--mono);font-size:11.5px;color:var(--green);font-weight:700;">🟢 Session Active</span>
-             <span style="font-family:var(--mono);font-size:11px;color:var(--ink2);">IP: <b>${escapeHtml(_ls.ip)}</b>${_ls.ipName ? ' ('+escapeHtml(_ls.ipName)+')' : ''}</span>
-             <span style="flex:1;"></span>
-             <button class="btn-secondary" style="font-size:11px;padding:5px 12px;" onclick="openLoginSessionModal('${accId}')">🔐 Log In</button>
-           </div>`
-        : `<div style="grid-column:1/-1;display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--amber-light,rgba(245,158,11,0.12));border:1px solid var(--amber-border,rgba(245,158,11,0.35));border-radius:0;padding:10px 18px;">
-             <span style="font-family:var(--mono);font-size:11.5px;color:var(--amber);font-weight:700;">🟡 New Session — IP not set</span>
-             <span style="font-family:var(--mono);font-size:11px;color:var(--ink3);">Will be asked on first task assignment</span>
-             <span style="flex:1;"></span>
-             <button class="btn-secondary" style="font-size:11px;padding:5px 12px;" onclick="openLoginSessionModal('${accId}')">🔐 Log In</button>
-           </div>`)
-    : `<div style="grid-column:1/-1;display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--surface2);border:1px solid var(--border);border-radius:0;padding:10px 18px;">
-         <span style="font-family:var(--mono);font-size:11.5px;color:var(--ink3);font-weight:700;">⚪ No Active Session</span>
-         <span style="flex:1;"></span>
-         <button class="btn-primary" style="font-size:11px;padding:5px 12px;" onclick="openLoginSessionModal('${accId}')">🔐 Log In</button>
-       </div>`;
-
   document.getElementById('accDetailPanel').innerHTML = `
     <div class="acc-detail-inner">
-      ${loginSessBarHtml}
       <div class="acc-info-col">
         <div class="acc-info-title">Account Details</div>
         <div class="acc-info-fields">
@@ -6436,12 +6527,22 @@ function renderAccDetail(accId) {
           <div class="info-row"><div class="info-label">Status</div><div class="info-val"><span class="acc-status-pill ${acc.status}">${statusLabel(acc.status)}</span></div></div>
           ${acc.linkedSetId === 'all' ? `<div class="info-row"><div class="info-label">Linked Set</div><div class="info-val">All Tasks</div></div>` : (acc.linkedSetId && (typeof taskSets !== 'undefined') && taskSets.find(s=>s.id===acc.linkedSetId) ? `<div class="info-row"><div class="info-label">Linked Set</div><div class="info-val">${escapeHtml(taskSets.find(s=>s.id===acc.linkedSetId).name)}</div></div>` : '')}
           ${acc.notes ? `<div class="info-row"><div class="info-label">Notes</div><div class="info-val" style="font-size:12.1px;color:var(--ink3);">${acc.notes}</div></div>` : ''}
+          ${(() => {
+            const accIps = ipRegistryGet().filter(r => r.accountId === accId);
+            if (!accIps.length) return '';
+            return `<div class="info-row"><div class="info-label">IP${accIps.length>1?'s':''}</div><div class="info-val">
+              ${accIps.map(r => `<div style="font-family:var(--mono);font-size:11px;margin-bottom:3px;line-height:1.4;">
+                <span style="font-weight:700;">${escapeHtml(r.ip)}</span>${r.name ? ` <span style="color:var(--ink3);">"${escapeHtml(r.name)}"</span>` : ''}
+                ${(r.location || r.app) ? `<div style="color:var(--ink3);font-size:10px;">${[r.location, r.app].filter(Boolean).map(v => escapeHtml(v)).join(' · ')}</div>` : ''}
+              </div>`).join('')}
+            </div></div>`;
+          })()}
         </div>
         <div class="acc-stats-mini" style="grid-template-columns:1fr 1fr;gap:8px;">
           <div class="acc-stat-mini"><div class="acc-stat-mini-label">USD Balance</div><div class="acc-stat-mini-val" style="color:var(--green);font-weight:700;">${fmtUSDT(balance)}</div></div>
-          <div class="acc-stat-mini"><div class="acc-stat-mini-label">JMPT Balance</div><div class="acc-stat-mini-val" style="font-weight:700;">${fmtJmpt(jmptBalance)}</div></div>
+          <div class="acc-stat-mini"><div class="acc-stat-mini-label">Points Balance</div><div class="acc-stat-mini-val" style="font-weight:700;">${fmtPoints(pointsBalance)}</div></div>
           <div class="acc-stat-mini"><div class="acc-stat-mini-label">Expected USD</div><div class="acc-stat-mini-val" style="color:var(--amber);font-weight:700;">${fmtUSDT(expectedUsd)}</div></div>
-          <div class="acc-stat-mini"><div class="acc-stat-mini-label">Expected JMPT</div><div class="acc-stat-mini-val" style="color:var(--amber);font-weight:700;">${fmtJmpt(expectedJmpt)}</div></div>
+          <div class="acc-stat-mini"><div class="acc-stat-mini-label">Expected Points</div><div class="acc-stat-mini-val" style="color:var(--amber);font-weight:700;">${fmtPoints(expectedPoints)}</div></div>
         </div>
         ${payoutIfRewarded}
         <div class="acc-task-stats">
@@ -6517,10 +6618,8 @@ window.confirmStatusNoteModal = function() {
   if (newStatus==='completed') { asgn.completedAt = now(); sessOnTaskCompleted(asgn.accountId); }
   if (newStatus==='rewarded') {
     asgn.rewardedAt = now();
-    const rate = globalSettings.jmptRate || 0;
     const usd = parseFloat(asgn.reward || task.defaultReward || 0);
-    asgn.jmptEarned = rate > 0 ? parseFloat(((usd / 0.01) * rate).toFixed(6)) : 0;
-    asgn.jmptRate = rate;
+    asgn.pointsEarned = Math.round(usd * 1000);
     checkPayoutReadyAll();
   }
   if (selectedAccId) renderAccDetail(selectedAccId);
@@ -6558,16 +6657,12 @@ window.markActionComplete = function(taskId, asgnId) {
 window.openTaskDetailModal = function(taskId, asgnId) {
   const task = tasks.find(t => t.id===taskId); if(!task) return;
   const assignment = (task.assignments||[]).find(a => a.id===asgnId); if(!assignment) return;
-  const jmptForTask = (() => {
-    const r = globalSettings.jmptRate||0;
-    const usd = parseFloat(assignment.reward||task.defaultReward||0);
-    return r > 0 ? ((usd/0.01)*r).toFixed(4) : '—';
-  })();
+  const pointsForTask = Math.round(parseFloat(assignment.reward||task.defaultReward||0) * 1000);
   document.getElementById('tdmTitle').textContent = task.title;
   document.getElementById('tdmBody').innerHTML = `
     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
       <span class="acc-active-task-status ${assignment.status}">${assignment.status}</span>
-      <span style="font-family:var(--mono);font-size:11px;color:var(--ink3);">${fmtUSDT(assignment.reward||task.defaultReward)} · ${jmptForTask} JMPT</span>
+      <span style="font-family:var(--mono);font-size:11px;color:var(--ink3);">${fmtUSDT(assignment.reward||task.defaultReward)} · ${pointsForTask} PTS</span>
     </div>
     <div class="acc-active-task-times">
       Assigned: <span>${fmtDateTime(assignment.assignedAt)}</span>${assignment.completedAt?`<br>Done: <span>${fmtDateTime(assignment.completedAt)}</span>`:''}
@@ -6643,7 +6738,6 @@ window.toggleTaskCardSelect = function(event, asgnId, accId) {
 window.bulkUpdateStatus = function(accId, newStatus) {
   const selected = getCheckedAssignments();
   if (!selected.length) { toast('Select at least one task'); return; }
-  const rate = globalSettings.jmptRate || 0;
   selected.forEach(({taskId, asgnId}) => {
     const task = tasks.find(t => t.id===taskId); if(!task) return;
     const asgn = (task.assignments||[]).find(a => a.id===asgnId); if(!asgn) return;
@@ -6658,8 +6752,7 @@ window.bulkUpdateStatus = function(accId, newStatus) {
       if(!asgn.completedAt) asgn.completedAt=now();
       asgn.rewardedAt=now();
       const usd = parseFloat(asgn.reward || task.defaultReward || 0);
-      asgn.jmptEarned = rate > 0 ? parseFloat(((usd / 0.01) * rate).toFixed(6)) : 0;
-      asgn.jmptRate = rate;
+      asgn.pointsEarned = Math.round(usd * 1000);
     }
   });
   checkPayoutReadyAll();
@@ -6815,17 +6908,17 @@ window.openPayoutModal = function(accId) {
     return;
   }
   const usdBal = calcBalance(accId);
-  const jmptBal = calcJmptBalance(accId);
+  const pointsBal = calcPointsBalance(accId);
   document.getElementById('payoutModalAccId').value = accId;
   document.getElementById('payoutModalAccName').value = acc.name;
   // Auto-fill balances so user doesn't have to look them up
   const amtInput = document.getElementById('payoutModalAmount');
-  const jmptInput = document.getElementById('payoutModalJmpt');
+  const pointsInput = document.getElementById('payoutModalPoints');
   amtInput.value = usdBal > 0 ? usdBal.toFixed(2) : '';
   amtInput.placeholder = usdBal > 0 ? usdBal.toFixed(2) + ' (current balance)' : '0.00';
   document.getElementById('payoutModalFee').value = '';
-  jmptInput.value = jmptBal > 0 ? jmptBal.toFixed(4) : '';
-  jmptInput.placeholder = jmptBal > 0 ? jmptBal.toFixed(4) + ' (current JMPT)' : '0.0000';
+  pointsInput.value = pointsBal > 0 ? Math.round(pointsBal) : '';
+  pointsInput.placeholder = pointsBal > 0 ? Math.round(pointsBal) + ' (current points)' : '0';
   document.getElementById('payoutModalDate').value = todayISO();
   document.getElementById('payoutModalNote').value = '';
   openModal('payoutModal');
@@ -6834,14 +6927,14 @@ window.savePayout = function() {
   const accId = document.getElementById('payoutModalAccId').value;
   const amount = parseFloat(document.getElementById('payoutModalAmount').value)||0;
   const fee = parseFloat(document.getElementById('payoutModalFee').value)||0;
-  const jmptAmount = parseFloat(document.getElementById('payoutModalJmpt').value)||0;
+  const pointsAmount = parseFloat(document.getElementById('payoutModalPoints').value)||0;
   const date = document.getElementById('payoutModalDate').value;
   const note = document.getElementById('payoutModalNote').value.trim();
   if (!amount) { toast('Enter a payout amount'); return; }
   const acc = accounts.find(a => a.id===accId); if(!acc) return;
   pushUndo('Add payout ' + acc.name);
   if (!acc.payoutHistory) acc.payoutHistory = [];
-  acc.payoutHistory.push({ id: uid(), amount, fee, jmptAmount, date, note, recordedAt: new Date().toISOString() });
+  acc.payoutHistory.push({ id: uid(), amount, fee, pointsAmount, date, note, recordedAt: new Date().toISOString() });
   // Recalculate status — if balance dropped below threshold, revert to active
   checkPayoutReadyAll();
   closeModal('payoutModal');
@@ -7107,15 +7200,13 @@ window.copyLink = function(taskId, index) {
 };
 
 function checkPayoutReadyAll() {
-  const rate = globalSettings.jmptRate || 0;
-  if (rate <= 0) return;
-  const threshold = parseFloat(globalSettings.payoutThreshold || 0.5);
+  const threshold = parseFloat(globalSettings.payoutThreshold || 500);
   accounts.forEach(acc => {
     if (acc.status === 'dead') return;
-    const jmptBalance = calcJmptBalance(acc.id);
-    if (jmptBalance >= threshold && acc.status !== 'payout_ready') {
+    const pointsBalance = calcPointsBalance(acc.id);
+    if (pointsBalance >= threshold && acc.status !== 'payout_ready') {
       acc.status = 'payout_ready';
-    } else if (jmptBalance < threshold && acc.status === 'payout_ready') {
+    } else if (pointsBalance < threshold && acc.status === 'payout_ready') {
       // Balance dropped below threshold (e.g. after payout recorded) — revert to active
       acc.status = 'active';
     }
@@ -7457,7 +7548,7 @@ window.showAccessDeniedModal = showAccessDeniedModal;
 function clearPersonalAppState() {
   accounts.length = 0;
   tasks.length = 0;
-  globalSettings = { jmptRate: 0, defaultGoogleReward: 0.04, defaultYoutubeReward: 0.02, payoutThreshold: 0.5, customDevices: [], appVersion: '1.0' };
+  globalSettings = { defaultGoogleReward: 0.04, defaultYoutubeReward: 0.02, payoutThreshold: 500, customDevices: [], appVersion: '1.0' };
   auditLog.length = 0;
   bugLog.length = 0;
   tsHistory = [];
@@ -7866,10 +7957,9 @@ function buildSaveSource(filename) {
   const accJson      = JSON.stringify(accounts, null, 2).replace(/</g,'\\u003c').replace(/>/g,'\\u003e');
   const taskJson     = JSON.stringify(tasks, null, 2).replace(/</g,'\\u003c').replace(/>/g,'\\u003e');
   const settingsJson = JSON.stringify({
-    jmptRate: globalSettings.jmptRate || 0,
     defaultGoogleReward: globalSettings.defaultGoogleReward || 0,
     defaultYoutubeReward: globalSettings.defaultYoutubeReward || 0,
-    payoutThreshold: globalSettings.payoutThreshold || 0.5,
+    payoutThreshold: globalSettings.payoutThreshold || 500,
     customDevices: customDevices || []
   }, null, 2).replace(/</g,'\\u003c').replace(/>/g,'\\u003e');
   const logJson = JSON.stringify(auditLog, null, 2);
@@ -7890,7 +7980,7 @@ let tasks = [];
   src = src.replace(
     /\/\*EMBEDDED_SETTINGS_START\*\/[\s\S]*?\/\*EMBEDDED_SETTINGS_END\*\//,
     `/*EMBEDDED_SETTINGS_START*/
-let globalSettings = { "jmptRate": 0, "defaultGoogleReward": 0.04, "defaultYoutubeReward": 0.02, "payoutThreshold": 0.5, "customDevices": [], "appVersion": "1.0" };
+let globalSettings = { "defaultGoogleReward": 0.04, "defaultYoutubeReward": 0.02, "payoutThreshold": 500, "customDevices": [], "appVersion": "1.0" };
 /*EMBEDDED_SETTINGS_END*/`
   );
   src = src.replace(
@@ -8319,7 +8409,7 @@ window.renderEarningsHistory = function() {
       rewardedAsgns.push({
         dateObj: d,
         amount: parseFloat(asgn.reward || task.defaultReward || 0),
-        jmptEarned: asgn.jmptEarned || 0,
+        pointsEarned: asgn.pointsEarned || 0,
         accName: acc ? (acc.name + (acc.deleted ? ' (Deleted)' : '')) : 'Deleted Account',
         taskTitle: task.title,
         type: task.type,
@@ -8330,15 +8420,15 @@ window.renderEarningsHistory = function() {
   const taskBuckets = {};
   rewardedAsgns.forEach(a => {
     const k = bucketKey(a.dateObj, range);
-    if (!taskBuckets[k]) taskBuckets[k] = { total:0, jmpt:0, count:0, entries:[] };
+    if (!taskBuckets[k]) taskBuckets[k] = { total:0, points:0, count:0, entries:[] };
     taskBuckets[k].total += a.amount;
-    taskBuckets[k].jmpt  += a.jmptEarned;
+    taskBuckets[k].points += a.pointsEarned;
     taskBuckets[k].count++;
     taskBuckets[k].entries.push(a);
   });
   const taskKeys = Object.keys(taskBuckets).sort((a,b) => b.localeCompare(a));
   const taskTotalUsd  = rewardedAsgns.reduce((s,a) => s + a.amount, 0);
-  const taskTotalJmpt = rewardedAsgns.reduce((s,a) => s + a.jmptEarned, 0);
+  const taskTotalPoints = rewardedAsgns.reduce((s,a) => s + a.pointsEarned, 0);
   const taskMaxBucket = taskKeys.length ? Math.max(...taskKeys.map(k=>taskBuckets[k].total)) : 0;
 
   const taskChipsEl = document.getElementById('ehTaskChips');
@@ -8346,7 +8436,7 @@ window.renderEarningsHistory = function() {
     taskChipsEl.innerHTML = `
       <div class="stat-chip"><div class="stat-chip-label">Rewarded Tasks</div><div class="stat-chip-val blue" style="font-weight:700;">${rewardedAsgns.length}</div></div>
       <div class="stat-chip"><div class="stat-chip-label">USD Earned</div><div class="stat-chip-val green" style="font-weight:700;">${fmtUSDT(taskTotalUsd)}</div></div>
-      <div class="stat-chip"><div class="stat-chip-label">JMPT Earned</div><div class="stat-chip-val purple" style="font-weight:700;">${taskTotalJmpt.toFixed(4)} JMPT</div></div>
+      <div class="stat-chip"><div class="stat-chip-label">Points Earned</div><div class="stat-chip-val purple" style="font-weight:700;">${fmtPoints(taskTotalPoints)}</div></div>
       <div class="stat-chip"><div class="stat-chip-label">Periods Active</div><div class="stat-chip-val gray" style="font-weight:700;">${taskKeys.length}</div></div>
     `;
   }
@@ -8364,7 +8454,7 @@ window.renderEarningsHistory = function() {
             <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
               <div>
                 <div style="font-family:var(--mono);font-size:13.2px;font-weight:700;color:var(--ink);">${bucketLabel(k, range)}</div>
-                <div style="font-family:var(--mono);font-size:9.9px;color:var(--ink3);margin-top:2px;">${b.count} task${b.count>1?'s':''} rewarded · ${b.jmpt.toFixed(4)} JMPT</div>
+                <div style="font-family:var(--mono);font-size:9.9px;color:var(--ink3);margin-top:2px;">${b.count} task${b.count>1?'s':''} rewarded · ${fmtPoints(b.points)}</div>
               </div>
               <div style="font-family:var(--mono);font-size:16.5px;font-weight:700;color:var(--jt);">${fmtUSDT(b.total)}</div>
             </div>
@@ -8447,63 +8537,14 @@ if (globalSettings.customDevices && Array.isArray(globalSettings.customDevices))
   customDevices = globalSettings.customDevices;
 }
 
-function populateGlobalJmptRateField() {
-  const inp = document.getElementById('globalJmptRateInput');
-  if (inp) {
-    inp.value = globalSettings.jmptRate || '';
-    updateJmptRatePreview();
-  }
+function populatePayoutThresholdField() {
   const threshInp = document.getElementById('globalPayoutThresholdInput');
-  if (threshInp) threshInp.value = globalSettings.payoutThreshold || 0.5;
-  // Clear the calc fields so they don't show stale values from a previous session
-  const ji = document.getElementById('rateInputJmpt');
-  const ui = document.getElementById('rateInputUsd');
-  const pi = document.getElementById('rateCalcPreview');
-  if (ji) ji.value = '';
-  if (ui) ui.value = '';
-  if (pi) pi.textContent = '—';
+  if (threshInp) threshInp.value = globalSettings.payoutThreshold || 500;
 }
-
-// Called whenever the manual "active rate" input changes
-function updateJmptRatePreview() {
-  const v = parseFloat(document.getElementById('globalJmptRateInput').value) || 0;
-  // jmptRate = JMPT per $0.01, so $1.00 = jmptRate * 100 JMPT
-  const perDollar = v > 0 ? (v * 100).toFixed(4) + ' JMPT' : '—';
-  document.getElementById('globalJmptRatePreview').textContent = perDollar;
-}
-
-// Called whenever the JMPT or USD fields change — derives jmptRate automatically.
-// Formula: jmptRate = JMPT / (USD / 0.01)
-// Example: 2 JMPT = $0.02 → jmptRate = 2 / (0.02 / 0.01) = 2 / 2 = 1.0
-// Example: 1 JMPT = $0.02 → jmptRate = 1 / (0.02 / 0.01) = 1 / 2 = 0.5
-window.calcRateFromInputs = function() {
-  const jmpt = parseFloat(document.getElementById('rateInputJmpt').value);
-  const usd  = parseFloat(document.getElementById('rateInputUsd').value);
-  const previewEl = document.getElementById('rateCalcPreview');
-  if (!jmpt || !usd || usd <= 0) {
-    previewEl.textContent = '—';
-    return;
-  }
-  // Derived rate: how many JMPT per $0.01
-  const derived = jmpt / (usd / 0.01);
-  previewEl.textContent = derived.toFixed(6) + ' JMPT per $0.01';
-  // Auto-fill the active rate field and update the preview
-  const rateInput = document.getElementById('globalJmptRateInput');
-  rateInput.value = derived.toFixed(6);
-  updateJmptRatePreview();
-};
-
-// Quick-fill helper: populates both inputs and triggers calculation
-window.quickFillRate = function(jmpt, usd) {
-  document.getElementById('rateInputJmpt').value = jmpt;
-  document.getElementById('rateInputUsd').value = usd;
-  calcRateFromInputs();
-};
 
 window.saveGlobalSettings = function() {
-  globalSettings.jmptRate = parseFloat(document.getElementById('globalJmptRateInput').value) || 0;
   const threshInp = document.getElementById('globalPayoutThresholdInput');
-  if (threshInp) globalSettings.payoutThreshold = parseFloat(threshInp.value) || 0.5;
+  if (threshInp) globalSettings.payoutThreshold = parseFloat(threshInp.value) || 500;
   checkPayoutReadyAll();
   renderDashboard();
   renderAccList();
@@ -9307,6 +9348,9 @@ document.addEventListener('paste', function(e) {
   <div id="payDockTab" class="pay-dock-hidden" onclick="togglePayDock()">
     💵 Payout
   </div>
+  <div id="ipDockTab" class="ip-dock-hidden" onclick="toggleIpDock()">
+    🌐 IP Checker
+  </div>
 </div>
 
 <div id="acPanel" class="ac-hidden">
@@ -9536,60 +9580,42 @@ function setAcPanelVisibility(visible) {
   </div>
   <div id="payDockPanelBody">
     <div style="font-family:var(--mono);font-size:11.5px;color:var(--ink3);margin-bottom:14px;line-height:1.6;">
-      Enter any known exchange reference — e.g. <em>"2 JMPT = $0.02"</em> or <em>"5 JMPT = $0.01"</em> — and the system will calculate the rate automatically.
-      The rate is used at the moment you mark a task <strong style="color:var(--jt);">Rewarded</strong> to convert USD → JMPT.
-      An account becomes <strong style="color:var(--jt);">Payout Ready</strong> when its JMPT balance reaches the threshold below.
+      Rewards convert to Points at a fixed rate: <strong style="color:var(--jt);">1000 Points = $1.00</strong>.
+      Points are calculated automatically the moment you mark a task <strong style="color:var(--jt);">Rewarded</strong>.
+      An account becomes <strong style="color:var(--jt);">Payout Ready</strong> when its Points balance reaches the threshold below.
     </div>
 
-    <!-- Row 1: Flexible input — enter JMPT and USD amounts you know -->
-    <div style="display:flex;align-items:flex-end;gap:8px;flex-wrap:wrap;margin-bottom:12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;">
-      <div style="font-family:var(--mono);font-size:10px;color:var(--ink3);width:100%;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px;">Enter what you know:</div>
-      <div class="field" style="flex:1;min-width:80px;">
-        <label>JMPT Amount</label>
-        <input type="number" id="rateInputJmpt" min="0" step="any" placeholder="e.g. 2" oninput="calcRateFromInputs()" style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:13px;padding:8px 9px;outline:none;width:100%;">
-      </div>
-      <div style="font-family:var(--mono);font-size:14px;color:var(--ink3);padding-bottom:9px;">=</div>
-      <div class="field" style="flex:1;min-width:80px;">
-        <label>USD Amount ($)</label>
-        <input type="number" id="rateInputUsd" min="0" step="any" placeholder="e.g. 0.02" oninput="calcRateFromInputs()" style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:13px;padding:8px 9px;outline:none;width:100%;">
-      </div>
-      <div style="padding-bottom:9px;display:flex;flex-direction:column;align-items:flex-start;gap:3px;width:100%;">
-        <span style="font-family:var(--mono);font-size:9.5px;color:var(--ink3);">Calculated rate:</span>
-        <span id="rateCalcPreview" style="font-family:var(--mono);font-size:12.5px;font-weight:700;color:var(--jt);">—</span>
-      </div>
-    </div>
-
-    <!-- Row 2: Resulting rate display -->
-    <div style="display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
-      <div class="field" style="flex:1;min-width:140px;">
-        <label>Saved Active Rate (JMPT per $0.01)</label>
-        <input type="number" id="globalJmptRateInput" min="0" step="any" placeholder="Auto-calculated or enter manually" oninput="updateJmptRatePreview()" style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:13px;padding:8px 9px;outline:none;width:100%;">
-      </div>
-      <div style="font-family:var(--mono);font-size:11px;color:var(--ink3);padding-bottom:9px;white-space:nowrap;width:100%;">
-        → $1.00 = <strong id="globalJmptRatePreview" style="color:var(--jt);">—</strong>
-      </div>
-    </div>
-
-    <!-- Row 3: Payout threshold -->
+    <!-- Payout threshold -->
     <div style="display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap;margin-bottom:12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;">
       <div class="field" style="flex:1;min-width:140px;">
-        <label>Payout Ready Threshold (JMPT)</label>
-        <input type="number" id="globalPayoutThresholdInput" min="0" step="any" placeholder="0.5" style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:13px;padding:8px 9px;outline:none;width:100%;">
+        <label>Payout Ready Threshold (Points)</label>
+        <input type="number" id="globalPayoutThresholdInput" min="0" step="1" placeholder="500" style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:13px;padding:8px 9px;outline:none;width:100%;">
       </div>
       <div style="font-family:var(--mono);font-size:10.5px;color:var(--ink3);padding-bottom:9px;line-height:1.5;">
-        Account auto-promotes to <strong style="color:var(--jt);">Payout Ready</strong> when JMPT balance ≥ this value, and reverts to <strong style="color:var(--green);">Active</strong> after payout.
+        Account auto-promotes to <strong style="color:var(--jt);">Payout Ready</strong> when Points balance ≥ this value, and reverts to <strong style="color:var(--green);">Active</strong> after payout.
       </div>
       <button class="btn-primary" style="width:100%;padding:9px 10px;white-space:nowrap;" onclick="saveGlobalSettings()">Save Settings</button>
     </div>
+  </div>
+</div>
 
-    <!-- Quick reference examples -->
-    <div style="margin-top:8px;font-family:var(--mono);font-size:9.5px;color:var(--ink3);line-height:2;">
-      Quick fill:<br>
-      <button onclick="quickFillRate(1,0.01)" style="margin:2px 4px 0 0;padding:2px 10px;border-radius:99px;border:1px solid var(--border2);background:var(--surface3);color:var(--ink2);font-family:var(--mono);font-size:9.5px;cursor:pointer;">1 JMPT = $0.01</button>
-      <button onclick="quickFillRate(2,0.01)" style="margin:2px 4px 0 0;padding:2px 10px;border-radius:99px;border:1px solid var(--border2);background:var(--surface3);color:var(--ink2);font-family:var(--mono);font-size:9.5px;cursor:pointer;">2 JMPT = $0.01</button>
-      <button onclick="quickFillRate(1,0.02)" style="margin:2px 4px 0 0;padding:2px 10px;border-radius:99px;border:1px solid var(--border2);background:var(--surface3);color:var(--ink2);font-family:var(--mono);font-size:9.5px;cursor:pointer;">1 JMPT = $0.02</button>
-      <button onclick="quickFillRate(5,0.01)" style="margin:2px 4px 0 0;padding:2px 10px;border-radius:99px;border:1px solid var(--border2);background:var(--surface3);color:var(--ink2);font-family:var(--mono);font-size:9.5px;cursor:pointer;">5 JMPT = $0.01</button>
+<!-- ── IP CHECKER DOCK PANEL (fixed, right-docked, Accounts tab only) ── -->
+<div id="ipDockPanel" class="ip-dock-hidden">
+  <div id="ipDockPanelHeader">
+    <div id="ipDockPanelTitle">
+      <span>🌐</span> IP Checker
     </div>
+    <button id="ipDockCollapseBtn" onclick="toggleIpDock()" title="Collapse">›</button>
+  </div>
+  <div id="ipDockPanelBody">
+    <div style="font-family:var(--mono);font-size:11.5px;color:var(--ink3);margin-bottom:12px;line-height:1.6;">
+      Search a proxy IP to see if it's already claimed. Once assigned, an IP belongs to that account <strong style="color:var(--jt);">permanently</strong> — it's never reassignable.
+    </div>
+    <div style="display:flex;gap:6px;">
+      <input type="text" id="ipCheckerInput" placeholder="Enter IP address…" style="flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:13px;padding:8px 9px;outline:none;" onkeydown="if(event.key==='Enter')searchIpChecker()">
+      <button class="btn-primary" style="padding:8px 12px;white-space:nowrap;" onclick="searchIpChecker()">Search</button>
+    </div>
+    <div id="ipCheckerResult"></div>
   </div>
 </div>
 
@@ -9844,6 +9870,9 @@ window.toggleAccDock = function() {
     if (typeof _setsDockOpen !== 'undefined' && _setsDockOpen && typeof window.toggleSetsDock === 'function') {
       window.toggleSetsDock();
     }
+    if (typeof _ipDockOpen !== 'undefined' && _ipDockOpen && typeof window.toggleIpDock === 'function') {
+      window.toggleIpDock();
+    }
     panel.classList.add('acc-dock-open');
     tab.classList.add('acc-dock-panel-open');
   } else {
@@ -10002,6 +10031,9 @@ window.togglePayDock = function() {
     if (typeof _setsDockOpen !== 'undefined' && _setsDockOpen && typeof window.toggleSetsDock === 'function') {
       window.toggleSetsDock();
     }
+    if (typeof _ipDockOpen !== 'undefined' && _ipDockOpen && typeof window.toggleIpDock === 'function') {
+      window.toggleIpDock();
+    }
     panel.classList.add('pay-dock-open');
     tab.classList.add('pay-dock-panel-open');
   } else {
@@ -10024,6 +10056,48 @@ function setPayDockVisibility(visible) {
     panel.classList.add('pay-dock-hidden');
     tab.classList.add('pay-dock-hidden');
     panel.classList.remove('pay-dock-open');
+  }
+}
+
+// ── IP CHECKER DOCK PANEL LOGIC ───────────────────────────────────────────
+let _ipDockOpen = false;
+let _ipDockToggling = false;
+
+window.toggleIpDock = function() {
+  if (_ipDockToggling) return;
+  _ipDockToggling = true;
+  _ipDockOpen = !_ipDockOpen;
+  const panel = document.getElementById('ipDockPanel');
+  const tab   = document.getElementById('ipDockTab');
+  if (_ipDockOpen) {
+    if (typeof _accDockOpen !== 'undefined' && _accDockOpen && typeof window.toggleAccDock === 'function') {
+      window.toggleAccDock();
+    }
+    if (typeof _payDockOpen !== 'undefined' && _payDockOpen && typeof window.togglePayDock === 'function') {
+      window.togglePayDock();
+    }
+    panel.classList.add('ip-dock-open');
+    tab.classList.add('ip-dock-panel-open');
+  } else {
+    panel.classList.remove('ip-dock-open');
+    tab.classList.remove('ip-dock-panel-open');
+  }
+  setTimeout(() => { _ipDockToggling = false; }, 50);
+};
+
+function setIpDockVisibility(visible) {
+  const panel = document.getElementById('ipDockPanel');
+  const tab   = document.getElementById('ipDockTab');
+  if (!panel || !tab) return;
+  if (visible) {
+    panel.classList.remove('ip-dock-hidden');
+    tab.classList.remove('ip-dock-hidden');
+    tab.classList.toggle('ip-dock-panel-open', _ipDockOpen);
+    if (_ipDockOpen) panel.classList.add('ip-dock-open');
+  } else {
+    panel.classList.add('ip-dock-hidden');
+    tab.classList.add('ip-dock-hidden');
+    panel.classList.remove('ip-dock-open');
   }
 }
 </script>
@@ -10123,6 +10197,8 @@ document.addEventListener('click', function(e) {
   const accDockTab   = document.getElementById('accDockTab');
   const payDockPanel = document.getElementById('payDockPanel');
   const payDockTab   = document.getElementById('payDockTab');
+  const ipDockPanel = document.getElementById('ipDockPanel');
+  const ipDockTab   = document.getElementById('ipDockTab');
   const tsPanel = document.getElementById('taskSwitcherPanel');
   const tsTab   = document.getElementById('taskSwitcherTab');
   const setsPanel = document.getElementById('setsDockPanel');
@@ -10148,6 +10224,12 @@ document.addEventListener('click', function(e) {
       !_pathContains(e, payDockPanel) && !_pathContains(e, payDockTab)) {
     window.togglePayDock();
   }
+  if (typeof _ipDockOpen !== 'undefined' && _ipDockOpen && ipDockPanel && ipDockTab &&
+      !_pathContains(e, ipDockPanel) && !_pathContains(e, ipDockTab) &&
+      !_pathContains(e, document.getElementById('ipAssignModal')) &&
+      !_pathContains(e, document.getElementById('addIpOptionModal'))) {
+    window.toggleIpDock();
+  }
   if (typeof _tsOpen !== 'undefined' && _tsOpen && tsPanel && tsTab &&
       !_pathContains(e, tsPanel) && !_pathContains(e, tsTab)) {
     window.toggleTaskSwitcher();
@@ -10171,6 +10253,6 @@ if ('serviceWorker' in navigator) {
          font-size:18px;cursor:pointer;
          box-shadow:0 2px 12px rgba(0,0,0,0.22);
          align-items:center;justify-content:center;">↑</button>
-<script>// 35</script>
+<script>// 37</script>
 <protonpass-root-8df7 data-protonpass-role="root" data-protonpass-theme="dark"></protonpass-root-8df7>
 </body></html>
