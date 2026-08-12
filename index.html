@@ -1762,7 +1762,7 @@ select option { background: var(--surface3); color: var(--ink); }
 .sr-type-badge { font-family:var(--mono); font-size:10.5px; font-weight:800; letter-spacing:1px; padding:3px 10px; border-radius:5px; color:#fff; flex-shrink:0; }
 .sr-date { font-family:var(--mono); font-size:10.5px; color:var(--ink3); font-weight:600; white-space:nowrap; }
 
-.sr-title { font-family:var(--sans); font-size:16px; font-weight:800; letter-spacing:-0.01em; line-height:1.3; margin-bottom:10px; color:var(--ink); }
+.sr-title { font-family:var(--sans); font-size:22px; font-weight:800; letter-spacing:-0.01em; line-height:1.3; margin-bottom:10px; color:var(--ink); }
 
 .sr-tags { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px; }
 .sr-tag { font-size:9.5px; font-weight:700; padding:2px 8px; border-radius:3px; border:1px solid; letter-spacing:0.2px; }
@@ -5286,10 +5286,10 @@ function renderTaskCard(task) {
   const showThumbSlot = !!(task.thumbnail || task.previewButton);
   const thumbHtml = showThumbSlot
     ? (task.thumbnail
-        ? `<div class="sr-thumb-wrap" onclick="openTaskMediaModal('${task.id}')" title="Click to view / reload from Drive">
+        ? `<div class="sr-thumb-wrap" data-task-id="${task.id}" data-revealed="0" data-kind="${isYT?'thumbnail':'preview'}" onclick="handleThumbClick(this)" title="Click to view, click again to open">
              <img src="${task.thumbnail}" alt="thumb" class="sr-thumb">
            </div>`
-        : `<div class="sr-thumb-wrap sr-thumb-placeholder" onclick="openTaskMediaModal('${task.id}')" title="Load ${isYT?'thumbnail':'preview'} from Drive">
+        : `<div class="sr-thumb-wrap sr-thumb-placeholder" data-task-id="${task.id}" data-revealed="0" data-kind="${isYT?'thumbnail':'preview'}" onclick="handleThumbClick(this)" title="Load ${isYT?'thumbnail':'preview'} from Drive">
              📥<br>Load<br>${isYT?'Thumbnail':'Preview'}
            </div>`)
     : '';
@@ -5432,6 +5432,54 @@ window.openMediaPreviewModal = function(title) {
 window.closeMediaPreviewModal = function() {
   document.getElementById('mediaPreviewModal').style.display = 'none';
   document.getElementById('mediaPreviewBody').innerHTML = '';
+};
+
+// Two-step thumbnail interaction on task cards:
+// 1st click  -> reveal/load the thumbnail inline in the small card slot only (no popup)
+// 2nd click  -> (slot already revealed) open the full popup via openTaskMediaModal
+window.handleThumbClick = async function(el) {
+  const taskId = el.dataset.taskId;
+  if (el.dataset.revealed === '1') {
+    openTaskMediaModal(taskId);
+    return;
+  }
+
+  const t = tasks.find(x => x.id === taskId);
+  if (!t) return;
+
+  // Local base64 thumbnail is already visible in the slot — just arm it
+  // so the next click opens the popup.
+  if (t.thumbnail) {
+    el.dataset.revealed = '1';
+    return;
+  }
+
+  // Placeholder slot — fetch from Drive and show inline in the small slot,
+  // without opening the popup yet.
+  const kindLabel = el.dataset.kind === 'thumbnail' ? 'Thumbnail' : 'Preview';
+  const searchTitle = t.driveSearchTitle || t.title;
+  el.classList.remove('sr-thumb-placeholder');
+  el.innerHTML = `<div class="sr-thumb-placeholder" style="width:132px;height:74px;">Loading…</div>`;
+
+  try {
+    const url = `${THUMB_SCRIPT_URL}?action=findImage&title=${encodeURIComponent(searchTitle)}`;
+    const res = await fetch(url);
+    const data = await res.json();
+
+    if (!data.ok) {
+      el.classList.add('sr-thumb-placeholder');
+      el.innerHTML = `📥<br>Load<br>${kindLabel}`;
+      toast(data.error || 'No matching image found for this task.');
+      return; // stays unrevealed, can retry
+    }
+
+    el.innerHTML = `<img src="https://drive.google.com/thumbnail?id=${data.fileId}&sz=w300" alt="thumb" class="sr-thumb">`;
+    el.dataset.revealed = '1';
+  } catch (err) {
+    el.classList.add('sr-thumb-placeholder');
+    el.innerHTML = `📥<br>Load<br>${kindLabel}`;
+    toast('Failed to load preview.');
+  }
 };
 
 window.openTaskMediaModal = async function(taskId) {
