@@ -1887,6 +1887,32 @@ select option { background: var(--surface3); color: var(--ink); }
 }
 .btn-delete-acc:hover { background:rgba(224,122,122,0.12); border-color:#e07a7a; }
 
+/* ── IP History table (Accounts tab, below Delete Account) ── */
+.acc-ip-section { margin-top:16px; padding-top:14px; border-top:1px solid var(--border); }
+.acc-ip-section-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+.acc-ip-search {
+  width:100%; background:var(--surface2); border:1px solid var(--border2); border-radius:var(--radius-sm);
+  color:var(--ink); font-family:var(--mono); font-size:12.1px; padding:8px 10px; outline:none; margin-bottom:10px;
+}
+.acc-ip-search:focus { border-color:var(--jt); box-shadow:var(--glow); }
+.acc-ip-table-wrap { overflow-x:auto; border:1px solid var(--border); border-radius:var(--radius-sm); }
+.acc-ip-table { width:100%; min-width:640px; border-collapse:collapse; font-family:var(--mono); font-size:10.8px; }
+.acc-ip-table th {
+  text-align:left; padding:7px 8px; background:var(--surface3); color:var(--ink3);
+  text-transform:uppercase; font-size:9px; letter-spacing:0.3px; white-space:nowrap;
+  border-bottom:1px solid var(--border);
+}
+.acc-ip-table td { padding:7px 8px; border-bottom:1px solid var(--border); color:var(--ink2); white-space:nowrap; }
+.acc-ip-table td.mono { color:var(--ink); font-weight:700; }
+.acc-ip-table tr:last-child td { border-bottom:none; }
+.acc-ip-table tr:hover td { background:rgba(200,213,252,0.04); }
+.btn-ip-reuse {
+  font-family:var(--mono); font-size:9.9px; font-weight:600; cursor:pointer;
+  background:var(--jt-light); color:var(--jt); border:1px solid var(--jt-border);
+  border-radius:6px; padding:4px 9px; white-space:nowrap; transition:all 0.15s;
+}
+.btn-ip-reuse:hover { background:var(--jt); color:#fff; }
+
 /* Col 2/3: Switchable */
 .acc-right-col { padding:18px; }
 .acc-right-tabs { display:flex; gap:4px; margin-bottom:14px; background:var(--surface3); border-radius:var(--radius-sm); padding:3px; }
@@ -2672,7 +2698,7 @@ select option { background: var(--surface3); color: var(--ink); }
         <div class="acc-info-title">Account Details</div>
         <div class="acc-info-fields">
           <div class="info-row"><div class="info-label">Name</div><div class="info-val">DeshiKaloo</div></div>
-          <div class="info-row"><div class="info-label">Wallet</div><div class="info-val wallet">—</div></div>
+          <div class="info-row"><div class="info-label">Email</div><div class="info-val wallet">—</div></div>
           <div class="info-row"><div class="info-label">Country</div><div class="info-val">🇧🇩 Bangladesh</div></div>
           <div class="info-row"><div class="info-label">Device</div><div class="info-val"><span style="font-family:var(--mono);font-size:11px;background:var(--purple-light);color:var(--purple);border:1px solid var(--purple-border);border-radius:99px;padding:2px 10px;">VIVO</span></div></div>
           <div class="info-row"><div class="info-label">Status</div><div class="info-val"><span class="acc-status-pill silent">Silent</span></div></div>
@@ -2983,7 +3009,7 @@ TaskRec01: task assigned, timer started.</div>
     <div class="modal-fields">
       <input type="hidden" id="accModalId" value="ay5gvbgk8zimpi9hqbg">
       <div class="field"><label>Account Name</label><input type="text" id="accModalName" placeholder="e.g. Matteo67"></div>
-      <div class="field"><label>Wallet Address</label><input type="text" id="accModalWallet" placeholder="0x..."></div>
+      <div class="field"><label>Email Address</label><input type="email" id="accModalWallet" placeholder="e.g. name@example.com"></div>
       <div class="field"><label>Country</label><input type="text" id="accModalCountry" placeholder="e.g. Germany"></div>
       <div class="field">
         <label>Status</label>
@@ -3317,12 +3343,30 @@ TaskRec01: task assigned, timer started.</div>
         <input type="text" id="ipAssignModalName" placeholder="e.g. Home router, VPN node A…">
       </div>
       <div class="field">
-        <label>Location</label>
+        <label>Country</label>
         <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
-          <select id="ipAssignModalLocation" style="flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:14.3px;padding:9px 10px;outline:none;">
+          <select id="ipAssignModalCountry" style="flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:14.3px;padding:9px 10px;outline:none;">
             <option value="">— None —</option>
           </select>
-          <button type="button" onclick="addCustomIpOption('location')" style="padding:8px 12px;background:var(--jt-light);color:var(--jt);border:1px solid var(--jt-border);border-radius:var(--radius-sm);font-family:var(--mono);font-size:11px;cursor:pointer;white-space:nowrap;">+ Add New</button>
+          <button type="button" onclick="addCustomIpOption('country')" style="padding:8px 12px;background:var(--jt-light);color:var(--jt);border:1px solid var(--jt-border);border-radius:var(--radius-sm);font-family:var(--mono);font-size:11px;cursor:pointer;white-space:nowrap;">+ Add New</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>City</label>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+          <select id="ipAssignModalCity" style="flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:14.3px;padding:9px 10px;outline:none;">
+            <option value="">— None —</option>
+          </select>
+          <button type="button" onclick="addCustomIpOption('city')" style="padding:8px 12px;background:var(--jt-light);color:var(--jt);border:1px solid var(--jt-border);border-radius:var(--radius-sm);font-family:var(--mono);font-size:11px;cursor:pointer;white-space:nowrap;">+ Add New</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>ISP</label>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+          <select id="ipAssignModalIsp" style="flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:14.3px;padding:9px 10px;outline:none;">
+            <option value="">— None —</option>
+          </select>
+          <button type="button" onclick="addCustomIpOption('isp')" style="padding:8px 12px;background:var(--jt-light);color:var(--jt);border:1px solid var(--jt-border);border-radius:var(--radius-sm);font-family:var(--mono);font-size:11px;cursor:pointer;white-space:nowrap;">+ Add New</button>
         </div>
       </div>
       <div class="field">
@@ -5875,21 +5919,26 @@ window.saveTaskReward = function() {
 // ─────────────────────────────────────────
 // IP CHECKER — proxy/IP registry (Accounts tab dock)
 // ─────────────────────────────────────────
-// One IP can only ever belong to one account — permanent, not reassignable.
-// globalSettings.ipRegistry: [{ ip, accountId, name, location, app, firstAssignedAt }]
-// globalSettings.ipLocations / ipApps: custom dropdown option lists (grow via "+ Add new")
+// One IP permanently belongs to one account (not reassignable to another account),
+// but CAN be reused by that same account — reuse just bumps lastUsedAt.
+// globalSettings.ipRegistry: [{ ip, accountId, name, country, city, isp, app, firstAssignedAt, lastUsedAt }]
+//   (legacy entries may only have `location` instead of `country` — always read with
+//   `entry.country || entry.location` for backward compatibility)
+// globalSettings.ipCountries / ipCities / ipIsps / ipApps: custom dropdown option lists (grow via "+ Add new")
 function ipRegistryGet() {
   if (!globalSettings.ipRegistry) globalSettings.ipRegistry = [];
   return globalSettings.ipRegistry;
 }
-function ipLocationsGet() {
-  if (!globalSettings.ipLocations) globalSettings.ipLocations = [];
-  return globalSettings.ipLocations;
+// Generic getter for the extensible dropdown option lists used in the Assign IP modal.
+function ipOptionsGet(kind) {
+  const keyMap = { country: 'ipCountries', city: 'ipCities', isp: 'ipIsps', app: 'ipApps' };
+  const key = keyMap[kind] || 'ipApps';
+  if (!globalSettings[key]) globalSettings[key] = [];
+  return globalSettings[key];
 }
-function ipAppsGet() {
-  if (!globalSettings.ipApps) globalSettings.ipApps = [];
-  return globalSettings.ipApps;
-}
+// Legacy aliases kept for backward compatibility with any old saved-state references.
+function ipLocationsGet() { return ipOptionsGet('country'); }
+function ipAppsGet() { return ipOptionsGet('app'); }
 function findIpEntry(ip) {
   return ipRegistryGet().find(r => r.ip === ip) || null;
 }
@@ -5916,13 +5965,36 @@ window.searchIpChecker = function() {
   }
 
   const acc = accounts.find(a => a.id === entry.accountId);
+  // Reuse is only allowed when this IP's owning account is the one currently
+  // selected on the Accounts tab — an IP can never be reused for a different account.
+  const sameAccount = !!(selectedAccId && entry.accountId === selectedAccId);
   resultEl.innerHTML = `
     <div class="ip-info-row"><span class="ip-info-label">IP</span><span class="ip-info-val">${escapeHtml(entry.ip)}</span></div>
     <div class="ip-info-row"><span class="ip-info-label">Account</span><span class="ip-info-val">${escapeHtml(acc ? acc.name : '— unknown —')}</span></div>
     <div class="ip-info-row"><span class="ip-info-label">Name</span><span class="ip-info-val">${escapeHtml(entry.name || '—')}</span></div>
-    <div class="ip-info-row"><span class="ip-info-label">Location</span><span class="ip-info-val">${escapeHtml(entry.location || '—')}</span></div>
+    <div class="ip-info-row"><span class="ip-info-label">Country</span><span class="ip-info-val">${escapeHtml(entry.country || entry.location || '—')}</span></div>
+    <div class="ip-info-row"><span class="ip-info-label">City</span><span class="ip-info-val">${escapeHtml(entry.city || '—')}</span></div>
+    <div class="ip-info-row"><span class="ip-info-label">ISP</span><span class="ip-info-val">${escapeHtml(entry.isp || '—')}</span></div>
     <div class="ip-info-row"><span class="ip-info-label">App</span><span class="ip-info-val">${escapeHtml(entry.app || '—')}</span></div>
-    <div class="ip-info-row"><span class="ip-info-label">First Assigned</span><span class="ip-info-val">${fmtDate(entry.firstAssignedAt)}</span></div>`;
+    <div class="ip-info-row"><span class="ip-info-label">First Assigned</span><span class="ip-info-val">${fmtDate(entry.firstAssignedAt)}</span></div>
+    <div class="ip-info-row"><span class="ip-info-label">Last Used</span><span class="ip-info-val">${fmtDate(entry.lastUsedAt || entry.firstAssignedAt)}</span></div>
+    ${sameAccount
+      ? `<button class="btn-primary" style="width:100%;padding:8px 10px;font-size:12.1px;margin-top:10px;" onclick="reuseIpFromChecker('${escapeHtml(ip)}')">↻ Reuse This IP</button>`
+      : `<div style="font-family:var(--mono);font-size:10px;color:var(--ink3);margin-top:10px;text-align:center;line-height:1.5;">🔒 Assigned to ${escapeHtml(acc ? acc.name : 'another account')}. Select that account on the left to reuse it.</div>`
+    }`;
+};
+
+// Reusing an IP just logs that it was used again right now (bumps Last Used) —
+// it never changes which account owns the IP.
+window.reuseIpFromChecker = function(ip) {
+  const entry = findIpEntry(ip);
+  if (!entry) return;
+  if (!selectedAccId || entry.accountId !== selectedAccId) { toast('⚠ Select the owning account first'); return; }
+  entry.lastUsedAt = now();
+  markUnsaved(true);
+  toast('↻ IP reused → ' + ip);
+  window.searchIpChecker();
+  if (typeof renderAccIpTable === 'function') renderAccIpTable(selectedAccId);
 };
 
 // ── IP Assign modal ──
@@ -5939,15 +6011,20 @@ window.openIpAssignModal = function(ip) {
     : '<option disabled>No accounts available</option>';
   accSel.selectedIndex = 0;
 
-  populateIpOptionSelect('location');
+  populateIpOptionSelect('country');
+  populateIpOptionSelect('city');
+  populateIpOptionSelect('isp');
   populateIpOptionSelect('app');
   openModal('ipAssignModal');
 };
 
+const IP_OPT_SELECT_IDS = { country: 'ipAssignModalCountry', city: 'ipAssignModalCity', isp: 'ipAssignModalIsp', app: 'ipAssignModalApp' };
+const IP_OPT_LABELS = { country: 'Country', city: 'City', isp: 'ISP', app: 'App' };
+
 function populateIpOptionSelect(kind) {
-  const sel = document.getElementById(kind === 'location' ? 'ipAssignModalLocation' : 'ipAssignModalApp');
+  const sel = document.getElementById(IP_OPT_SELECT_IDS[kind] || '');
   if (!sel) return;
-  const list = kind === 'location' ? ipLocationsGet() : ipAppsGet();
+  const list = ipOptionsGet(kind);
   const prevVal = sel.value;
   sel.innerHTML = '<option value="">— None —</option>' + list.map(v => `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`).join('');
   if (list.includes(prevVal)) sel.value = prevVal;
@@ -5956,8 +6033,8 @@ function populateIpOptionSelect(kind) {
 let _addIpOptionKind = null;
 window.addCustomIpOption = function(kind) {
   _addIpOptionKind = kind;
-  document.getElementById('addIpOptionModalTitle').textContent = kind === 'location' ? 'Add Location' : 'Add App';
-  document.getElementById('addIpOptionModalLabel').textContent = kind === 'location' ? 'Location Name' : 'App Name';
+  document.getElementById('addIpOptionModalTitle').textContent = 'Add ' + (IP_OPT_LABELS[kind] || 'Option');
+  document.getElementById('addIpOptionModalLabel').textContent = (IP_OPT_LABELS[kind] || 'Name') + ' Name';
   const inp = document.getElementById('addIpOptionInput');
   inp.value = '';
   openModal('addIpOptionModal');
@@ -5970,14 +6047,14 @@ window.confirmAddIpOption = function() {
   if (!val) { toast('Enter a value'); return; }
   const kind = _addIpOptionKind;
   closeModal('addIpOptionModal');
-  const list = kind === 'location' ? ipLocationsGet() : ipAppsGet();
+  const list = ipOptionsGet(kind);
   const existing = list.find(v => v.toLowerCase() === val.toLowerCase());
   const finalVal = existing || val;
   if (!existing) list.push(val);
   populateIpOptionSelect(kind);
-  const sel = document.getElementById(kind === 'location' ? 'ipAssignModalLocation' : 'ipAssignModalApp');
+  const sel = document.getElementById(IP_OPT_SELECT_IDS[kind] || '');
   if (sel) sel.value = finalVal;
-  toast((kind === 'location' ? 'Location' : 'App') + ' added: ' + finalVal);
+  toast((IP_OPT_LABELS[kind] || 'Option') + ' added: ' + finalVal);
 };
 
 window.confirmIpAssign = function() {
@@ -5988,15 +6065,19 @@ window.confirmIpAssign = function() {
   const acc = accounts.find(a => a.id === accId);
   if (!acc) { toast('Select an account'); return; }
   const name = document.getElementById('ipAssignModalName').value.trim();
-  const location = document.getElementById('ipAssignModalLocation').value;
+  const country = document.getElementById('ipAssignModalCountry').value;
+  const city = document.getElementById('ipAssignModalCity').value;
+  const isp = document.getElementById('ipAssignModalIsp').value;
   const app = document.getElementById('ipAssignModalApp').value;
+  const ts = now();
 
   ipRegistryGet().push({
-    ip, accountId: accId, name, location, app, firstAssignedAt: now()
+    ip, accountId: accId, name, country, city, isp, app, firstAssignedAt: ts, lastUsedAt: ts
   });
   closeModal('ipAssignModal');
   markUnsaved(true);
   toast('IP assigned → ' + acc.name);
+  if (selectedAccId === accId) renderAccDetail(accId);
 
   const checkerInp = document.getElementById('ipCheckerInput');
   if (checkerInp) checkerInp.value = ip;
@@ -6196,14 +6277,13 @@ function renderAccList() {
   });
 
   document.getElementById('accListItems').innerHTML = sortedAccounts.map(a => {
-    const wallet = a.walletAddress || '';
-    const shortWallet = wallet ? wallet.slice(0,6) + '…' + wallet.slice(-4) : '—';
+    const email = a.walletAddress || '—';
     return `
     <div class="acc-list-item ${selectedAccId===a.id?'selected':''}" onclick="selectAcc('${a.id}')">
       <div style="min-width:0;flex:1;">
         <div class="acc-list-item-name">${countryFlag(a.country) ? countryFlag(a.country)+' ' : ''}${a.name}</div>
         <div class="acc-list-item-sub">${a.country||'—'} · ${statusLabel(a.status)}${a.device?' · '+a.device:''}</div>
-        <div style="font-family:var(--mono);font-size:9.9px;color:var(--ink3);margin-top:2px;word-break:break-all;" title="${wallet}">${shortWallet}</div>
+        <div style="font-family:var(--mono);font-size:9.9px;color:var(--ink3);margin-top:2px;word-break:break-all;">${email}</div>
       </div>
       <span class="acc-status-pill ${a.status}" style="font-size:8.8px;flex-shrink:0;">${statusLabel(a.status)}</span>
     </div>`;
@@ -6521,22 +6601,12 @@ function renderAccDetail(accId) {
         <div class="acc-info-title">Account Details</div>
         <div class="acc-info-fields">
           <div class="info-row"><div class="info-label">Name</div><div class="info-val">${acc.name}</div></div>
-          <div class="info-row"><div class="info-label">Wallet</div><div class="info-val wallet">${acc.walletAddress||'—'}</div></div>
+          <div class="info-row"><div class="info-label">Email</div><div class="info-val wallet">${acc.walletAddress||'—'}</div></div>
           <div class="info-row"><div class="info-label">Country</div><div class="info-val">${countryFlag(acc.country) ? countryFlag(acc.country)+' ' : ''}${acc.country||'—'}</div></div>
           ${acc.device ? `<div class="info-row"><div class="info-label">Device</div><div class="info-val"><span style="font-family:var(--mono);font-size:11px;background:var(--purple-light);color:var(--purple);border:1px solid var(--purple-border);border-radius:99px;padding:2px 10px;">${acc.device}</span></div></div>` : ''}
           <div class="info-row"><div class="info-label">Status</div><div class="info-val"><span class="acc-status-pill ${acc.status}">${statusLabel(acc.status)}</span></div></div>
           ${acc.linkedSetId === 'all' ? `<div class="info-row"><div class="info-label">Linked Set</div><div class="info-val">All Tasks</div></div>` : (acc.linkedSetId && (typeof taskSets !== 'undefined') && taskSets.find(s=>s.id===acc.linkedSetId) ? `<div class="info-row"><div class="info-label">Linked Set</div><div class="info-val">${escapeHtml(taskSets.find(s=>s.id===acc.linkedSetId).name)}</div></div>` : '')}
           ${acc.notes ? `<div class="info-row"><div class="info-label">Notes</div><div class="info-val" style="font-size:12.1px;color:var(--ink3);">${acc.notes}</div></div>` : ''}
-          ${(() => {
-            const accIps = ipRegistryGet().filter(r => r.accountId === accId);
-            if (!accIps.length) return '';
-            return `<div class="info-row"><div class="info-label">IP${accIps.length>1?'s':''}</div><div class="info-val">
-              ${accIps.map(r => `<div style="font-family:var(--mono);font-size:11px;margin-bottom:3px;line-height:1.4;">
-                <span style="font-weight:700;">${escapeHtml(r.ip)}</span>${r.name ? ` <span style="color:var(--ink3);">"${escapeHtml(r.name)}"</span>` : ''}
-                ${(r.location || r.app) ? `<div style="color:var(--ink3);font-size:10px;">${[r.location, r.app].filter(Boolean).map(v => escapeHtml(v)).join(' · ')}</div>` : ''}
-              </div>`).join('')}
-            </div></div>`;
-          })()}
         </div>
         <div class="acc-stats-mini" style="grid-template-columns:1fr 1fr;gap:8px;">
           <div class="acc-stat-mini"><div class="acc-stat-mini-label">USD Balance</div><div class="acc-stat-mini-val" style="color:var(--green);font-weight:700;">${fmtUSDT(balance)}</div></div>
@@ -6558,6 +6628,13 @@ function renderAccDetail(accId) {
           : `<div class="btn-add-payout-acc" style="opacity:0.38;cursor:not-allowed;user-select:none;filter:grayscale(0.5);" title="Account must be Payout Ready">🔒 Not Payout Ready</div>`
         }
         <button class="btn-delete-acc" onclick="deleteAccount('${accId}')">🗑 Delete Account</button>
+        <div class="acc-ip-section">
+          <div class="acc-ip-section-head">
+            <div class="acc-info-title" style="margin-bottom:0;">🌐 IP History</div>
+          </div>
+          <input type="text" id="accIpSearchInput" class="acc-ip-search" placeholder="Search IP, country, city, ISP…" oninput="renderAccIpTable('${accId}')">
+          <div id="accIpTableWrap">${accIpTableRowsHtml(accId)}</div>
+        </div>
       </div>
       <div class="acc-right-col">
         <div class="acc-right-tabs">
@@ -6579,6 +6656,67 @@ function renderAccDetail(accId) {
     </div>
   `;
 }
+
+// ─────────────────────────────────────────
+// IP History table (per account) — search by IP/country/city/ISP,
+// sorted with the most recently used IP on top.
+// ─────────────────────────────────────────
+function accIpTableRowsHtml(accId) {
+  const searchInp = document.getElementById('accIpSearchInput');
+  const q = (searchInp ? searchInp.value : '').trim().toLowerCase();
+  let rows = ipRegistryGet().filter(r => r.accountId === accId);
+  if (q) {
+    rows = rows.filter(r => {
+      const hay = [r.ip, r.country || r.location, r.city, r.isp].filter(Boolean).join(' ').toLowerCase();
+      return hay.includes(q);
+    });
+  }
+  rows = rows.slice().sort((a, b) => {
+    const av = a.lastUsedAt || a.firstAssignedAt || '';
+    const bv = b.lastUsedAt || b.firstAssignedAt || '';
+    return bv.localeCompare(av);
+  });
+  if (!rows.length) {
+    return `<div class="empty-state" style="padding:16px 0;"><div class="es-icon">🌐</div>${q ? 'No matching IPs' : 'No IPs assigned yet'}</div>`;
+  }
+  return `
+  <div class="acc-ip-table-wrap">
+    <table class="acc-ip-table">
+      <thead>
+        <tr>
+          <th>IP</th><th>First Assigned</th><th>Last Used</th><th>App</th><th>Country</th><th>City</th><th>ISP</th><th></th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rows.map(r => `
+        <tr>
+          <td class="mono">${escapeHtml(r.ip)}</td>
+          <td>${fmtDate(r.firstAssignedAt)}</td>
+          <td>${fmtDate(r.lastUsedAt || r.firstAssignedAt)}</td>
+          <td>${escapeHtml(r.app || '—')}</td>
+          <td>${escapeHtml(r.country || r.location || '—')}</td>
+          <td>${escapeHtml(r.city || '—')}</td>
+          <td>${escapeHtml(r.isp || '—')}</td>
+          <td><button class="btn-ip-reuse" onclick="reuseAccIp('${escapeHtml(r.ip)}','${accId}')" title="Mark this IP as used again now">↻ Reuse</button></td>
+        </tr>`).join('')}
+      </tbody>
+    </table>
+  </div>`;
+}
+
+window.renderAccIpTable = function(accId) {
+  const wrap = document.getElementById('accIpTableWrap');
+  if (wrap) wrap.innerHTML = accIpTableRowsHtml(accId);
+};
+
+window.reuseAccIp = function(ip, accId) {
+  const entry = findIpEntry(ip);
+  if (!entry || entry.accountId !== accId) return;
+  entry.lastUsedAt = now();
+  markUnsaved(true);
+  renderAccIpTable(accId);
+  toast('↻ IP reused → ' + ip);
+};
 
 window.setActiveTaskSort = function(s) {
   activeTaskSort = s;
@@ -6836,11 +6974,26 @@ window.saveAccount = function() {
   const id = document.getElementById('accModalId').value;
   const name = document.getElementById('accModalName').value.trim();
   if (!name) { toast('Name is required'); return; }
+  const email = document.getElementById('accModalWallet').value.trim();
+  // An email can't be used on more than one account while that other account
+  // is active, under review, or dead — checked automatically on every save.
+  if (email) {
+    const blockedStatuses = ['active', 'under_review', 'dead'];
+    const dupe = accounts.find(a =>
+      a.id !== id && !a.deleted &&
+      (a.walletAddress || '').trim().toLowerCase() === email.toLowerCase() &&
+      blockedStatuses.includes(a.status)
+    );
+    if (dupe) {
+      toast('⚠ Email already used by "' + dupe.name + '" (' + statusLabel(dupe.status) + ')');
+      return;
+    }
+  }
   const deviceSel = document.getElementById('accModalDevice');
   const linkedSetSel = document.getElementById('accModalLinkedSet');
   const data = {
     name,
-    walletAddress: document.getElementById('accModalWallet').value.trim(),
+    walletAddress: email,
     country: document.getElementById('accModalCountry').value.trim(),
     status: document.getElementById('accModalStatus').value,
     device: deviceSel ? deviceSel.value : '',
