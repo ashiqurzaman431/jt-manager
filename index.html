@@ -328,9 +328,9 @@ body {
   border-radius: 99px;
   letter-spacing: 0.2px;
 }
-.tag-fresh  { background: rgba(123,184,148,0.15); color: #8fbf9f; border: 1px solid rgba(123,184,148,0.3); }
-.tag-today  { background: rgba(203,161,90,0.15); color: #cba15a; border: 1px solid rgba(203,161,90,0.3); }
-.tag-quicky { background: rgba(154,147,184,0.15); color: #a79bc4; border: 1px solid rgba(154,147,184,0.3); }
+.tag-fresh  { background: var(--green-light); color: var(--green); border: 1px solid var(--green-border); }
+.tag-today  { background: var(--jt-light); color: var(--jt); border: 1px solid var(--jt-border); }
+.tag-quicky { background: var(--amber-light); color: var(--amber); border: 1px solid var(--amber-border); }
 
 @keyframes tagFreshPulse {
   0%, 100% { opacity: 1; }
@@ -1717,55 +1717,17 @@ select option { background: var(--surface3); color: var(--ink); }
 }
 .task-card {
   position: relative;
-  background:var(--surface); border:1px solid var(--border);
-  border-radius:var(--radius); padding:14px 16px;
-  box-shadow:var(--shadow), var(--glow-green); display:flex; align-items:flex-start; gap:14px;
-  transition:border-color 0.15s, box-shadow 0.15s, border-color 0.15s;
+  background:#12131d; border:1px solid var(--border2);
+  border-radius:12px; padding:0; overflow:hidden;
+  display:flex; flex-direction:column;
+  box-shadow:0 8px 24px rgba(0,0,0,0.35);
+  transition:border-color 0.15s, box-shadow 0.15s;
 }
-.task-card:hover { border-color:rgba(150, 190, 40, 0.15); box-shadow: var(--shadow), var(--glow-green); }
+.task-card:hover { border-color:var(--jt-border); box-shadow:0 10px 28px rgba(0,0,0,0.45); }
+.task-card.has-error { border-color:var(--red-border); }
 .task-body { flex:1; min-width:0; }
 .task-head { display:flex; align-items:center; gap:8px; margin-bottom:6px; flex-wrap:wrap; }
-.task-title { font-size:15px; font-weight:700; color:var(--ink); margin-bottom:8px; line-height:1.3; letter-spacing:-0.2px; text-shadow: var(--glow-green); }
-.task-card-watermark {
-  position: absolute;
-  top: 8px;
-  right: 0;
-  height: 55%;
-  width: auto;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  padding: 0 12px;
-  font-family: var(--mono);
-  font-weight: 800;
-  font-size: clamp(18px, 8vw, 85px);
-  line-height: 1;
-  letter-spacing: -2px;
-  white-space: nowrap;
-  overflow: hidden;
-  pointer-events: none;
-  z-index: 0;
-  color: rgba(150, 190, 40, 0.25);
-  text-shadow: var(--glow-green);
-}
-
-.task-card-watermark.youtube {
-  color: rgba(108, 93, 211, 0.25);
-  text-shadow: var(--glow-blue);
-}
-}
-
-.task-card-watermark.google {
-  color: rgba(204, 0, 0, 0.66);
-}
-
-.task-card-watermark.youtube {
-  /* Monochrome — no color override */
-}
-
-.task-card-watermark.google {
-  /* Monochrome — no color override */
-}
+.task-title { font-size:15px; font-weight:700; color:var(--ink); margin-bottom:8px; line-height:1.3; letter-spacing:-0.2px; }
 
 .task-assignments { display:flex; flex-wrap:wrap; gap:4px; margin-bottom:8px; }
 .assign-chip {
@@ -1780,6 +1742,77 @@ select option { background: var(--surface3); color: var(--ink); }
 .chip-status.completed { background:#9a9ea6; }
 .chip-status.rewarded { background:#8fbf9f; }
 .task-actions { display:flex; gap:6px; flex-wrap:wrap; }
+
+/* ── Command Deck task card ── */
+.tc-head { display:flex; align-items:stretch; border-bottom:1px solid var(--border2); }
+.tc-type-tab {
+  flex-shrink:0; display:flex; align-items:center; justify-content:center;
+  padding:0 14px; font-family:var(--mono); font-size:11px; font-weight:800;
+  letter-spacing:1px; color:#fff;
+}
+.tc-title-wrap { flex:1; min-width:0; padding:10px 14px; }
+.tc-title {
+  font-family:var(--sans); font-size:14.5px; font-weight:800; color:var(--ink);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:-0.01em;
+}
+.tc-date { font-family:var(--mono); font-size:10px; color:var(--ink3); font-weight:600; margin-top:2px; }
+
+.tc-body { padding:14px; font-family:var(--mono); }
+
+.tc-tags { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px; }
+.tc-tag { font-size:9.5px; font-weight:700; padding:2px 8px; border-radius:3px; border:1px solid; letter-spacing:0.2px; }
+.tc-tag.fresh  { color:var(--green); border-color:var(--green-border); background:var(--green-light); }
+.tc-tag.today  { color:var(--jt); border-color:var(--jt-border); background:var(--jt-light); }
+.tc-tag.quicky { color:var(--amber); border-color:var(--amber-border); background:var(--amber-light); }
+
+.tc-stat-strip { display:grid; border:1px solid var(--border2); border-radius:8px; overflow:hidden; margin-bottom:12px; }
+.tc-cell { padding:8px 4px; text-align:center; border-right:1px solid var(--border2); min-width:0; }
+.tc-cell:last-child { border-right:none; }
+.tc-cell .n { font-size:14px; font-weight:800; display:block; line-height:1.2; white-space:nowrap; }
+.tc-cell .l { font-size:7.5px; text-transform:uppercase; letter-spacing:0.4px; color:var(--ink3); font-weight:700; white-space:nowrap; }
+.tc-cell.reward .n { color:var(--green); font-size:14px; }
+.tc-cell.unassigned .n { color:var(--red); }
+.tc-cell.assigned .n { color:var(--amber); }
+.tc-cell.completed .n { color:var(--jt); }
+.tc-cell.rewarded .n { color:var(--green); }
+.tc-reward-edit { cursor:pointer; opacity:0.55; margin-left:2px; font-size:9px; }
+.tc-reward-edit:hover { opacity:1; }
+
+.tc-lower { display:flex; gap:12px; margin-bottom:12px; align-items:flex-start; flex-wrap:wrap; }
+.tc-col { flex:1; min-width:140px; }
+.tc-section-label { font-size:8.5px; text-transform:uppercase; letter-spacing:0.5px; color:var(--ink3); font-weight:700; margin-bottom:6px; }
+.tc-accounts { display:flex; gap:5px; flex-wrap:wrap; }
+.tc-acc-chip { display:flex; align-items:center; gap:4px; font-size:10px; font-weight:600; background:var(--surface2); border:1px solid var(--border2); border-radius:4px; padding:3px 7px; color:var(--ink2); }
+.tc-acc-chip.err { background:var(--red-light); border-color:var(--red-border); color:var(--red); }
+.tc-dot { width:5px; height:5px; border-radius:50%; flex-shrink:0; }
+.tc-dot.assigned { background:var(--amber); }
+.tc-dot.completed { background:#9a9ea6; }
+.tc-dot.rewarded { background:var(--green); }
+.tc-links { display:flex; gap:5px; flex-wrap:wrap; }
+.tc-link-chip { font-size:9.5px; font-weight:700; color:var(--jt); background:var(--jt-light); border:1px solid var(--jt-border); border-radius:4px; padding:3px 7px; cursor:pointer; }
+.tc-thumb-wrap { flex-shrink:0; cursor:zoom-in; }
+.tc-thumb { width:120px; height:68px; border-radius:6px; object-fit:cover; display:block; border:1px solid var(--border2); }
+
+.tc-alert { border:1px solid var(--red-border); background:rgba(239,68,68,0.08); border-radius:8px; padding:10px 12px; margin-bottom:12px; }
+.tc-alert-badges { display:flex; gap:5px; flex-wrap:wrap; }
+.tc-alert-badge { font-size:9.5px; font-weight:700; padding:2px 8px; border-radius:99px; background:var(--red-light); color:var(--red); border:1px solid var(--red-border); }
+.tc-alert-note { font-size:10px; color:var(--amber); margin-top:5px; line-height:1.4; }
+.tc-unassigned-note { font-size:10px; color:var(--ink3); margin-bottom:12px; }
+
+.tc-toolbar { display:flex; gap:5px; flex-wrap:wrap; padding-top:12px; border-top:1px solid var(--border2); }
+.tc-btn {
+  font-family:var(--mono); font-size:10px; font-weight:700; padding:6px 10px; border-radius:5px; cursor:pointer;
+  border:1px solid var(--border2); background:var(--surface2); color:var(--ink2); transition:all .12s;
+}
+.tc-btn:hover { border-color:var(--jt-border); color:var(--ink); }
+.tc-btn.primary { background:var(--jt); border-color:var(--jt); color:#fff; }
+.tc-btn.primary:hover { opacity:0.88; }
+.tc-btn.accent { background:var(--green); border-color:var(--green); color:#062112; }
+.tc-btn.accent:hover { opacity:0.88; }
+.tc-btn.danger { border-color:var(--red-border); color:var(--red); background:transparent; }
+.tc-btn.danger:hover { background:var(--red-light); }
+.tc-btn.amber { border-color:var(--amber-border); color:var(--amber); }
+
 
 /* ── ACCOUNT MANAGEMENT ── */
 .acc-mgmt-layout {
@@ -5183,7 +5216,7 @@ function renderTaskCard(task) {
       ? fmtDateTime(task.archivedAt)
       : (task.updatedAt ? fmtDateTime(task.updatedAt) : (task.createdAt ? fmtDateTime(task.createdAt) : 'Unknown date'));
     return `
-      <div class="task-archived" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);
+      <div class="task-archived" style="background:#12131d;border:1px solid var(--border2);border-radius:10px;
         padding:10px 16px;margin-bottom:8px;display:flex;align-items:center;gap:10px;">
         <span style="font-size:15px;flex-shrink:0;">📦</span>
         <div style="flex:1;min-width:0;">
@@ -5220,151 +5253,115 @@ function renderTaskCard(task) {
     isTagQuicky(task) ? '<span class="task-tag-badge tag-quicky">⚡ Quicky</span>'       : '',
   ].filter(Boolean).join('');
 
-  // Type accent colours
-  const typeColor       = isYT ? '#1a73e8' : '#cc0000';
-  const typeBgColor     = isYT ? 'rgba(26,115,232,0.07)' : 'rgba(204,0,0,0.07)';
-  const typeBorderColor = isYT ? 'rgba(26,115,232,0.25)' : 'rgba(204,0,0,0.25)';
+  // Type accent colour — solid tab
+  const typeColor = isYT ? '#1a73e8' : '#cc0000';
 
-  // Card error tint — override border colour when errors exist
-  const cardBg = hasError ? 'background:rgba(192,57,43,0.04);' : '';
-  const cardBorder = hasError ? (hasPermError ? 'border-color:var(--red-border);' : 'border-color:rgba(192,57,43,0.35);') : `border-color:${typeBorderColor};`;
-
-  // Left icon strip — bigger icon (32px)
-  const typeIconHtml = `
-    <div style="width:52px;flex-shrink:0;align-self:stretch;border-radius:10px 0 0 10px;
-      background:${typeBgColor};border-right:3px solid ${typeColor};
-      display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
-      margin:-12px 0 -12px -14px;">
-      <span style="font-family:var(--mono);font-size:12px;font-weight:800;color:${typeColor};letter-spacing:0.6px;">${isYT?'YT':'G'}</span>
-    </div>`;
-
-  // Thumbnail — right side, 160×90, only for YouTube
+  // Thumbnail — inline, 120×68, only for YouTube
   const thumbHtml = task.thumbnail
-    ? `<div onclick="openLightbox('${task.id}')" title="Click to expand"
-         style="cursor:zoom-in;flex-shrink:0;align-self:center;">
-         <img src="${task.thumbnail}" alt="thumb"
-           style="width:160px;height:90px;object-fit:cover;border-radius:8px;
-                  display:block;box-shadow:0 2px 10px rgba(0,0,0,0.13);">
+    ? `<div class="tc-thumb-wrap" onclick="openLightbox('${task.id}')" title="Click to expand">
+         <img src="${task.thumbnail}" alt="thumb" class="tc-thumb">
        </div>` : '';
 
-  // Status pill row — compact counts
-  const statusRow = !task.archived ? `
-    <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:5px;">
-      <span style="font-family:var(--mono);font-size:10px;padding:1px 8px;border-radius:99px;
-        background:var(--red-light);color:var(--red);border:1px solid var(--red-border);">✗ ${unassignedCount}</span>
-      <span style="font-family:var(--mono);font-size:10px;padding:1px 8px;border-radius:99px;
-        background:var(--amber-light);color:var(--amber);border:1px solid var(--amber-border);">◷ ${assignedCount}</span>
-      <span style="font-family:var(--mono);font-size:10px;padding:1px 8px;border-radius:99px;
-        background:var(--jt-light);color:var(--jt);border:1px solid var(--jt-border);">✓ ${completedCount}</span>
-      <span style="font-family:var(--mono);font-size:10px;padding:1px 8px;border-radius:99px;
-        background:var(--green-light);color:var(--green);border:1px solid var(--green-border);">★ ${rewardedCount}</span>
+  // Status/reward stat strip
+  const statStrip = !hasError ? `
+    <div class="tc-stat-strip" style="grid-template-columns:1.3fr repeat(4,1fr);">
+      <div class="tc-cell reward">
+        <span class="n">${fmtUSDT(task.defaultReward)}<span class="tc-reward-edit" onclick="openRewardModal('${task.id}')">✎</span></span>
+        <span class="l">${pointsVal(task)} PTS</span>
+      </div>
+      <div class="tc-cell unassigned"><span class="n">${unassignedCount}</span><span class="l">Unassign</span></div>
+      <div class="tc-cell assigned"><span class="n">${assignedCount}</span><span class="l">Assigned</span></div>
+      <div class="tc-cell completed"><span class="n">${completedCount}</span><span class="l">Complete</span></div>
+      <div class="tc-cell rewarded"><span class="n">${rewardedCount}</span><span class="l">Rewarded</span></div>
     </div>` : '';
 
-  // Error badge row
-  const errorBadgeRow = hasError ? `
-    <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:4px;align-items:center;">
-      ${taskErrCount ? `<span style="font-family:var(--mono);font-size:9.5px;padding:1px 8px;border-radius:99px;background:var(--red-light);color:var(--red);border:1px solid var(--red-border);">⚠ Task Err ×${taskErrCount}</span>` : ''}
-      ${accErrCount  ? `<span style="font-family:var(--mono);font-size:9.5px;padding:1px 8px;border-radius:99px;background:var(--red-light);color:var(--red);border:1px solid var(--red-border);">👤 Acc Err ×${accErrCount}</span>` : ''}
-      ${hasPermError ? `<span style="font-family:var(--mono);font-size:9.5px;padding:1px 8px;border-radius:99px;background:var(--red-light);color:var(--red);border:1px solid var(--red-border);">🔒 Permanent</span>` : ''}
+  // Error alert block
+  const errorBlock = hasError ? `
+    <div class="tc-alert">
+      <div class="tc-alert-badges">
+        ${taskErrCount ? `<span class="tc-alert-badge">⚠ Task Err ×${taskErrCount}</span>` : ''}
+        ${accErrCount  ? `<span class="tc-alert-badge">👤 Acc Err ×${accErrCount}</span>` : ''}
+        ${hasPermError ? `<span class="tc-alert-badge">🔒 Permanent</span>` : ''}
+      </div>
+      ${(() => {
+        const visibleNotes = (task.errors||[]).filter(e=>e.note&&e.note.trim()).map(e=>`<div class="tc-alert-note">⚠ ${e.note}</div>`).join('');
+        return visibleNotes || '';
+      })()}
     </div>` : '';
 
   // Account chips
   const chips = asgns.map(asgn => {
     const acc = accounts.find(a => a.id === asgn.accountId);
     const hasAccErr = errors.some(e => e.type === 'acc_error' && e.accountId === asgn.accountId);
-    const chipStyle = hasAccErr ? 'background:var(--red-light);border-color:var(--red-border);color:var(--red);' : '';
-    return `<span class="assign-chip" style="${chipStyle}"><span class="chip-status ${asgn.status}"></span>${acc?acc.name:'?'}${hasAccErr?' ⚠':''}</span>`;
+    return `<span class="tc-acc-chip${hasAccErr?' err':''}"><span class="tc-dot ${asgn.status}"></span>${acc?acc.name:'?'}${hasAccErr?' ⚠':''}</span>`;
   }).join('');
 
   // Links
-  const linksHtml = (task.links||[]).length
-    ? `<div style="display:flex;flex-direction:column;gap:3px;margin-top:4px;">
-        ${(task.links||[]).map((l,i)=>{
-          const isLegacy = !l.searchKeyword && !l.topicName && !l.videoLink && !l.thumbLink && (l.label || l.url);
-          if (isLegacy) {
-            return `<div style="display:flex;flex-wrap:wrap;gap:4px;align-items:center;">
-              <button onclick="copyLink('${task.id}',${i})" style="font-family:var(--mono);font-size:9.5px;color:var(--jt);background:var(--jt-light);border:1px solid var(--jt-border);border-radius:99px;padding:1px 8px;cursor:pointer;" title="${htmlEscape(l.url)}">📋 ${htmlEscape(l.label||l.url)}</button>
-            </div>`;
-          }
-          return `<div style="display:flex;flex-wrap:wrap;gap:4px;align-items:center;">
-          ${l.searchKeyword ? `<button onclick="copyToClipboard('${jsEscape(l.searchKeyword)}')" style="font-family:var(--mono);font-size:9.5px;color:var(--ink2);background:var(--panel2, var(--surface2));border:1px solid var(--line, var(--border));border-radius:99px;padding:1px 8px;cursor:pointer;" title="Click to copy keyword">🔍 ${htmlEscape(l.searchKeyword)}</button>` : ''}
-          ${l.topicName ? `<button onclick="copyToClipboard('${jsEscape(l.topicName)}')" style="font-family:var(--mono);font-size:9.5px;color:var(--ink2);background:var(--panel2, var(--surface2));border:1px solid var(--line, var(--border));border-radius:99px;padding:1px 8px;cursor:pointer;" title="Click to copy topic name only (not the timestamp)">🏷 ${htmlEscape(l.topicMss||"0'00")} · ${htmlEscape(l.topicName)}</button>` : ''}
-          ${l.videoLink ? `<button onclick="copyToClipboard('${jsEscape(l.videoLink)}')" style="font-family:var(--mono);font-size:9.5px;color:var(--jt);background:var(--jt-light);border:1px solid var(--jt-border);border-radius:99px;padding:1px 8px;cursor:pointer;" title="${htmlEscape(l.videoLink)}">📋 🎬</button>` : ''}
-          ${l.thumbLink ? `<button onclick="copyToClipboard('${jsEscape(l.thumbLink)}')" style="font-family:var(--mono);font-size:9.5px;color:var(--jt);background:var(--jt-light);border:1px solid var(--jt-border);border-radius:99px;padding:1px 8px;cursor:pointer;" title="${htmlEscape(l.thumbLink)}">📋 🖼</button>` : ''}
-        </div>`;
-        }).join('')}
-       </div>` : '';
+  const linkChips = (task.links||[]).map((l,i)=>{
+    const isLegacy = !l.searchKeyword && !l.topicName && !l.videoLink && !l.thumbLink && (l.label || l.url);
+    if (isLegacy) {
+      return `<button class="tc-link-chip" onclick="copyLink('${task.id}',${i})" title="${htmlEscape(l.url)}">📋 ${htmlEscape(l.label||l.url)}</button>`;
+    }
+    return [
+      l.searchKeyword ? `<button class="tc-link-chip" onclick="copyToClipboard('${jsEscape(l.searchKeyword)}')" title="Click to copy keyword">🔍 ${htmlEscape(l.searchKeyword)}</button>` : '',
+      l.topicName ? `<button class="tc-link-chip" onclick="copyToClipboard('${jsEscape(l.topicName)}')" title="Click to copy topic name only (not the timestamp)">🏷 ${htmlEscape(l.topicMss||"0'00")} · ${htmlEscape(l.topicName)}</button>` : '',
+      l.videoLink ? `<button class="tc-link-chip" onclick="copyToClipboard('${jsEscape(l.videoLink)}')" title="${htmlEscape(l.videoLink)}">📋 🎬</button>` : '',
+      l.thumbLink ? `<button class="tc-link-chip" onclick="copyToClipboard('${jsEscape(l.thumbLink)}')" title="${htmlEscape(l.thumbLink)}">📋 🖼</button>` : '',
+    ].filter(Boolean).join('');
+  }).join('');
 
-  // Reward
-  const pointsVal = Math.round(parseFloat(task.defaultReward||0) * 1000);
+  // Lower row — accounts / links / thumbnail
+  const lowerRow = !hasError ? `
+    <div class="tc-lower">
+      <div class="tc-col">
+        <div class="tc-section-label">Accounts</div>
+        ${asgns.length ? `<div class="tc-accounts">${chips}</div>` : `<div class="tc-unassigned-note" style="margin-bottom:0;">Not assigned yet</div>`}
+      </div>
+      ${linkChips ? `<div class="tc-col"><div class="tc-section-label">Links</div><div class="tc-links">${linkChips}</div></div>` : ''}
+      ${thumbHtml}
+    </div>` : '';
 
   // Action buttons
   const actions = hasError ? `
-    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;align-items:center;">
-      <button class="btn-secondary" style="font-size:10.5px;padding:4px 8px;color:var(--red);border-color:var(--red-border);" onclick="openErrorModal('${task.id}')">⚠ Manage Errors (${errors.length})</button>
-      <button class="btn-secondary" style="font-size:10.5px;padding:4px 8px;" onclick="archiveTask('${task.id}')">📦</button>
-      <button class="btn-danger" style="font-size:10.5px;padding:4px 8px;" onclick="deleteTask('${task.id}')" title="Permanently delete task">🗑</button>
+    <div class="tc-toolbar">
+      <button class="tc-btn danger" onclick="openErrorModal('${task.id}')">⚠ Manage Errors (${errors.length})</button>
+      <button class="tc-btn" onclick="archiveTask('${task.id}')">📦 Archive</button>
+      <button class="tc-btn danger" onclick="deleteTask('${task.id}')" title="Permanently delete task">🗑 Delete</button>
     </div>` : `
-    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;align-items:center;">
-      ${!task.archived ? `<button class="btn-primary" style="font-size:10.5px;padding:5px 10px;" onclick="openAssignModal('${task.id}')">+ Assign</button>` : ''}
-      ${!task.archived ? `<button class="btn-primary" style="font-size:10.5px;padding:5px 10px;background:var(--green);box-shadow:0 2px 6px rgba(26,122,60,0.18);" onclick="assignToAllActive('${task.id}')">⚡ All</button>` : ''}
-      ${!task.archived ? `<button class="btn-secondary" style="font-size:10.5px;padding:4px 8px;" onclick="openLinksModal('${task.id}')">🔗</button>` : ''}
-      <button class="btn-secondary" style="font-size:10.5px;padding:4px 8px;color:var(--red);border-color:var(--red-border);" onclick="openErrorModal('${task.id}')">⚠ Error</button>
-      <button class="btn-secondary" style="font-size:10.5px;padding:4px 8px;" onclick="openEditTaskModal('${task.id}')">✎ Edit</button>
-      <button class="btn-secondary" style="font-size:10.5px;padding:4px 8px;" onclick="openReplicateTaskModal('${task.id}')" title="Duplicate this task under a new title">⎘ Replicate</button>
-      ${task.previewButton && !task.archived ? `<button class=\"btn-secondary\" style=\"font-size:10.5px;padding:4px 8px;color:var(--amber);border-color:var(--amber-border);\" onclick=\"openTaskMediaModal('${task.id}')\" title=\"${isYT ? 'View thumbnails' : 'View websites'}\">${isYT ? 'View Thumbnails' : 'View Websites'}</button>` : ''}
-      ${!task.archived && isYT ? `<button class="btn-secondary" style="font-size:10.5px;padding:4px 8px;color:var(--amber);border-color:var(--amber-border);" onclick="openThumbModal('${task.id}')" title="${task.thumbnail?'Change thumbnail':'Add thumbnail'}">${task.thumbnail?'🖼 Thumb':'📷 Thumb'}</button>` : ''}
-      ${task.archived && task.thumbnail ? `<button class="btn-secondary" style="font-size:10.5px;padding:4px 8px;color:var(--amber);border-color:var(--amber-border);" onclick="removeTaskImage('${task.id}')">🗑 Img</button>` : ''}
-      ${!task.archived
-        ? `<button class="btn-secondary" style="font-size:10.5px;padding:4px 8px;" onclick="archiveTask('${task.id}')">📦</button>`
-        : `<button class="btn-secondary" style="font-size:10.5px;padding:4px 8px;" onclick="unarchiveTask('${task.id}')">↩ Restore</button>`}
-      <button class="btn-danger" style="font-size:10.5px;padding:4px 8px;" onclick="deleteTask('${task.id}')" title="Permanently delete task">🗑</button>
+    <div class="tc-toolbar">
+      <button class="tc-btn primary" onclick="openAssignModal('${task.id}')">+ Assign</button>
+      <button class="tc-btn accent" onclick="assignToAllActive('${task.id}')">⚡ All</button>
+      <button class="tc-btn" onclick="openLinksModal('${task.id}')">🔗 Links</button>
+      <button class="tc-btn danger" onclick="openErrorModal('${task.id}')">⚠ Error</button>
+      <button class="tc-btn" onclick="openEditTaskModal('${task.id}')">✎ Edit</button>
+      <button class="tc-btn" onclick="openReplicateTaskModal('${task.id}')" title="Duplicate this task under a new title">⎘ Replicate</button>
+      ${task.previewButton ? `<button class="tc-btn amber" onclick="openTaskMediaModal('${task.id}')" title="${isYT ? 'View thumbnails' : 'View websites'}">${isYT ? 'View Thumbnails' : 'View Websites'}</button>` : ''}
+      ${isYT ? `<button class="tc-btn amber" onclick="openThumbModal('${task.id}')" title="${task.thumbnail?'Change thumbnail':'Add thumbnail'}">${task.thumbnail?'🖼 Thumb':'📷 Thumb'}</button>` : ''}
+      <button class="tc-btn" onclick="archiveTask('${task.id}')">📦 Archive</button>
+      <button class="tc-btn danger" onclick="deleteTask('${task.id}')" title="Permanently delete task">🗑 Delete</button>
     </div>`;
 
   return `
-  <div class="task-card" style="flex-direction:row;padding:12px 14px 12px 0;overflow:hidden;
-    align-items:stretch;gap:0;${cardBg}${cardBorder}">
-    ${typeIconHtml}
-    <div class="task-card-watermark ${isYT ? 'youtube' : 'google'}">${task.title}</div>
-    <!-- Main content -->
-    <div style="flex:1;min-width:0;padding:0 12px;display:flex;flex-direction:column;justify-content:center;position:relative;z-index:1;">
-      <!-- Title row — date only, title moved to watermark -->
-      <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:2px;">
-        ${!hasError ? `<span style="font-family:var(--mono);font-size:10px;color:var(--ink3);white-space:nowrap;flex-shrink:0;">
-          ${fmtDate(task.createdAt||'')}
-        </span>` : ''}
+  <div class="task-card${hasError ? ' has-error' : ''}">
+    <div class="tc-head">
+      <div class="tc-type-tab" style="background:${typeColor};">${isYT?'YT':'G'}</div>
+      <div class="tc-title-wrap">
+        <div class="tc-title">${task.title}</div>
+        <div class="tc-date">${fmtDate(task.createdAt||'')}</div>
       </div>
-      ${tagBadges ? `<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:3px;">${tagBadges}</div>` : ''}
-      ${!hasError ? `
-      <!-- Reward row -->
-      <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;">
-        <span style="font-family:var(--mono);font-size:11px;font-weight:700;color:var(--green);">${fmtUSDT(task.defaultReward)}</span>
-        <span style="font-family:var(--mono);font-size:10px;color:var(--ink3);">/ ${pointsVal} PTS</span>
-        <span class="task-reward-edit" onclick="openRewardModal('${task.id}')" style="font-size:9.5px;">✎</span>
-      </div>
-      <!-- Status counts -->
-      ${statusRow}
-      ` : ''}
-      <!-- Error badges -->
-      ${errorBadgeRow}
-      ${hasError ? (() => {
-        const visibleNotes = (task.errors||[]).filter(e=>e.note&&e.note.trim()).map(e=>`<div style="font-family:var(--mono);font-size:10px;color:var(--amber);margin-top:2px;line-height:1.4;">⚠ ${e.note}</div>`).join('');
-        return visibleNotes ? `<div style="margin-top:4px;">${visibleNotes}</div>` : '';
-      })() : ''}
-      ${!hasError ? `
-      <!-- Account chips -->
-      ${asgns.length
-        ? `<div class="task-assignments" style="margin-top:5px;margin-bottom:0;">${chips}</div>`
-        : `<div style="font-family:var(--mono);font-size:10px;color:var(--ink3);margin-top:4px;">Not assigned yet</div>`}
-      <!-- Links -->
-      ${linksHtml}
-      ` : ''}
-      <!-- Actions -->
+    </div>
+    <div class="tc-body">
+      ${tagBadges ? `<div class="tc-tags">${tagBadges}</div>` : ''}
+      ${statStrip}
+      ${errorBlock}
+      ${lowerRow}
       ${actions}
     </div>
-    <!-- Thumbnail (right side) -->
-    ${!hasError ? thumbHtml : ''}
   </div>`;
+}
+
+function pointsVal(task) {
+  return Math.round(parseFloat(task.defaultReward||0) * 1000);
 }
 
 window.removeTaskImage = function(taskId) {
