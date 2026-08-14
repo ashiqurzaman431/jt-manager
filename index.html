@@ -2007,6 +2007,11 @@ select option { background: var(--surface3); color: var(--ink); }
   flex:1; min-width:0; font-family:var(--mono); font-size:12px; font-weight:600;
   color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 }
+.acc-task-card-ip {
+  flex-shrink:0; font-family:var(--mono); font-size:8.8px; color:var(--ink3);
+  background:var(--surface3); border:1px solid var(--border2); border-radius:99px;
+  padding:2px 6px; max-width:70px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
 .acc-task-card-dot {
   flex-shrink:0; width:22px; height:22px; border-radius:6px; border:none;
   background:transparent; color:var(--ink3); font-size:15px; line-height:1;
@@ -4133,6 +4138,7 @@ let thumbBase64 = null;
 let thumbModalBase64 = null;
 let accSort = 'default';
 let activeTaskSort = 'newest'; // 'newest' | 'name_asc' — sort for the per-account Active Tasks list
+let accTaskIpFilter = 'all'; // 'all' | 'none' | <ip string> — filters Active Tasks + Account History by which IP the task was run on
 let pendingStatusChange = null;
 
 // ─────────────────────────────────────────
@@ -5884,13 +5890,15 @@ window.assignToAllActive = function(taskId) {
   pushUndo('Assign all → ' + t.title);
   if (!t.assignments) t.assignments = [];
   eligible.forEach(acc => {
+    const ipMeta = stampAssignmentIp(acc.id);
     t.assignments.push({
       id: uid(), accountId: acc.id,
       status: 'assigned',
       reward: t.defaultReward, assignedAt: now(),
       completedAt: null, rewardedAt: null,
       _acTimerStart: Date.now(),
-      acDescription: 'TaskRec01: task assigned, timer started.'
+      ip: ipMeta.ip, ipName: ipMeta.ipName,
+      acDescription: 'TaskRec01: task assigned, timer started.' + (ipMeta.ipName ? ' · IP: ' + ipMeta.ipName : '')
     });
   });
   taskPage = 0;
@@ -6020,6 +6028,28 @@ function ipLocationsGet() { return ipOptionsGet('country'); }
 function ipAppsGet() { return ipOptionsGet('app'); }
 function findIpEntry(ip) {
   return ipRegistryGet().find(r => r.ip === ip) || null;
+}
+
+// The IP "currently assigned" to an account = whichever of that account's IP
+// registry entries was most recently used (falls back to firstAssignedAt).
+// Returns null if the account has no IP on record yet.
+function getAccountCurrentIpEntry(accId) {
+  const rows = ipRegistryGet().filter(r => r.accountId === accId);
+  if (!rows.length) return null;
+  return rows.slice().sort((a, b) =>
+    (b.lastUsedAt || b.firstAssignedAt || '').localeCompare(a.lastUsedAt || a.firstAssignedAt || '')
+  )[0];
+}
+
+// Stamps whichever IP is currently active on an account onto a freshly-created
+// assignment, so every task record — active, completed, or rewarded — carries
+// the IP it was run on, and history/active lists can be filtered by it.
+function stampAssignmentIp(accId) {
+  const entry = getAccountCurrentIpEntry(accId);
+  return {
+    ip: entry ? entry.ip : null,
+    ipName: entry ? (entry.name || entry.ip) : null
+  };
 }
 
 // ── IP Checker dock: search + result render ──
@@ -6168,6 +6198,7 @@ function _doAssign(taskId, accId, customReward) {
   const t = tasks.find(t => t.id===taskId); if(!t) return;
   const accCheck = accounts.find(a => a.id === accId); if(!accCheck) return;
 
+  const ipMeta = stampAssignmentIp(accId);
   const asgn = {
     id: uid(),
     accountId: accId,
@@ -6177,7 +6208,9 @@ function _doAssign(taskId, accId, customReward) {
     completedAt: null,
     rewardedAt: null,
     _acTimerStart: Date.now(),
-    acDescription: 'TaskRec01: task assigned, timer started.'
+    ip: ipMeta.ip,
+    ipName: ipMeta.ipName,
+    acDescription: 'TaskRec01: task assigned, timer started.' + (ipMeta.ipName ? ' · IP: ' + ipMeta.ipName : '')
   };
   if (!t.assignments) t.assignments = [];
   t.assignments.push(asgn);
@@ -6372,6 +6405,7 @@ function renderAccList() {
 window.selectAcc = function(id) {
   selectedAccId = id;
   accRightTab = 'active';
+  accTaskIpFilter = 'all';
   renderAccList();
   renderAccDetail(id);
   if (typeof _accDockOpen !== 'undefined' && _accDockOpen && typeof window.toggleAccDock === 'function') {
@@ -6567,7 +6601,28 @@ function renderAccDetail(accId) {
     return (b.assignment.assignedAt||'').localeCompare(a.assignment.assignedAt||'');
   });
 
-  const activeTasksHtml = sortedActive.length ? `
+  // IP options for the filter dropdown — every IP ever assigned to this account,
+  // most recently used first. Shared by both the Active Tasks and Account History tabs.
+  const accIpEntriesForFilter = ipRegistryGet().filter(r => r.accountId === accId).slice().sort((a, b) =>
+    (b.lastUsedAt || b.firstAssignedAt || '').localeCompare(a.lastUsedAt || a.firstAssignedAt || '')
+  );
+  const ipFilterOptionsHtml = `
+    <option value="all" ${accTaskIpFilter==='all'?'selected':''}>All IPs</option>
+    ${accIpEntriesForFilter.map(e => `<option value="${escapeHtml(e.ip)}" ${accTaskIpFilter===e.ip?'selected':''}>${escapeHtml(e.name || e.ip)}${e.name ? ' ('+escapeHtml(e.ip)+')' : ''}</option>`).join('')}
+    <option value="none" ${accTaskIpFilter==='none'?'selected':''}>No IP recorded</option>
+  `;
+  const ipFilterHtml = accIpEntriesForFilter.length ? `
+    <span style="font-family:var(--mono);font-size:9.9px;color:var(--ink3);white-space:nowrap;">🌐 IP:</span>
+    <select onchange="setAccTaskIpFilter(this.value)" style="font-family:var(--mono);font-size:11px;padding:4px 8px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--surface2);color:var(--ink);cursor:pointer;outline:none;max-width:180px;">
+      ${ipFilterOptionsHtml}
+    </select>` : '';
+
+  // Apply the IP filter on top of the sort
+  const filteredActive = accTaskIpFilter === 'all' ? sortedActive : sortedActive.filter(({assignment}) =>
+    accTaskIpFilter === 'none' ? !assignment.ip : assignment.ip === accTaskIpFilter
+  );
+
+  const activeTasksHtml = filteredActive.length ? `
     <div id="bulkBar" style="display:flex;align-items:center;gap:8px;margin-bottom:10px;background:var(--jt-light);border:1px solid var(--jt-border);border-radius:var(--radius-sm);padding:8px 12px;flex-wrap:wrap;">
       <label style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:12.1px;color:var(--jt);cursor:pointer;font-weight:600;">
         <input type="checkbox" id="bulkSelectAll" onchange="toggleSelectAll('${accId}')" style="accent-color:var(--jt);width:14px;height:14px;">
@@ -6579,16 +6634,17 @@ function renderAccDetail(accId) {
       <button class="btn-remove-task" onclick="bulkRemove('${accId}')" style="font-size:11px;padding:4px 10px;">✕ Remove</button>
     </div>
     <div class="acc-task-grid">
-    ${sortedActive.map(({task, assignment}) => {
+    ${filteredActive.map(({task, assignment}) => {
       return `
     <div class="acc-task-card" id="atask-${assignment.id}" onclick="toggleTaskCardSelect(event,'${assignment.id}','${accId}')">
       <input type="checkbox" class="bulk-task-cb" data-taskid="${task.id}" data-asgnid="${assignment.id}" onchange="updateBulkCount('${accId}')" style="display:none;">
       <span class="acc-task-card-status-dot ${assignment.status}" title="${assignment.status}"></span>
       <span class="acc-task-card-title">${task.title}</span>
+      ${assignment.ipName ? `<span class="acc-task-card-ip" title="IP used: ${escapeHtml(assignment.ipName)}">🌐 ${escapeHtml(assignment.ipName)}</span>` : ''}
       <button type="button" class="acc-task-card-dot" onclick="event.stopPropagation();openTaskDetailModal('${task.id}','${assignment.id}')">⋮</button>
     </div>`;}).join('')}
     </div>
-  ` : `<div class="empty-state"><div class="es-icon">✦</div>No active tasks</div>`;
+  ` : `<div class="empty-state"><div class="es-icon">✦</div>${accTaskIpFilter!=='all' ? 'No tasks on this IP' : 'No active tasks'}</div>`;
 
   // History: tasks + payouts merged and sorted
   const historyItems = [];
@@ -6623,7 +6679,14 @@ function renderAccDetail(accId) {
     return toMs(b) - toMs(a);
   });
 
-  const historyHtml = historyItems.length ? (() => {
+  // IP filter also applies to Account History — payouts aren't tied to a
+  // specific IP so they always stay visible; only rewarded task entries are filtered.
+  const filteredHistoryItems = accTaskIpFilter === 'all' ? historyItems : historyItems.filter(item => {
+    if (item.type !== 'task') return true;
+    return accTaskIpFilter === 'none' ? !item.asgn.ip : item.asgn.ip === accTaskIpFilter;
+  });
+
+  const historyHtml = filteredHistoryItems.length ? (() => {
     const histItemMs = (item) => {
       if (item.type === 'payout') {
         const p = item.payout;
@@ -6638,7 +6701,7 @@ function renderAccDetail(accId) {
     };
 
     const histGroups = [];
-    historyItems.forEach(item => {
+    filteredHistoryItems.forEach(item => {
       const ms = histItemMs(item);
       const dateKey = ms ? new Date(ms).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' }) : 'Unknown Date';
       let group = histGroups.find(g => g.dateKey === dateKey);
@@ -6656,7 +6719,7 @@ function renderAccDetail(accId) {
       ${group.items.map(item => item.type==='task'
         ? `<div class="history-item task-hist">
             <div class="history-item-head"><div class="history-item-title">${item.task.title}</div><div class="history-item-amount">${fmtUSDT(item.asgn.reward||item.task.defaultReward)}${item.asgn.pointsEarned ? ` · <span style="color:var(--jt)">${fmtPoints(item.asgn.pointsEarned)}</span>` : ''}</div></div>
-            <div class="history-item-meta">Rewarded · ${fmtTime(item.asgn.rewardedAt)} · <span style="text-transform:uppercase;font-size:9.9px;">${item.task.type}</span>${item.asgn.statusNote ? ` · 📝 ${item.asgn.statusNote}` : ''}</div>
+            <div class="history-item-meta">Rewarded · ${fmtTime(item.asgn.rewardedAt)} · <span style="text-transform:uppercase;font-size:9.9px;">${item.task.type}</span>${item.asgn.ipName ? ` · 🌐 ${escapeHtml(item.asgn.ipName)}` : ''}${item.asgn.statusNote ? ` · 📝 ${item.asgn.statusNote}` : ''}</div>
           </div>`
         : `<div class="history-item payout-hist">
             <div class="history-item-head">
@@ -6671,7 +6734,7 @@ function renderAccDetail(accId) {
       ).join('')}
     `).join('')}
   `;
-  })() : `<div class="empty-state"><div class="es-icon">📋</div>No history yet</div>`;
+  })() : `<div class="empty-state"><div class="es-icon">📋</div>${accTaskIpFilter!=='all' ? 'No history for this IP' : 'No history yet'}</div>`;
 
 
   document.getElementById('accDetailPanel').innerHTML = `
@@ -6721,13 +6784,15 @@ function renderAccDetail(accId) {
           <button class="acc-right-tab ${accRightTab==='history'?'active':''}" onclick="switchAccRight('history','${accId}')">Account History</button>
         </div>
         <div id="accRightContent">
-          ${accRightTab==='active' ? `
-          <div style="display:flex;align-items:center;justify-content:flex-end;gap:6px;margin-bottom:8px;">
+          ${(ipFilterHtml || accRightTab==='active') ? `
+          <div style="display:flex;align-items:center;justify-content:flex-end;gap:6px;margin-bottom:8px;flex-wrap:wrap;">
+            ${ipFilterHtml}
+            ${accRightTab==='active' ? `
             <span style="font-family:var(--mono);font-size:9.9px;color:var(--ink3);white-space:nowrap;">Sort:</span>
             <select onchange="setActiveTaskSort(this.value)" style="font-family:var(--mono);font-size:11px;padding:4px 8px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--surface2);color:var(--ink);cursor:pointer;outline:none;">
               <option value="newest" ${activeTaskSort==='newest'?'selected':''}>Newest</option>
               <option value="name_asc" ${activeTaskSort==='name_asc'?'selected':''}>Name (A → Z)</option>
-            </select>
+            </select>` : ''}
           </div>` : ''}
           ${accRightTab==='active' ? activeTasksHtml : historyHtml}
         </div>
@@ -6799,6 +6864,14 @@ window.reuseAccIp = function(ip, accId) {
 
 window.setActiveTaskSort = function(s) {
   activeTaskSort = s;
+  if (selectedAccId) renderAccDetail(selectedAccId);
+};
+
+// Filters both the Active Tasks (running/completed) and Account History (rewarded)
+// lists down to tasks that were run on a specific IP. 'all' clears the filter,
+// 'none' shows only legacy records that predate IP tracking.
+window.setAccTaskIpFilter = function(v) {
+  accTaskIpFilter = v;
   if (selectedAccId) renderAccDetail(selectedAccId);
 };
 
@@ -6880,6 +6953,7 @@ window.openTaskDetailModal = function(taskId, asgnId) {
     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
       <span class="acc-active-task-status ${assignment.status}">${assignment.status}</span>
       <span style="font-family:var(--mono);font-size:11px;color:var(--ink3);">${fmtUSDT(assignment.reward||task.defaultReward)} · ${pointsForTask} PTS</span>
+      ${assignment.ipName ? `<span style="font-family:var(--mono);font-size:10px;color:var(--ink3);background:var(--surface3);border:1px solid var(--border2);border-radius:99px;padding:2px 8px;">🌐 ${escapeHtml(assignment.ipName)}</span>` : ''}
     </div>
     <div class="acc-active-task-times">
       Assigned: <span>${fmtDateTime(assignment.assignedAt)}</span>${assignment.completedAt?`<br>Done: <span>${fmtDateTime(assignment.completedAt)}</span>`:''}
