@@ -1455,19 +1455,22 @@ body {
   font-weight: 600;
   color: var(--ink2);
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
+  gap: 2px;
   background: rgba(154,158,166,0.08);
   border: 1px solid var(--jt-border);
   border-radius: 6px;
-  padding: 5px 10px;
+  padding: 10px 10px 12px;
   margin: 2px 0 4px;
 }
 .ac-timer-label { color: var(--jt); font-size: 10px; font-weight: 600; }
 .ac-timer-val {
-  font-weight: 700;
+  font-weight: 800;
   color: #9a9ea6;
-  font-size: 16px;
+  font-size: 2em;
+  line-height: 1.2;
   letter-spacing: 0.5px;
   font-variant-numeric: tabular-nums;
   text-shadow: 0 0 16px rgba(154,158,166,0.5);
