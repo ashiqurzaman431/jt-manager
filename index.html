@@ -2657,7 +2657,7 @@ select option { background: var(--surface3); color: var(--ink); }
     <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap;align-items:center;">
       <div style="display:flex;align-items:center;gap:5px;flex:1;min-width:180px;">
         <span style="font-family:var(--mono);font-size:10px;color:var(--ink3);white-space:nowrap;">Title</span>
-        <input type="text" id="taskTitleSearch" placeholder="Search by title…" oninput="applyTaskSearch()" style="flex:1;font-family:var(--mono);font-size:11.5px;padding:5px 8px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--surface2);color:var(--ink);outline:none;">
+        <input type="text" id="taskTitleSearch" placeholder="Search by title, ID, or link…" oninput="applyTaskSearch()" style="flex:1;font-family:var(--mono);font-size:11.5px;padding:5px 8px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--surface2);color:var(--ink);outline:none;">
       </div>
       <div style="display:flex;align-items:center;gap:5px;">
         <span style="font-family:var(--mono);font-size:10px;color:var(--ink3);white-space:nowrap;">Range</span>
@@ -4997,7 +4997,14 @@ function renderTasks() {
       const links = t.links || [];
       const matchesVideoId = links.some(l => l.videoId && l.videoId === searchVideoId);
       const matchesThumbId = links.some(l => l.thumbId && l.thumbId === searchThumbId);
-      if (!matchesTitle && !matchesVideoId && !matchesThumbId) return false;
+      // Link search: match the query as a substring against any link URL
+      // stored on the task (videoLink, thumbLink, or legacy url field).
+      const matchesLink = titleQ && links.some(l =>
+        (l.videoLink && l.videoLink.toLowerCase().includes(titleQ)) ||
+        (l.thumbLink && l.thumbLink.toLowerCase().includes(titleQ)) ||
+        (l.url && l.url.toLowerCase().includes(titleQ))
+      );
+      if (!matchesTitle && !matchesVideoId && !matchesThumbId && !matchesLink) return false;
     }
     if (rangeFrom !== null && rangeTo !== null) {
       const num = parseFloat(t.title);
