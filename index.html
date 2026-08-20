@@ -1718,6 +1718,39 @@ select option { background: var(--surface3); color: var(--ink); }
 @media (max-width:820px) {
   .tasks-list { grid-template-columns:1fr; }
 }
+
+/* Dual Account Mode toggle switch (Task Switcher panel) */
+.dual-mode-toggle {
+  width: 34px; height: 19px; border-radius: 99px; border: 1px solid var(--border2);
+  background: var(--surface3); cursor: pointer; position: relative; padding: 0; flex-shrink: 0;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.dual-mode-toggle-knob {
+  position: absolute; top: 1px; left: 1px; width: 15px; height: 15px; border-radius: 50%;
+  background: var(--ink3); transition: transform 0.15s ease, background 0.15s ease;
+}
+.dual-mode-toggle.dual-mode-on { background: var(--jt-light); border-color: var(--jt); }
+.dual-mode-toggle.dual-mode-on .dual-mode-toggle-knob { transform: translateX(15px); background: var(--jt); }
+
+/* Dual Account Mode columns — each column is its own vertical task list
+   with its own account + set selectors, sitting side by side. */
+.dual-task-col {
+  display: flex; flex-direction: column; gap: 8px;
+  background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm);
+  padding: 10px;
+}
+.dual-col-controls { display: flex; gap: 6px; }
+.dual-col-controls select {
+  flex: 1; min-width: 0; font-family: var(--mono); font-size: 11px; padding: 5px 6px;
+  border-radius: var(--radius-sm); border: 1px solid var(--border2); background: var(--surface3);
+  color: var(--ink); cursor: pointer; outline: none;
+}
+.dual-col-count { font-family: var(--mono); font-size: 10px; color: var(--ink3); }
+.dual-col-list { display: flex; flex-direction: column; gap: 10px; }
+.tasks-list.tasks-list-dual { grid-template-columns: 1fr 1fr; }
+@media (max-width:820px) {
+  .tasks-list-dual { grid-template-columns: 1fr !important; }
+}
 .task-card {
   position: relative;
   background:#12131d; border:1px solid var(--border2);
@@ -1766,6 +1799,26 @@ select option { background: var(--surface3); color: var(--ink); }
 .sr-date { font-family:var(--mono); font-size:10.5px; color:var(--ink3); font-weight:600; white-space:nowrap; }
 
 .sr-title { font-family:var(--sans); font-size:22px; font-weight:800; letter-spacing:-0.01em; line-height:1.3; margin-bottom:10px; color:var(--ink); }
+
+/* In-progress task card timer — large, high-contrast, ticking live */
+.task-card-timers { display:flex; flex-direction:column; gap:6px; margin-bottom:12px; }
+.task-card-timer-wrap {
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  background: linear-gradient(135deg, #ff6a00, #ff2d55);
+  border: 1px solid #ff8a3d;
+  border-radius: 10px;
+  padding: 8px 14px;
+  box-shadow: 0 0 18px rgba(255,90,30,0.45);
+}
+.task-card-timer-label {
+  font-family: var(--mono); font-size: 11.5px; font-weight: 700;
+  color: #fff; text-transform: uppercase; letter-spacing: 0.4px; opacity: 0.95;
+}
+.task-card-timer {
+  font-family: var(--mono); font-size: 26px; font-weight: 900;
+  color: #fff; letter-spacing: 1px; font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 12px rgba(255,255,255,0.6);
+}
 
 .sr-tags { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px; }
 .sr-tag { font-size:9.5px; font-weight:700; padding:2px 8px; border-radius:3px; border:1px solid; letter-spacing:0.2px; }
@@ -4129,6 +4182,17 @@ function resetTaskLoadMore() {
 }
 // taskSecondSort removed — merged into taskSort
 
+// ── Dual Account Mode (Task Manager) ──
+// When on, the task list splits into two independent columns, each with its
+// own account + set dropdown, so two accounts can be worked side-by-side
+// without flipping the shared switcher back and forth.
+let dualAccountMode = false;
+let dualCol = [
+  { accId: 'all', setId: 'all' },
+  { accId: 'all', setId: 'all' }
+];
+let dualLoadedCount = [TASKS_PER_PAGE, TASKS_PER_PAGE];
+
 // ── Task Search State ──
 window._taskTitleSearch = '';
 window._taskRangeFrom = null;
@@ -4946,41 +5010,15 @@ function requireAdminForTaskEdit() {
   return true;
 }
 
-function renderTasks() {
-  // Always show sort and direction bars (unified list, no archive tab)
-  const sortBar = document.getElementById('taskSortBar');
-  if (sortBar) sortBar.style.display = 'flex';
-  const sortDirBar = document.getElementById('taskSortDirBar');
-  if (sortDirBar) sortDirBar.style.display = 'flex';
-  // Sync dropdown values to state
-  const typeSel = document.getElementById('taskTypeFilterBar');
-  if (typeSel) typeSel.value = taskTypeFilter;
-  const sortSel = document.getElementById('taskSortSelect');
-  if (sortSel) sortSel.value = taskSort;
-  const dirSel = document.getElementById('taskSortDirSelect');
-  if (dirSel) dirSel.value = taskSortDir;
-  const todayCb2 = document.getElementById('typeBtnToday');
-  if (todayCb2) todayCb2.checked = taskTodayOnly;
-  const assignedCb = document.getElementById('typeBtnAssignedOnly');
-  if (assignedCb) assignedCb.checked = taskAssignedOnly;
-  const hideArchCb = document.getElementById('hideArchivedCb');
-  if (hideArchCb) hideArchCb.checked = hideArchived;
-  const hideErrCb = document.getElementById('hideErrorTaskCb');
-  if (hideErrCb) hideErrCb.checked = hideErrorTask;
-  renderTaskAccountFilterBar();
-  // Sync account dropdown value after population
-  const accSel = document.getElementById('taskAccountFilterBar');
-  if (accSel) accSel.value = taskAccountFilter;
-  // Sync tag filter button active states
-  ['fresh','today','quicky'].forEach(tag => {
-    const btn = document.getElementById('tagBtn' + tag.charAt(0).toUpperCase() + tag.slice(1));
-    if (btn) btn.classList.toggle('tag-filter-active', activeTagFilters.has(tag));
-  });
-
+// Builds the filtered + sorted task list for a given account/set combo.
+// Used both by the normal single list (taskAccountFilter/taskSetFilter) and
+// by each column in Dual Account Mode (its own accId/setId pair). All other
+// filters (search, type, tags, today/assigned-only, hide archived/errors,
+// sort) stay shared/global across both.
+function computeTaskList(accId, setId, exceptMode) {
   const todayStr = todayISO();
   const todayDayKey = todayStr; // same value — todayISO() already uses the 5pm cutoff
 
-  // Build base list: unified list (archived/error hidden by checkboxes) + all other filters
   let list = tasks.filter(t => {
     // Search filters (title search + range search) — apply to ALL tasks
     // (including archived) FIRST so search works on archived tasks too.
@@ -5023,8 +5061,8 @@ function renderTasks() {
     }
 
     // Set filter: only show tasks belonging to the selected Set (applies to ALL tasks, incl. archived/error)
-    if (typeof taskSetFilter !== 'undefined' && taskSetFilter !== 'all') {
-      const activeSet = (typeof taskSets !== 'undefined' ? taskSets : []).find(s => s.id === taskSetFilter);
+    if (setId && setId !== 'all') {
+      const activeSet = (typeof taskSets !== 'undefined' ? taskSets : []).find(s => s.id === setId);
       if (!activeSet || !(activeSet.taskIds || []).includes(t.id)) return false;
     }
     // Archived: hide if hideArchived is checked; archived tasks skip all other filters below
@@ -5042,9 +5080,9 @@ function renderTasks() {
       if (!hasRunning) return false;
     }
     // Account filter: support normal and "except" mode
-    if (taskAccountFilter !== 'all') {
-      const hasAcc = (t.assignments||[]).some(a => a.accountId === taskAccountFilter);
-      if (taskAccountFilterExcept ? hasAcc : !hasAcc) return false;
+    if (accId && accId !== 'all') {
+      const hasAcc = (t.assignments||[]).some(a => a.accountId === accId);
+      if (exceptMode ? hasAcc : !hasAcc) return false;
     }
     // Tag filter
     if (activeTagFilters.size > 0) {
@@ -5090,6 +5128,52 @@ function renderTasks() {
     return (b.createdAt||'').localeCompare(a.createdAt||'');
   });
 
+  return list;
+}
+
+function renderTasks() {
+  // Always show sort and direction bars (unified list, no archive tab)
+  const sortBar = document.getElementById('taskSortBar');
+  if (sortBar) sortBar.style.display = 'flex';
+  const sortDirBar = document.getElementById('taskSortDirBar');
+  if (sortDirBar) sortDirBar.style.display = 'flex';
+  // Sync dropdown values to state
+  const typeSel = document.getElementById('taskTypeFilterBar');
+  if (typeSel) typeSel.value = taskTypeFilter;
+  const sortSel = document.getElementById('taskSortSelect');
+  if (sortSel) sortSel.value = taskSort;
+  const dirSel = document.getElementById('taskSortDirSelect');
+  if (dirSel) dirSel.value = taskSortDir;
+  const todayCb2 = document.getElementById('typeBtnToday');
+  if (todayCb2) todayCb2.checked = taskTodayOnly;
+  const assignedCb = document.getElementById('typeBtnAssignedOnly');
+  if (assignedCb) assignedCb.checked = taskAssignedOnly;
+  const hideArchCb = document.getElementById('hideArchivedCb');
+  if (hideArchCb) hideArchCb.checked = hideArchived;
+  const hideErrCb = document.getElementById('hideErrorTaskCb');
+  if (hideErrCb) hideErrCb.checked = hideErrorTask;
+  renderTaskAccountFilterBar();
+  // Sync account dropdown value after population
+  const accSel = document.getElementById('taskAccountFilterBar');
+  if (accSel) accSel.value = taskAccountFilter;
+  // Sync tag filter button active states
+  ['fresh','today','quicky'].forEach(tag => {
+    const btn = document.getElementById('tagBtn' + tag.charAt(0).toUpperCase() + tag.slice(1));
+    if (btn) btn.classList.toggle('tag-filter-active', activeTagFilters.has(tag));
+  });
+
+  // Dual Account Mode: hand off to the two-column renderer and stop —
+  // the shared filters above (search/type/tags/sort) still apply to both
+  // columns, but account/set become per-column instead of global.
+  if (dualAccountMode) {
+    renderDualTasks();
+    return;
+  }
+
+  const list = computeTaskList(taskAccountFilter, taskSetFilter, taskAccountFilterExcept);
+  const todayStr = todayISO();
+  const todayDayKey = todayStr;
+
   // Task count chips — counts reflect the current filtered view
   const countChipEl = document.getElementById('taskCountChips');
   if (countChipEl) {
@@ -5115,8 +5199,11 @@ function renderTasks() {
       </div>`;
   }
 
+  const tasksListEl = document.getElementById('tasksList');
+  tasksListEl.classList.remove('tasks-list-dual');
+
   if (!list.length) {
-    document.getElementById('tasksList').innerHTML = `<div class="empty-state"><div class="es-icon">✦</div>No tasks found</div>`;
+    tasksListEl.innerHTML = `<div class="empty-state"><div class="es-icon">✦</div>No tasks found</div>`;
     return;
   }
 
@@ -5137,7 +5224,7 @@ function renderTasks() {
     }
   }
 
-  document.getElementById('tasksList').innerHTML = pinnedHtml + (() => {
+  tasksListEl.innerHTML = pinnedHtml + (() => {
     const visibleList = list.slice(0, taskLoadedCount);
     const cards = visibleList.map(task => renderTaskCard(task)).join('');
     const remaining = list.length - visibleList.length;
@@ -5152,6 +5239,82 @@ function renderTasks() {
       </div>` : '');
     return cards + loadMoreHtml;
   })();
+}
+
+// ── Dual Account Mode: two independent columns, each with its own
+// account + set dropdown, rendered side by side. ──
+window.toggleDualAccountMode = function(on) {
+  dualAccountMode = !!on;
+  const btn = document.getElementById('dualModeToggleBtn');
+  if (btn) btn.classList.toggle('dual-mode-on', dualAccountMode);
+  // Reset per-column pagination whenever the mode is flipped
+  dualLoadedCount = [TASKS_PER_PAGE, TASKS_PER_PAGE];
+  renderTasks();
+};
+
+window.setDualColAccount = function(i, val) {
+  dualCol[i].accId = val;
+  dualLoadedCount[i] = TASKS_PER_PAGE;
+  renderTasks();
+};
+
+window.setDualColSet = function(i, val) {
+  dualCol[i].setId = val;
+  dualLoadedCount[i] = TASKS_PER_PAGE;
+  renderTasks();
+};
+
+window.dualLoadMore = function(i) {
+  dualLoadedCount[i] += TASKS_PER_PAGE;
+  renderTasks();
+};
+
+function dualColSelectorsHtml(i) {
+  const col = dualCol[i];
+  const accOptions = ['<option value="all">All Accounts</option>',
+    ...accounts.filter(a => a.status !== 'dead' && !a.deleted).map(a => `<option value="${a.id}" ${a.id===col.accId?'selected':''}>${htmlEscape(a.name)}</option>`)
+  ].join('');
+  const setOptions = ['<option value="all">All Tasks</option>',
+    ...(typeof taskSets !== 'undefined' ? taskSets : []).map(s => `<option value="${s.id}" ${s.id===col.setId?'selected':''}>${htmlEscape(s.name)}</option>`)
+  ].join('');
+  return `
+    <div class="dual-col-controls">
+      <select onchange="setDualColAccount(${i}, this.value)" title="Account for this column">${accOptions}</select>
+      <select onchange="setDualColSet(${i}, this.value)" title="Set for this column">${setOptions}</select>
+    </div>`;
+}
+
+function renderDualTasks() {
+  const tasksListEl = document.getElementById('tasksList');
+  tasksListEl.classList.add('tasks-list-dual');
+
+  const countChipEl = document.getElementById('taskCountChips');
+  if (countChipEl) countChipEl.innerHTML = '';
+
+  const colsHtml = [0, 1].map(i => {
+    const col = dualCol[i];
+    const list = computeTaskList(col.accId, col.setId, false);
+    const visibleList = list.slice(0, dualLoadedCount[i] || TASKS_PER_PAGE);
+    const cards = visibleList.length
+      ? visibleList.map(task => renderTaskCard(task)).join('')
+      : `<div class="empty-state"><div class="es-icon">✦</div>No tasks found</div>`;
+    const remaining = list.length - visibleList.length;
+    const loadMoreHtml = remaining > 0 ? `
+      <div style="display:flex;align-items:center;justify-content:center;padding:14px 0 6px;">
+        <button onclick="dualLoadMore(${i})" style="padding:8px 20px;border-radius:8px;border:1px solid var(--border2);background:var(--jt-light);color:var(--jt);font-family:var(--mono);font-size:12px;font-weight:700;cursor:pointer;">
+          ↓ Load More (${remaining} more · ${list.length} total)
+        </button>
+      </div>` : '';
+    return `
+      <div class="dual-task-col">
+        ${dualColSelectorsHtml(i)}
+        <div class="dual-col-count">${list.length} task${list.length===1?'':'s'}</div>
+        <div class="dual-col-list">${cards}</div>
+        ${loadMoreHtml}
+      </div>`;
+  }).join('');
+
+  tasksListEl.innerHTML = colsHtml;
 }
 
 window.loadMoreTasks = function() {
@@ -5348,6 +5511,30 @@ function renderTaskCard(task) {
     return `<span class="sr-acc-chip${hasAccErr?' err':''}"><span class="sr-dot ${asgn.status}"></span>${acc?acc.name:'?'}${hasAccErr?' ⚠':''}</span>`;
   }).join('');
 
+  // In-progress timer(s) — large, high-contrast, ticking live for every
+  // assignment currently in the "assigned" (in-progress) state on this task.
+  function taskCardFmtElapsed(ms) {
+    const totalSec = Math.max(0, Math.floor(ms / 1000));
+    const h = Math.floor(totalSec / 3600);
+    const m = Math.floor((totalSec % 3600) / 60);
+    const s = totalSec % 60;
+    return (h > 0 ? h + ':' + String(m).padStart(2,'0') : String(m).padStart(2,'0')) + ':' + String(s).padStart(2,'0');
+  }
+  const inProgressAsgns = asgns.filter(a => a.status === 'assigned');
+  const timerHtml = (!hasError && inProgressAsgns.length) ? `
+    <div class="task-card-timers">
+      ${inProgressAsgns.map(a => {
+        const acc = accounts.find(x => x.id === a.accountId);
+        const startEpoch = a.assignedAt ? new Date(a.assignedAt).getTime() : Date.now();
+        const elapsed = taskCardFmtElapsed(Date.now() - startEpoch);
+        return `
+          <div class="task-card-timer-wrap">
+            <span class="task-card-timer-label">◷ ${acc ? htmlEscape(acc.name) : 'In Progress'}</span>
+            <span class="task-card-timer" data-start="${startEpoch}">${elapsed}</span>
+          </div>`;
+      }).join('')}
+    </div>` : '';
+
   // Links — purple accent chips for visibility against the rest of the card
   const linkChips = (task.links||[]).map((l,i)=>{
     const isLegacy = !l.searchKeyword && !l.topicName && !l.videoLink && !l.thumbLink && (l.label || l.url);
@@ -5391,6 +5578,7 @@ function renderTaskCard(task) {
         <span class="sr-date">${fmtDate(task.createdAt||'')}</span>
       </div>
       <div class="sr-title">${task.title}</div>
+      ${timerHtml}
       ${tagBadges ? `<div class="sr-tags">${tagBadges}</div>` : ''}
       ${errorBlock}
       ${!hasError ? `
@@ -5413,6 +5601,21 @@ function renderTaskCard(task) {
 function pointsVal(task) {
   return Math.round(parseFloat(task.defaultReward||0) * 1000);
 }
+
+// Global ticker for in-progress task-card timers (Task Manager list). Queries
+// the DOM every second rather than tracking per-card intervals, so it stays
+// correct across re-renders/pagination without leaking timers.
+setInterval(() => {
+  document.querySelectorAll('.task-card-timer[data-start]').forEach(el => {
+    const start = parseInt(el.dataset.start, 10);
+    if (!start) return;
+    const totalSec = Math.max(0, Math.floor((Date.now() - start) / 1000));
+    const h = Math.floor(totalSec / 3600);
+    const m = Math.floor((totalSec % 3600) / 60);
+    const s = totalSec % 60;
+    el.textContent = (h > 0 ? h + ':' + String(m).padStart(2,'0') : String(m).padStart(2,'0')) + ':' + String(s).padStart(2,'0');
+  });
+}, 1000);
 
 window.removeTaskImage = function(taskId) {
   const t = tasks.find(t => t.id === taskId); if (!t) return;
@@ -9880,6 +10083,12 @@ function setAcPanelVisibility(visible) {
 <div id="taskSwitcherPanel" class="ts-hidden">
   <div id="taskSwitcherHeader">
     <span>👤 Switcher</span>
+  </div>
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px;border-bottom:1px solid var(--border);">
+    <span style="font-family:var(--mono);font-size:11px;color:var(--ink2);">Dual Account Mode</span>
+    <button id="dualModeToggleBtn" class="dual-mode-toggle" onclick="toggleDualAccountMode(!dualAccountMode)" title="Show two columns, each filtered to its own account/set">
+      <span class="dual-mode-toggle-knob"></span>
+    </button>
   </div>
   <div id="taskSwitcherBody">
     <div id="taskSwitcherListItems"><div style="padding:16px;text-align:center;font-family:var(--mono);font-size:11px;color:var(--ink3);">No accounts yet</div></div>
