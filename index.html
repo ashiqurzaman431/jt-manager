@@ -1819,6 +1819,18 @@ select option { background: var(--surface3); color: var(--ink); }
   color: #fff; letter-spacing: 1px; font-variant-numeric: tabular-nums;
   text-shadow: 0 0 12px rgba(255,255,255,0.6);
 }
+.task-card-timer-clickable {
+  cursor: pointer; user-select: none; transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.task-card-timer-clickable:hover { transform: translateY(-1px); box-shadow: 0 0 22px rgba(255,90,30,0.65); }
+.task-card-timer-clickable:active { transform: translateY(0); }
+.task-card-timer-clickable.step-1 { background: linear-gradient(135deg, #7b5cff, #b03dff); border-color: #a06bff; box-shadow: 0 0 18px rgba(140,80,255,0.45); }
+.task-card-timer-clickable.step-2 { background: linear-gradient(135deg, #1a9c4a, #17b56b); border-color: #3fd17f; box-shadow: 0 0 18px rgba(30,190,110,0.45); }
+.task-card-timer-action {
+  font-family: var(--mono); font-size: 11px; font-weight: 800;
+  color: #fff; background: rgba(0,0,0,0.22); border-radius: 6px; padding: 4px 9px;
+  white-space: nowrap; letter-spacing: 0.3px;
+}
 
 .sr-tags { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px; }
 .sr-tag { font-size:9.5px; font-weight:700; padding:2px 8px; border-radius:3px; border:1px solid; letter-spacing:0.2px; }
@@ -5015,7 +5027,7 @@ function requireAdminForTaskEdit() {
 // by each column in Dual Account Mode (its own accId/setId pair). All other
 // filters (search, type, tags, today/assigned-only, hide archived/errors,
 // sort) stay shared/global across both.
-function computeTaskList(accId, setId, exceptMode) {
+function computeTaskList(accId, setId, exceptMode, hideCompletedForAcc) {
   const todayStr = todayISO();
   const todayDayKey = todayStr; // same value — todayISO() already uses the 5pm cutoff
 
@@ -5083,6 +5095,14 @@ function computeTaskList(accId, setId, exceptMode) {
     if (accId && accId !== 'all') {
       const hasAcc = (t.assignments||[]).some(a => a.accountId === accId);
       if (exceptMode ? hasAcc : !hasAcc) return false;
+      // Dual Account Mode: once a specific account is selected for a column
+      // (regardless of which Set / "All Tasks" is chosen), hide tasks that
+      // are already completed for that account — only not-yet-completed
+      // assignments should surface there.
+      if (hideCompletedForAcc) {
+        const asgnForAcc = (t.assignments||[]).find(a => a.accountId === accId);
+        if (asgnForAcc && (asgnForAcc.status === 'completed' || asgnForAcc.status === 'rewarded')) return false;
+      }
     }
     // Tag filter
     if (activeTagFilters.size > 0) {
@@ -5295,7 +5315,7 @@ function renderDualTasks() {
 
   const colsHtml = [0, 1].map(i => {
     const col = dualCol[i];
-    const list = computeTaskList(col.accId, col.setId, false);
+    const list = computeTaskList(col.accId, col.setId, false, true);
     const visibleList = list.slice(0, dualLoadedCount[i] || TASKS_PER_PAGE);
     const cards = visibleList.length
       ? visibleList.map(task => renderTaskCard(task)).join('')
@@ -5536,12 +5556,24 @@ function renderTaskCard(task) {
     <div class="task-card-timers">
       ${inProgressAsgns.map(a => {
         const acc = accounts.find(x => x.id === a.accountId);
-        const startEpoch = a.assignedAt ? new Date(a.assignedAt).getTime() : Date.now();
+        // Keep this in sync with the same flow state the Action Center uses,
+        // so clicking the timer here advances the same search → visited →
+        // completed pipeline (and vice versa).
+        acEnsureTimerStarted(a.id, a);
+        const startEpoch = acTimers[a.id] ? acTimers[a.id].startEpoch
+          : (a._acTimerStart || (a.assignedAt ? new Date(a.assignedAt).getTime() : Date.now()));
         const elapsed = taskCardFmtElapsed(Date.now() - startEpoch);
+        const step = acGetStep(a.id); // 0=assigned/search, 1=searched/visit, 2=visited/complete
+        const stepInfo = step === 0
+          ? { icon: '🔍', label: 'Search',   hint: 'Tap when search is done' }
+          : step === 1
+            ? { icon: '👁', label: 'Visited',  hint: 'Tap when you visited' }
+            : { icon: '✅', label: 'Complete', hint: 'Tap to mark completed' };
         return `
-          <div class="task-card-timer-wrap">
+          <div class="task-card-timer-wrap task-card-timer-clickable step-${step}" onclick="taskCardStepClick('${task.id}','${a.id}')" title="${stepInfo.hint}">
             <span class="task-card-timer-label">◷ ${acc ? htmlEscape(acc.name) : 'In Progress'}</span>
             <span class="task-card-timer" data-start="${startEpoch}">${elapsed}</span>
+            <span class="task-card-timer-action">${stepInfo.icon} ${stepInfo.label}</span>
           </div>`;
       }).join('')}
     </div>` : '';
@@ -9357,6 +9389,18 @@ function renderActionCenter() {
 }
 
 // ── AC Step handlers ──────────────────────────────────────────────────────
+
+// Shared dispatcher used by the clickable timer on task cards in the main
+// Tasks list — advances whichever step the flow is currently on (search →
+// visited → completed), reusing the exact same handlers/state as the
+// Action Center panel so both stay in sync.
+window.taskCardStepClick = function(taskId, asgnId) {
+  const step = acGetStep(asgnId);
+  if (step === 0) window.acStepSearch(taskId, asgnId);
+  else if (step === 1) window.acStepVisit(taskId, asgnId);
+  else window.acStepComplete(taskId, asgnId);
+  renderTasks();
+};
 
 window.acStepSearch = function(taskId, asgnId) {
   const task = tasks.find(t => t.id === taskId); if (!task) return;
