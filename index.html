@@ -1747,9 +1747,9 @@ select option { background: var(--surface3); color: var(--ink); }
 }
 .dual-col-count { font-family: var(--mono); font-size: 10px; color: var(--ink3); }
 .dual-col-list { display: flex; flex-direction: column; gap: 10px; }
-.tasks-list.tasks-list-dual { grid-template-columns: 1fr 1fr; }
+#tasksList.tasks-list-dual { grid-template-columns: 1fr 1fr; }
 @media (max-width:820px) {
-  .tasks-list-dual { grid-template-columns: 1fr !important; }
+  #tasksList.tasks-list-dual { grid-template-columns: 1fr; }
 }
 .task-card {
   position: relative;
@@ -5201,6 +5201,7 @@ function renderTasks() {
 
   const tasksListEl = document.getElementById('tasksList');
   tasksListEl.classList.remove('tasks-list-dual');
+  tasksListEl.style.gridTemplateColumns = '';
 
   if (!list.length) {
     tasksListEl.innerHTML = `<div class="empty-state"><div class="es-icon">✦</div>No tasks found</div>`;
@@ -5244,7 +5245,7 @@ function renderTasks() {
 // ── Dual Account Mode: two independent columns, each with its own
 // account + set dropdown, rendered side by side. ──
 window.toggleDualAccountMode = function(on) {
-  dualAccountMode = !!on;
+  dualAccountMode = (on === undefined) ? !dualAccountMode : !!on;
   const btn = document.getElementById('dualModeToggleBtn');
   if (btn) btn.classList.toggle('dual-mode-on', dualAccountMode);
   // Reset per-column pagination whenever the mode is flipped
@@ -5287,6 +5288,7 @@ function dualColSelectorsHtml(i) {
 function renderDualTasks() {
   const tasksListEl = document.getElementById('tasksList');
   tasksListEl.classList.add('tasks-list-dual');
+  tasksListEl.style.gridTemplateColumns = window.innerWidth <= 820 ? '1fr' : '1fr 1fr';
 
   const countChipEl = document.getElementById('taskCountChips');
   if (countChipEl) countChipEl.innerHTML = '';
@@ -5321,6 +5323,15 @@ window.loadMoreTasks = function() {
   taskLoadedCount += TASKS_PER_PAGE;
   renderTasks();
 };
+
+// Keep dual-mode column count in sync with viewport width (device rotation,
+// window resize across the 820px breakpoint) without a full re-render.
+window.addEventListener('resize', () => {
+  if (!dualAccountMode) return;
+  const tasksListEl = document.getElementById('tasksList');
+  if (!tasksListEl) return;
+  tasksListEl.style.gridTemplateColumns = window.innerWidth <= 820 ? '1fr' : '1fr 1fr';
+});
 
 // ─────────────────────────────────────────
 // TASK ERROR SYSTEM
@@ -10086,7 +10097,7 @@ function setAcPanelVisibility(visible) {
   </div>
   <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px;border-bottom:1px solid var(--border);">
     <span style="font-family:var(--mono);font-size:11px;color:var(--ink2);">Dual Account Mode</span>
-    <button id="dualModeToggleBtn" class="dual-mode-toggle" onclick="toggleDualAccountMode(!dualAccountMode)" title="Show two columns, each filtered to its own account/set">
+    <button id="dualModeToggleBtn" class="dual-mode-toggle" onclick="toggleDualAccountMode()" title="Show two columns, each filtered to its own account/set">
       <span class="dual-mode-toggle-knob"></span>
     </button>
   </div>
