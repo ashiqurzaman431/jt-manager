@@ -4212,6 +4212,14 @@ let dualCol = [
 ];
 let dualLoadedCount = [TASKS_PER_PAGE, TASKS_PER_PAGE];
 
+// In-memory cache of Drive-fetched thumbnails/previews, keyed by task id.
+// Populated the first time a placeholder slot is clicked and successfully
+// resolves a file from Drive. Re-renders (switching tabs, loading more
+// tasks, filtering, etc.) rebuild task cards from scratch, so without this
+// cache every re-render would forget the fetch and fall back to the
+// "Load Thumbnail" placeholder. Cleared only on a full page reload.
+const driveThumbCache = {};
+
 // ── Task Search State ──
 window._taskTitleSearch = '';
 window._taskRangeFrom = null;
@@ -5513,14 +5521,19 @@ function renderTaskCard(task) {
   // from Drive on demand. This replaces the old separate "View Thumbnails" /
   // "View Websites" button entirely.
   const showThumbSlot = !!(task.thumbnail || task.previewButton);
+  const cachedFileId = driveThumbCache[task.id];
   const thumbHtml = showThumbSlot
     ? (task.thumbnail
         ? `<div class="sr-thumb-wrap" data-task-id="${task.id}" data-revealed="0" data-kind="${isYT?'thumbnail':'preview'}" onclick="handleThumbClick(this)" title="Click to view, click again to open">
              <img src="${task.thumbnail}" alt="thumb" class="sr-thumb">
            </div>`
-        : `<div class="sr-thumb-wrap sr-thumb-placeholder" data-task-id="${task.id}" data-revealed="0" data-kind="${isYT?'thumbnail':'preview'}" onclick="handleThumbClick(this)" title="Load ${isYT?'thumbnail':'preview'} from Drive">
-             📥<br>Load<br>${isYT?'Thumbnail':'Preview'}
-           </div>`)
+        : cachedFileId
+          ? `<div class="sr-thumb-wrap" data-task-id="${task.id}" data-revealed="1" data-kind="${isYT?'thumbnail':'preview'}" onclick="handleThumbClick(this)" title="Click to open">
+               <img src="https://drive.google.com/thumbnail?id=${cachedFileId}&sz=w300" alt="thumb" class="sr-thumb">
+             </div>`
+          : `<div class="sr-thumb-wrap sr-thumb-placeholder" data-task-id="${task.id}" data-revealed="0" data-kind="${isYT?'thumbnail':'preview'}" onclick="handleThumbClick(this)" title="Load ${isYT?'thumbnail':'preview'} from Drive">
+               📥<br>Load<br>${isYT?'Thumbnail':'Preview'}
+             </div>`)
     : '';
 
   // Reward block — clicking anywhere on it opens the edit modal instantly
@@ -5756,6 +5769,7 @@ window.handleThumbClick = async function(el) {
 
     el.innerHTML = `<img src="https://drive.google.com/thumbnail?id=${data.fileId}&sz=w300" alt="thumb" class="sr-thumb">`;
     el.dataset.revealed = '1';
+    driveThumbCache[taskId] = data.fileId;
   } catch (err) {
     el.classList.add('sr-thumb-placeholder');
     el.innerHTML = `📥<br>Load<br>${kindLabel}`;
@@ -6125,6 +6139,30 @@ window.archiveTask = function(id) {
     renderTasks(); 
     markUnsaved(true); 
     toast('Task archived');
+  });
+};
+
+// Archives every not-yet-archived task in one go (from the +Task dock).
+window.archiveAllTasks = function() {
+  if (!requireAdminForTaskEdit()) return;
+  const toArchive = tasks.filter(t => !t.archived);
+  if (!toArchive.length) { toast('No tasks to archive'); return; }
+
+  const extraContent = document.getElementById('confirmExtraContent');
+  if (extraContent) extraContent.innerHTML = '';
+
+  openConfirm(`Archive all ${toArchive.length} task${toArchive.length===1?'':'s'}? They'll be hidden. Uncheck "📦 Hide archived" in the task filters to view archived tasks.`, () => {
+    pushUndo(`Archive all tasks (${toArchive.length})`);
+    toArchive.forEach(t => {
+      t.archiveCount = (t.archiveCount || 0) + 1;
+      t.archived = true;
+      t.archivedAt = now();
+      if (t.archiveCount >= 5) t.permanentArchive = true;
+    });
+    taskPage = 0;
+    renderTasks();
+    markUnsaved(true);
+    toast(`📦 Archived ${toArchive.length} task${toArchive.length===1?'':'s'}`);
   });
 };
 
@@ -10019,6 +10057,11 @@ function setAcPanelVisibility(visible) {
       <span>+</span> Add Task
     </div>
     <button id="taCollapseBtn" onclick="toggleTaskAddPanel()" title="Collapse">›</button>
+  </div>
+  <div style="padding:10px 14px 0;">
+    <button class="btn-secondary" style="width:100%;font-size:11.5px;padding:7px 10px;color:var(--red);border-color:var(--red-border);background:var(--red-light);" onclick="archiveAllTasks()" title="Archive every task that isn't already archived">
+      📦 Archive All Tasks
+    </button>
   </div>
   <div id="taSwitcher">
     <button class="ta-switch-btn active" id="taSwitchAdd" onclick="taShowTab('add')">+ Add New</button>
