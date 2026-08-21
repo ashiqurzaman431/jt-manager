@@ -217,18 +217,17 @@ html { scroll-behavior:smooth; color-scheme:dark; overflow-x:hidden; width:100%;
 * { scrollbar-width:none; -ms-overflow-style:none; }
 
 /* ── Glass surfaces: frosted-glass blur for major *singular* panels over the dark gradient body ──
-   NOTE: intentionally NOT applied to repeated list items (task-card, dash-card, ac-flow-card,
+   NOTE: intentionally NOT applied to repeated list items (task-card, dash-card,
    acc-active-task, history-item, slot, pinned-inprogress-banner) — backdrop-filter is GPU-heavy,
    and applying it to every card in a list of 20+ at once was the main cause of app-wide lag. */
 .login-card, .modal, .task-tabs, .task-add-panel, .panel-body,
 .acc-list-panel, .acc-detail-panel, .sess-section,
-#acPanel,
 .toast {
   -webkit-backdrop-filter: blur(18px) saturate(160%);
   backdrop-filter: blur(18px) saturate(160%);
 }
 /* Repeated card/list elements: solid surface instead of blur, same look, far cheaper to paint */
-.card, .dash-card, .earnings-card, .task-card, .ac-flow-card,
+.card, .dash-card, .earnings-card, .task-card,
 .acc-active-task, .history-item, #page-taskshot .history-item, #page-taskshot .slot,
 .pinned-inprogress-banner {
   background: var(--surface);
@@ -436,29 +435,7 @@ body {
 .page { display:none; }
 .page.active { display:block; }
 
-/* ── ACTION CENTER PANEL ── */
-#acPanel {
-  position: fixed;
-  top: 0; right: 0;
-  height: 100vh;
-  width: 300px;
-  max-width: 100vw;
-  background: var(--surface);
-  border-left: 1.5px solid var(--jt-border);
-  box-shadow: -4px 0 24px rgba(0,0,0,0.10);
-  z-index: 800;
-  display: flex;
-  flex-direction: column;
-  transform: translateX(100%);
-  transition: transform 0.25s cubic-bezier(0.4,0,0.2,1);
-}
-#acPanel.ac-open {
-  transform: translateX(0);
-}
-#acPanel.ac-hidden {
-  display: none;
-}
-/* Wrapper that stacks the AC and +Task collapsed tabs closely together, aligned as a group */
+/* Wrapper that stacks the collapsed dock tabs closely together, aligned as a group */
 #dockTabsWrap {
   position: fixed;
   right: 0;
@@ -500,97 +477,8 @@ body {
 }
 .task-side-label-line.set-line { color: var(--jt); }
 .task-side-label-line.acc-line:empty { display: none; }
-/* The collapsed tab badge sticking out from right edge */
-#acTab {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  background: var(--jt-grad);
-  color: #fff;
-  width: 28px;
-  padding: 14px 0 30px;
-  border-radius: 10px 0 0 10px;
-  cursor: pointer;
-  box-shadow: -2px 0 12px rgba(0,0,0,0.18);
-  transition: width 0.2s, background 0.15s;
-  writing-mode: vertical-rl;
-  font-family: var(--mono);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  user-select: none;
-}
-#acTab:hover { background: linear-gradient(135deg,#1976D2,#1565C0); }
-#acTab.ac-hidden { display: none; }
-#acTab.ac-panel-open { pointer-events: none; }
-#acTabCount {
-  position: absolute;
-  left: 50%;
-  bottom: 10px;
-  transform: translateX(-50%);
-  display: inline-block;
-  background: rgba(255,255,255,0.25);
-  border-radius: 99px;
-  padding: 2px 6px;
-  font-size: 10px;
-  font-weight: 700;
-  writing-mode: horizontal-tb;
-  min-width: 18px;
-  text-align: center;
-}
-/* Panel header */
-#acPanelHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 14px 14px 12px;
-  border-bottom: 1px solid var(--border);
-  flex-shrink: 0;
-  background: linear-gradient(135deg, rgba(154,158,166,0.10), rgba(154,147,184,0.06));
-}
-#acPanelTitle {
-  font-family: var(--mono);
-  font-size: 12.5px;
-  font-weight: 700;
-  color: var(--jt);
-  display: flex;
-  align-items: center;
-  gap: 7px;
-}
-#acPanelFlowCount {
-  font-family: var(--mono);
-  font-size: 10px;
-  background: var(--jt);
-  color: #fff;
-  border-radius: 99px;
-  padding: 2px 9px;
-}
-#acCollapseBtn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--jt);
-  font-size: 16px;
-  line-height: 1;
-  padding: 2px 4px;
-  border-radius: 6px;
-  transition: background 0.15s;
-}
-#acCollapseBtn:hover { background: var(--jt-border); }
-/* Panel body */
-#acPanelBody {
-  flex: 1;
-  overflow-y: auto;
-  padding: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
 
-/* ── ADD/BULK TASK PANEL (docked right, like AC) ── */
+/* ── ADD/BULK TASK PANEL (docked right) ── */
 #taPanel {
   position: fixed;
   top: 0; right: 0;
@@ -1323,222 +1211,6 @@ body {
 .ip-info-row:last-child { border-bottom: none; }
 .ip-info-label { color: var(--ink3); }
 .ip-info-val { color: var(--ink); font-weight: 600; text-align: right; }
-/* Flow card inside panel */
-.ac-flow-card {
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 10px 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-}
-.ac-flow-card-top {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.ac-flow-title {
-  font-size: 13px;
-  font-weight: 700;
-  font-family: var(--sans);
-  color: var(--ink);
-  flex: 1;
-  min-width: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  letter-spacing: -0.2px;
-}
-.ac-flow-meta {
-  font-family: var(--mono);
-  font-size: 10px;
-  color: var(--ink3);
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  flex-wrap: wrap;
-}
-.ac-flow-btn {
-  width: 100%;
-  font-family: var(--mono);
-  font-size: 11px;
-  font-weight: 600;
-  padding: 6px 0;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--jt-border);
-  background: var(--jt-light);
-  color: var(--jt);
-  cursor: pointer;
-  transition: all 0.15s;
-}
-.ac-flow-btn:hover { background: var(--jt); color: #fff; }
-
-/* AC Step buttons */
-.ac-step-btns { display: flex; flex-direction: column; gap: 5px; }
-.ac-step-btn {
-  width: 100%;
-  font-family: var(--mono);
-  font-size: 12px;
-  font-weight: 700;
-  padding: 9px 10px;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: all 0.15s;
-  border: 1.5px solid var(--border2);
-  background: var(--surface3);
-  color: var(--ink2);
-  text-align: left;
-  line-height: 1.3;
-}
-.ac-step-btn.active-step {
-  border-color: var(--amber);
-  background: var(--amber-light);
-  color: var(--amber);
-  box-shadow: 0 2px 8px rgba(203,161,90,0.18);
-  font-size: 13px;
-  animation: ac-pulse 1.6s ease-in-out infinite;
-}
-@keyframes ac-pulse {
-  0%,100% { box-shadow: 0 2px 8px rgba(203,161,90,0.18); }
-  50% { box-shadow: 0 2px 16px rgba(203,161,90,0.45); }
-}
-.ac-step-btn.active-step:hover {
-  background: var(--amber);
-  color: #fff;
-  animation: none;
-  box-shadow: 0 4px 14px rgba(203,161,90,0.4);
-}
-.ac-step-btn.done-step {
-  border-color: var(--green-border);
-  background: var(--green-light);
-  color: var(--green);
-  cursor: default;
-  font-size: 11px;
-  padding: 7px 10px;
-}
-.ac-step-btn.complete-step {
-  border-color: var(--jt);
-  background: var(--jt-light);
-  color: var(--jt);
-  font-size: 13px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.18);
-  animation: ac-pulse-blue 1.6s ease-in-out infinite;
-}
-@keyframes ac-pulse-blue {
-  0%,100% { box-shadow: 0 2px 8px rgba(0,0,0,0.18); }
-  50% { box-shadow: 0 2px 18px rgba(0,0,0,0.45); }
-}
-.ac-step-btn.complete-step:hover {
-  background: var(--jt);
-  color: #fff;
-  animation: none;
-  box-shadow: 0 4px 14px rgba(0,0,0,0.4);
-}
-.ac-step-btn:disabled:not(.done-step) {
-  opacity: 0.28;
-  cursor: not-allowed;
-}
-.ac-step-sub {
-  display: block;
-  font-size: 9.5px;
-  font-weight: 500;
-  opacity: 0.8;
-  margin-top: 2px;
-  letter-spacing: 0.2px;
-}
-
-/* AC Timer */
-.ac-timer {
-  font-family: var(--mono);
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--ink2);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 2px;
-  background: rgba(154,158,166,0.08);
-  border: 1px solid var(--jt-border);
-  border-radius: 6px;
-  padding: 10px 10px 12px;
-  margin: 2px 0 4px;
-}
-.ac-timer-label { color: var(--jt); font-size: 10px; font-weight: 600; }
-.ac-timer-val {
-  font-weight: 800;
-  color: #9a9ea6;
-  font-size: 2em;
-  line-height: 1.2;
-  letter-spacing: 0.5px;
-  font-variant-numeric: tabular-nums;
-  text-shadow: 0 0 16px rgba(154,158,166,0.5);
-}
-
-/* AC Media (thumbnail + links) */
-.ac-media-row {
-  display: flex;
-  gap: 8px;
-  align-items: flex-start;
-}
-.ac-thumb-wrap {
-  flex-shrink: 0;
-  cursor: zoom-in;
-  align-self: flex-start;
-}
-.ac-thumb-img {
-  width: 84px;
-  height: 47px;
-  object-fit: cover;
-  border-radius: 7px;
-  display: block;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.18);
-  border: 1px solid var(--border2);
-}
-.ac-links-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  flex: 1;
-  min-width: 0;
-  align-content: flex-start;
-}
-.ac-link-btn {
-  font-family: var(--mono);
-  font-size: 9.5px;
-  font-weight: 600;
-  color: var(--jt);
-  background: var(--jt-light);
-  border: 1px solid var(--jt-border);
-  border-radius: 99px;
-  padding: 2px 9px;
-  cursor: pointer;
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  transition: all 0.15s;
-}
-.ac-link-btn:hover { background: var(--jt); color: #fff; }
-
-/* Flow card enlarged */
-.ac-flow-card {
-  background: var(--surface2);
-  border: 1.5px solid var(--border2);
-  border-radius: 10px;
-  padding: 12px 12px 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  box-shadow: var(--shadow);
-}
-
-
 /* ── SECTION TITLE ── */
 .sec-title {
   font-family:var(--mono); font-size:10.5px; font-weight:600;
@@ -1821,6 +1493,7 @@ select option { background: var(--surface3); color: var(--ink); }
 /* In-progress task card timer — large, high-contrast, ticking live */
 .task-card-timers { display:flex; flex-direction:column; gap:6px; margin-bottom:12px; }
 .task-card-timer-wrap {
+  position: relative; overflow: hidden;
   display:flex; align-items:center; justify-content:space-between; gap:10px;
   background: linear-gradient(135deg, #ff6a00, #ff2d55);
   border: 1px solid #ff8a3d;
@@ -1828,6 +1501,7 @@ select option { background: var(--surface3); color: var(--ink); }
   padding: 8px 14px;
   box-shadow: 0 0 18px rgba(255,90,30,0.45);
 }
+.task-card-timer-wrap > * { position: relative; z-index: 1; }
 .task-card-timer-label {
   font-family: var(--mono); font-size: 11.5px; font-weight: 700;
   color: #fff; text-transform: uppercase; letter-spacing: 0.4px; opacity: 0.95;
@@ -1851,32 +1525,46 @@ select option { background: var(--surface3); color: var(--ink); }
   white-space: nowrap; letter-spacing: 0.3px;
 }
 
-/* ── Timer morph animations ──
-   1) Ticking clock: each digit that actually changes on a given second
-      flips/fades in on its own (odometer style) instead of the whole
-      string jump-cutting. 2) Step badge (Search → Visited → Complete):
-      the whole pill does a quick pop + color-morph, and its label/icon
-      crossfades in, only when the step genuinely changed. */
-.timer-char { display: inline-block; will-change: transform, opacity; }
-@keyframes timerCharMorph {
-  0%   { transform: translateY(-55%) scale(0.85); opacity: 0; filter: blur(2px); }
-  60%  { transform: translateY(8%) scale(1.05); opacity: 1; filter: blur(0); }
-  100% { transform: translateY(0) scale(1); opacity: 1; }
+/* ── Timer morph transitions ──
+   1) Ticking clock: each digit that changes rolls over like an odometer —
+      the old character slides up and out while the new one slides up into
+      place beneath it, inside the same 1-line-height window.
+   2) Step badge (Search → Visited → Complete): clicking it liquid-fills
+      from the tap point into the next step's color via an expanding
+      circular reveal, instead of a flat color swap. Only plays when the
+      step genuinely changed. */
+.timer-char {
+  display: inline-block; overflow: hidden;
+  height: 1em; line-height: 1em; vertical-align: top;
 }
-.timer-char-morph { animation: timerCharMorph 0.32s cubic-bezier(.34,1.56,.64,1); }
+.timer-char-track {
+  display: flex; flex-direction: column;
+  transition: transform 0.32s cubic-bezier(.22,1,.36,1);
+}
+.timer-char-track.timer-roll {
+  transform: translateY(-1em);
+}
+.timer-char-old, .timer-char-new { display: block; height: 1em; line-height: 1em; }
 
-@keyframes timerStepMorph {
-  0%   { transform: scale(0.88); filter: brightness(1.6) saturate(1.5); }
-  55%  { transform: scale(1.04); }
-  100% { transform: scale(1); filter: brightness(1) saturate(1); }
+.task-card-timer-wrap.step-1::before,
+.task-card-timer-wrap.step-2::before {
+  content: ''; position: absolute; inset: 0; z-index: 0;
+  clip-path: circle(150% at var(--morph-x, 50%) var(--morph-y, 50%));
 }
-.step-morphed { animation: timerStepMorph 0.45s cubic-bezier(.34,1.56,.64,1); }
+.task-card-timer-wrap.step-1::before { background: linear-gradient(135deg, #7b5cff, #b03dff); }
+.task-card-timer-wrap.step-2::before { background: linear-gradient(135deg, #1a9c4a, #17b56b); }
+.task-card-timer-wrap.step-morphed::before {
+  animation: timerMorphReveal 0.5s cubic-bezier(.65,0,.35,1);
+}
+@keyframes timerMorphReveal {
+  from { clip-path: circle(0% at var(--morph-x, 50%) var(--morph-y, 50%)); }
+  to   { clip-path: circle(150% at var(--morph-x, 50%) var(--morph-y, 50%)); }
+}
 @keyframes timerLabelMorph {
-  0%   { opacity: 0; transform: translateY(-6px) scale(0.9); }
-  100% { opacity: 1; transform: translateY(0) scale(1); }
+  0%   { opacity: 0; transform: translateY(-4px); }
+  100% { opacity: 1; transform: translateY(0); }
 }
-.step-morphed .task-card-timer-action { animation: timerLabelMorph 0.35s ease 0.08s both; }
-.step-morphed .task-card-timer-label  { animation: timerLabelMorph 0.35s ease both; }
+.step-morphed .task-card-timer-action { animation: timerLabelMorph 0.3s ease 0.15s both; }
 
 .sr-tags { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px; }
 .sr-tag { font-size:9.5px; font-weight:700; padding:2px 8px; border-radius:3px; border:1px solid; letter-spacing:0.2px; }
@@ -2852,8 +2540,6 @@ select option { background: var(--surface3); color: var(--ink); }
 
   </div>
 
-  <!-- ════════════════════════════ -->
-  <!-- PAGE: ACTION CENTER          -->
   <!-- ════════════════════════════ -->
   <!-- PAGE: ACCOUNT MANAGEMENT    -->
   <!-- ════════════════════════════ -->
@@ -4367,8 +4053,6 @@ function showPage(id) {
   }
   if (id === 'earnings') { populateEhAccountSelect(); renderEarningsHistory(); }
   if (id === 'taskshot') { tsRenderSlots(); }
-  // Action Center panel: only visible on Task Management tab
-  setAcPanelVisibility(id === 'tasks');
   // Add/Bulk Task panel: only visible on Task Management tab
   setTaPanelVisibility(id === 'tasks');
   // Accounts dock panel: only visible on Accounts tab
@@ -5070,7 +4754,7 @@ function countAsgns(task, status) {
 
 // Admin-only guard for task-DEFINITION changes (add/edit/delete/archive/
 // reprice a task). Deliberately does NOT cover assignment/status actions
-// (assignToAllActive, openAssignModal, changeTaskStatus, markActionComplete,
+// (assignToAllActive, openAssignModal, changeTaskStatus,
 // removeTaskFromAccount) — those are everyday per-account operations every
 // approved user needs, not task-definition edits. See the note in the
 // handoff doc about assignments currently living inside the same shared
@@ -5670,9 +5354,9 @@ function renderTaskCard(task, dualAccId) {
     <div class="task-card-timers">
       ${inProgressAsgns.map(a => {
         const acc = accounts.find(x => x.id === a.accountId);
-        // Keep this in sync with the same flow state the Action Center uses,
-        // so clicking the timer here advances the same search → visited →
-        // completed pipeline (and vice versa).
+        // Drives the shared search → visited → completed step engine
+        // (acGetStep/acStepSearch/acStepVisit/acStepComplete), so this
+        // timer and any other card for the same assignment stay in sync.
         acEnsureTimerStarted(a.id, a);
         const startEpoch = acTimers[a.id] ? acTimers[a.id].startEpoch
           : (a._acTimerStart || (a.assignedAt ? new Date(a.assignedAt).getTime() : Date.now()));
@@ -5689,8 +5373,10 @@ function renderTaskCard(task, dualAccId) {
         const prevStep = _timerStepSeen[a.id];
         const stepChanged = prevStep !== undefined && prevStep !== step;
         _timerStepSeen[a.id] = step;
+        const morphPos = _morphClickPos[a.id];
+        const morphStyle = (stepChanged && morphPos) ? ` style="--morph-x:${morphPos.x};--morph-y:${morphPos.y};"` : '';
         return `
-          <div class="task-card-timer-wrap task-card-timer-clickable step-${step}${stepChanged ? ' step-morphed' : ''}" onclick="taskCardStepClick('${task.id}','${a.id}')" title="${stepInfo.hint}">
+          <div class="task-card-timer-wrap task-card-timer-clickable step-${step}${stepChanged ? ' step-morphed' : ''}"${morphStyle} onclick="taskCardStepClick('${task.id}','${a.id}',event)" title="${stepInfo.hint}">
             <span class="task-card-timer-label">◷ ${acc ? htmlEscape(acc.name) : 'In Progress'}</span>
             <span class="task-card-timer" data-start="${startEpoch}">${timerCharsHtml(elapsed)}</span>
             <span class="task-card-timer-action">${stepInfo.icon} ${stepInfo.label}</span>
@@ -5787,9 +5473,11 @@ setInterval(() => {
   });
 }, 1000);
 
-// Odometer-style morph for the ticking timer: only the character(s) that
-// actually changed get a flip/fade animation each second — everything else
-// stays put instead of the whole string jump-cutting to the new value.
+// Odometer-style roll for the ticking timer: only the character(s) that
+// actually changed get a vertical roll-over each second — the old digit
+// slides up and out while the new one slides up into place beneath it,
+// clipped inside a 1-line-height window. Everything else stays put instead
+// of the whole string jump-cutting to the new value.
 function updateTimerCharsMorph(el, next) {
   const spans = el.querySelectorAll('.timer-char');
   if (spans.length !== next.length) {
@@ -5800,11 +5488,15 @@ function updateTimerCharsMorph(el, next) {
   }
   spans.forEach((span, i) => {
     const ch = next[i];
-    if (span.textContent === ch) return;
-    span.textContent = ch;
-    span.classList.remove('timer-char-morph');
-    void span.offsetWidth; // force reflow so the animation restarts every tick
-    span.classList.add('timer-char-morph');
+    const oldCh = span.dataset.ch !== undefined ? span.dataset.ch : span.textContent;
+    if (oldCh === ch) return;
+    span.dataset.ch = ch;
+    span.innerHTML = `<span class="timer-char-track"><span class="timer-char-old">${oldCh}</span><span class="timer-char-new">${ch}</span></span>`;
+    const track = span.firstElementChild;
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => track.classList.add('timer-roll'));
+    });
+    setTimeout(() => { span.textContent = ch; }, 340);
   });
 }
 
@@ -6403,7 +6095,6 @@ window.assignToAllActive = function(taskId) {
   taskPage = 0;
   renderTasks();
   if (selectedAccId) renderAccDetail(selectedAccId);
-  renderActionCenter();
   markUnsaved(true);
   toast(`Assigned to ${eligible.length} account${eligible.length>1?'s':''}`);
 };
@@ -6717,7 +6408,6 @@ function _doAssign(taskId, accId, customReward) {
   taskPage = 0;
   renderTasks();
   if (selectedAccId) renderAccDetail(selectedAccId);
-  renderActionCenter();
   markUnsaved(true);
   toast('Task assigned → ' + accCheck.name);
 }
@@ -7418,32 +7108,11 @@ window.confirmStatusNoteModal = function() {
   taskPage = 0;
   renderTasks();
   renderDashboard();
-  renderActionCenter();
   toast(`Status → ${newStatus}`);
 };
 window.cancelStatusNoteModal = function() {
   pendingStatusChange = null;
   closeModal('statusNoteModal');
-};
-
-// Action Center: mark completed directly, no note modal
-window.markActionComplete = function(taskId, asgnId) {
-  const task = tasks.find(t => t.id===taskId); if(!task) return;
-  const asgn = (task.assignments||[]).find(a => a.id===asgnId); if(!asgn) return;
-  pushUndo(`Status → completed (${task.title})`);
-  asgn.status = 'completed';
-  asgn.completedAt = now();
-  // Stop the Action Center timer/beep for this flow, it's no longer "assigned"
-  acStopTimer(asgnId);
-  delete acFlowStep[asgnId];
-  delete acStepTimes[asgnId];
-  if (selectedAccId) renderAccDetail(selectedAccId);
-  taskPage = 0;
-  renderTasks();
-  renderDashboard();
-  renderActionCenter();
-  markUnsaved(true);
-  toast('Status → completed');
 };
 
 window.openTaskDetailModal = function(taskId, asgnId) {
@@ -7485,7 +7154,6 @@ window.removeTaskFromAccount = function(taskId, asgnId) {
   renderAccDetail(selectedAccId);
   taskPage = 0;
   renderTasks();
-  renderActionCenter();
   markUnsaved(true);
   toast('Task removed from account');
 };
@@ -7536,7 +7204,7 @@ window.bulkUpdateStatus = function(accId, newStatus) {
     const asgn = (task.assignments||[]).find(a => a.id===asgnId); if(!asgn) return;
     if (newStatus==='completed' && asgn.status==='assigned') {
       asgn.status='completed'; asgn.completedAt=now();
-      // Stop the Action Center timer/beep for this flow, it's no longer "assigned"
+      // Stop the timer/beep for this flow, it's no longer "assigned"
       acStopTimer(asgnId);
       delete acFlowStep[asgnId];
       delete acStepTimes[asgnId];
@@ -8253,7 +7921,6 @@ function continueAsGuest() {
     renderDashboard();
     renderTasks();
     renderAccList();
-    renderActionCenter();
     toast(tasks.length
       ? `Guest mode — showing ${tasks.length} demo task(s), read-only`
       : 'Guest mode activated — no data will be saved');
@@ -8365,7 +8032,6 @@ function clearPersonalAppState() {
   renderDashboard();
   renderAccList();
   renderTasks();
-  renderActionCenter();
   renderAuditLog();
 }
 
@@ -8520,7 +8186,6 @@ async function loadFromFirebase() {
         }
         renderTasks();
         renderDashboard();
-        renderActionCenter();
       });
     }
   } catch (e) {
@@ -9389,22 +9054,12 @@ updateUndoBtn();
 // BUG REPORT SYSTEM
 // ─────────────────────────────────────────
 // ─────────────────────────────────────────
-// ACTION CENTER PANEL
+// IN-PROGRESS TASK TIMER / STEP ENGINE
+// (search → visited → complete flow + beep alerts, driving the task-card timer)
 // ─────────────────────────────────────────
 // ── AC Timer helpers ──────────────────────────────────────────────────────
 // acTimers: { [asgnId]: { intervalId, startEpoch } }
 const acTimers = {};
-
-function acStartTimer(asgnId) {
-  if (acTimers[asgnId]) return; // already running
-  const startEpoch = Date.now();
-  const intervalId = setInterval(() => {
-    const el = document.getElementById('ac-timer-' + asgnId);
-    if (el) el.textContent = acFmtElapsed(Date.now() - startEpoch);
-    acCheckBeep(asgnId, startEpoch);
-  }, 1000);
-  acTimers[asgnId] = { intervalId, startEpoch };
-}
 
 function acStopTimer(asgnId) {
   if (acTimers[asgnId]) {
@@ -9505,142 +9160,30 @@ function acEnsureTimerStarted(asgnId, asgn) {
       markUnsaved(true);
     }
     const intervalId = setInterval(() => {
-      const el = document.getElementById('ac-timer-' + asgnId);
-      if (el) el.textContent = acFmtElapsed(Date.now() - startEpoch);
       acCheckBeep(asgnId, startEpoch);
     }, 1000);
     acTimers[asgnId] = { intervalId, startEpoch };
   }
 }
 
-function renderActionCenter() {
-  const bodyEl     = document.getElementById('acPanelBody');
-  const countEl    = document.getElementById('acPanelFlowCount');
-  const tabCountEl = document.getElementById('acTabCount');
-  if (!bodyEl) return;
-
-  // Gather all assigned-status assignments, oldest first
-  const flows = [];
-  tasks.forEach(task => {
-    (task.assignments || []).forEach(asgn => {
-      if (asgn.status === 'assigned') {
-        const acc = accounts.find(a => a.id === asgn.accountId);
-        if (acc) flows.push({ task, asgn, acc });
-      }
-    });
-  });
-  flows.sort((a, b) => (a.asgn.assignedAt || '').localeCompare(b.asgn.assignedAt || ''));
-
-  const n = flows.length;
-  if (countEl)    countEl.textContent    = n + ' flow' + (n !== 1 ? 's' : '');
-  if (tabCountEl) tabCountEl.textContent = n;
-
-  if (!n) {
-    bodyEl.innerHTML = `
-      <div style="text-align:center;padding:32px 10px;">
-        <div style="font-size:26px;margin-bottom:10px;">✅</div>
-        <div style="font-family:var(--mono);font-size:12px;font-weight:600;color:var(--ink2);margin-bottom:5px;">No active flows</div>
-        <div style="font-family:var(--mono);font-size:10.5px;color:var(--ink3);line-height:1.5;">Assign tasks to accounts to see flows here.</div>
-      </div>`;
-    return;
-  }
-
-  bodyEl.innerHTML = flows.map(({ task, asgn, acc }) => {
-    const typeBadge = task.type === 'youtube'
-      ? `<span style="font-family:var(--mono);font-size:8.5px;font-weight:800;color:#fff;background:#c0392b;border-radius:3px;padding:1px 6px;">YT</span>`
-      : `<span style="font-family:var(--mono);font-size:8.5px;font-weight:800;color:#fff;background:#1a7a3c;border-radius:3px;padding:1px 6px;">G</span>`;
-    const accFlag      = acc.name.match(/^(\p{Emoji_Presentation}|\p{Extended_Pictographic})/u)?.[0] || '';
-    const accNameClean = accFlag ? acc.name.slice(accFlag.length).trim() : acc.name;
-    const rewardStr    = asgn.reward != null ? fmtUSDT(asgn.reward) : (task.defaultReward != null ? fmtUSDT(task.defaultReward) : '—');
-    const step = acGetStep(asgn.id); // 0=assigned, 1=searched, 2=visited
-
-    // Ensure timer is running for this flow
-    acEnsureTimerStarted(asgn.id, asgn);
-
-    // Build the 3-step buttons based on current step
-    const times = acStepTimes[asgn.id] || {};
-    const timerStart = acTimers[asgn.id] ? acTimers[asgn.id].startEpoch : (asgn._acTimerStart || Date.now());
-
-    // Done-step sub-labels showing when clicked and halt
-    const searchDoneSub = times.searchedEpoch
-      ? `✓ at ${acFmtElapsed(times.searchedEpoch - timerStart)} · halt ${acFmtElapsed(times.searchHalt||0)}`
-      : '✓ searched';
-    const visitDoneSub = times.visitedEpoch
-      ? `✓ at ${acFmtElapsed(times.visitedEpoch - timerStart)} · halt ${acFmtElapsed(times.visitHalt||0)}`
-      : '✓ visited';
-
-    const searchBtn = step === 0
-      ? `<button class="ac-step-btn active-step" onclick="acStepSearch('${task.id}','${asgn.id}')">🔍 Search<span class="ac-step-sub">click when search is done</span></button>`
-      : `<button class="ac-step-btn done-step" disabled>✓ Searched<span class="ac-step-sub">${searchDoneSub}</span></button>`;
-
-    const visitBtn = step < 1
-      ? `<button class="ac-step-btn" disabled>👁 Visited</button>`
-      : step === 1
-        ? `<button class="ac-step-btn active-step" onclick="acStepVisit('${task.id}','${asgn.id}')">👁 Visited<span class="ac-step-sub">click when you visited</span></button>`
-        : `<button class="ac-step-btn done-step" disabled>✓ Visited<span class="ac-step-sub">${visitDoneSub}</span></button>`;
-
-    const completeBtn = step < 2
-      ? `<button class="ac-step-btn" disabled>→ Completed</button>`
-      : `<button class="ac-step-btn complete-step" onclick="acStepComplete('${task.id}','${asgn.id}')">→ Completed<span class="ac-step-sub">finish and close flow</span></button>`;
-
-    // Thumbnail + links row (shown when the task has either)
-    const isYT = task.type === 'youtube';
-    const acThumbHtml = task.thumbnail
-      ? `<div class="ac-thumb-wrap" onclick="openLightbox('${task.id}')" title="Click to expand">
-           <img src="${task.thumbnail}" alt="thumb" class="ac-thumb-img">
-         </div>` : '';
-    const acLinkBtns = (task.links||[]).map((l,i) => `<button class="ac-link-btn" onclick="copyLink('${task.id}',${i})" title="${l.url}">📋 ${l.label||l.url}</button>`).join('');
-    const acViewBtn = (task.previewButton && !task.archived)
-      ? `<button class="ac-link-btn" style="color:var(--amber);background:var(--amber-light);border-color:var(--amber-border);" onclick="openTaskMediaModal('${task.id}')" title="${isYT ? 'View thumbnails' : 'View websites'}">${isYT ? '🖼 View Thumbnails' : '🌐 View Websites'}</button>` : '';
-    const acLinksRow = (acLinkBtns || acViewBtn) ? `<div class="ac-links-row">${acLinkBtns}${acViewBtn}</div>` : '';
-    const acMediaHtml = (acThumbHtml || acLinksRow)
-      ? `<div class="ac-media-row">${acThumbHtml}${acLinksRow}</div>` : '';
-
-    return `
-      <div class="ac-flow-card">
-        <div class="ac-flow-card-top">
-          ${typeBadge}
-          <div class="ac-flow-title" title="${task.title}">${task.title}</div>
-        </div>
-        <div class="ac-flow-meta">
-          <span style="font-size:13px;font-weight:700;color:var(--ink);">${accFlag} ${accNameClean}</span>
-          <span>·</span>
-          <span style="color:var(--green);font-weight:600;">${rewardStr}</span>
-        </div>
-        <div class="ac-flow-meta" style="margin-top:3px;gap:6px;">
-          ${(() => {
-            const sd = sessGetData(acc.id);
-            const activeSess = sd.activeSess;
-            if (!activeSess) return `<span style="font-family:var(--mono);font-size:9.9px;color:var(--ink3);">NO SESSION</span>`;
-            const type = activeSess.type;
-            const badge = `<span class="sess-badge ${type.toLowerCase()}" style="font-size:9px;">${type}</span>`;
-            if (type === 'LIMITED') {
-              return badge + `<span style="font-family:var(--mono);font-size:10px;color:var(--green);font-weight:700;">${activeSess.completed}/${activeSess.target}</span>`;
-            }
-            return badge + (activeSess.completed > 0 ? `<span style="font-family:var(--mono);font-size:10px;color:var(--ink3);">${activeSess.completed} done</span>` : '');
-          })()}
-        </div>
-        ${acMediaHtml}
-        <div class="ac-timer">
-          <span class="ac-timer-label">⏱ ELAPSED</span>
-          <span class="ac-timer-val" id="ac-timer-${asgn.id}">00:00</span>
-        </div>
-        <div class="ac-step-btns">
-          ${searchBtn}
-          ${visitBtn}
-          ${completeBtn}
-        </div>
-      </div>`;
-  }).join('');
-}
-
 // ── AC Step handlers ──────────────────────────────────────────────────────
+
+// Remembers where on the timer pill the user last clicked, per assignment,
+// as percentages — used to anchor the step-morph circular reveal at the
+// actual tap point instead of always expanding from the center.
+const _morphClickPos = {};
 
 // Shared dispatcher used by the clickable timer on task cards in the main
 // Tasks list — advances whichever step the flow is currently on (search →
-// visited → completed), reusing the exact same handlers/state as the
-// Action Center panel so both stay in sync.
-window.taskCardStepClick = function(taskId, asgnId) {
+// visited → completed) using the shared acStepSearch/Visit/Complete handlers.
+window.taskCardStepClick = function(taskId, asgnId, evt) {
+  if (evt && evt.currentTarget) {
+    const r = evt.currentTarget.getBoundingClientRect();
+    _morphClickPos[asgnId] = {
+      x: r.width  ? ((evt.clientX - r.left) / r.width  * 100).toFixed(1) + '%' : '50%',
+      y: r.height ? ((evt.clientY - r.top)  / r.height * 100).toFixed(1) + '%' : '50%'
+    };
+  }
   const step = acGetStep(asgnId);
   if (step === 0) window.acStepSearch(taskId, asgnId);
   else if (step === 1) window.acStepVisit(taskId, asgnId);
@@ -9669,7 +9212,6 @@ window.acStepSearch = function(taskId, asgnId) {
   acAppendRec(asgn, `TaskRec${String(recNum).padStart(2,'0')}: searched button clicked at ${elapsedFmt}, hault ${haltFmt}`);
 
   acFlowStep[asgnId] = 1;
-  renderActionCenter();
   if (selectedAccId) renderAccDetail(selectedAccId);
   markUnsaved(true);
   toast('🔍 Search recorded');
@@ -9695,7 +9237,6 @@ window.acStepVisit = function(taskId, asgnId) {
   acAppendRec(asgn, `TaskRec${String(recNum).padStart(2,'0')}: visited at ${elapsedFmt}, hault ${haltFmt}`);
 
   acFlowStep[asgnId] = 2;
-  renderActionCenter();
   if (selectedAccId) renderAccDetail(selectedAccId);
   markUnsaved(true);
   toast('👁 Visit recorded');
@@ -9731,7 +9272,6 @@ window.acStepComplete = function(taskId, asgnId) {
   taskPage = 0;
   renderTasks();
   renderDashboard();
-  renderActionCenter();
   markUnsaved(true);
   toast('✅ Flow completed');
 };
@@ -10035,9 +9575,6 @@ renderDashboard();
 renderAccList();
 renderTasks();
 renderArchiveTasksBar();
-renderActionCenter();
-// Sync AC panel visibility with whichever page is active on load
-setAcPanelVisibility(document.getElementById('page-tasks') && document.getElementById('page-tasks').classList.contains('active'));
 setTaPanelVisibility(document.getElementById('page-tasks') && document.getElementById('page-tasks').classList.contains('active'));
 if (typeof setSetsDockVisibility === 'function') setSetsDockVisibility(document.getElementById('page-tasks') && document.getElementById('page-tasks').classList.contains('active'));
 renderAuditLog();
@@ -10146,15 +9683,11 @@ document.addEventListener('paste', function(e) {
   <span class="task-side-label-line acc-line" id="taskSideAccName"></span>
 </div>
 
-<!-- ── ACTION CENTER PANEL (fixed, right-docked) ── -->
+<!-- ── DOCK TABS (fixed, right-docked) ── -->
 <div id="dockTabsWrap">
   <div id="setsDockTab" class="sets-dock-hidden" onclick="toggleSetsDock()">
     🗂 Sets
     <span id="setsDockTabCount">0</span>
-  </div>
-  <div id="acTab" class="ac-hidden" onclick="toggleActionCenter()">
-    ⚡ Action Center
-    <span id="acTabCount">0</span>
   </div>
   <div id="taTab" class="ta-hidden" onclick="toggleTaskAddPanel()">
     + TASK
@@ -10173,72 +9706,6 @@ document.addEventListener('paste', function(e) {
     🌐 IP Checker
   </div>
 </div>
-
-<div id="acPanel" class="ac-hidden">
-  <div id="acPanelHeader">
-    <div id="acPanelTitle">
-      <span>⚡</span> Action Center
-      <span id="acPanelFlowCount">0 flows</span>
-    </div>
-    <button id="acCollapseBtn" onclick="toggleActionCenter()" title="Collapse">›</button>
-  </div>
-  <div id="acPanelBody">
-      <div style="text-align:center;padding:32px 10px;">
-        <div style="font-size:26px;margin-bottom:10px;">✅</div>
-        <div style="font-family:var(--mono);font-size:12px;font-weight:600;color:var(--ink2);margin-bottom:5px;">No active flows</div>
-        <div style="font-family:var(--mono);font-size:10.5px;color:var(--ink3);line-height:1.5;">Assign tasks to accounts to see flows here.</div>
-      </div></div>
-</div>
-
-<script>
-// ── ACTION CENTER PANEL LOGIC ──────────────────────────────────────────────
-let _acOpen = false;
-
-window.toggleActionCenter = function() {
-  _acOpen = !_acOpen;
-  const panel = document.getElementById('acPanel');
-  const tab   = document.getElementById('acTab');
-  if (_acOpen) {
-    if (typeof _taOpen !== 'undefined' && _taOpen && typeof window.toggleTaskAddPanel === 'function') {
-      window.toggleTaskAddPanel();
-    }
-    if (typeof _accDockOpen !== 'undefined' && _accDockOpen && typeof window.toggleAccDock === 'function') {
-      window.toggleAccDock();
-    }
-    if (typeof _payDockOpen !== 'undefined' && _payDockOpen && typeof window.togglePayDock === 'function') {
-      window.togglePayDock();
-    }
-    if (typeof _tsOpen !== 'undefined' && _tsOpen && typeof window.toggleTaskSwitcher === 'function') {
-      window.toggleTaskSwitcher();
-    }
-    if (typeof _setsDockOpen !== 'undefined' && _setsDockOpen && typeof window.toggleSetsDock === 'function') {
-      window.toggleSetsDock();
-    }
-    panel.classList.add('ac-open');
-    tab.classList.add('ac-panel-open');
-  } else {
-    panel.classList.remove('ac-open');
-    tab.classList.remove('ac-panel-open');
-  }
-};
-
-function setAcPanelVisibility(visible) {
-  const panel = document.getElementById('acPanel');
-  const tab   = document.getElementById('acTab');
-  if (!panel || !tab) return;
-  if (visible) {
-    panel.classList.remove('ac-hidden');
-    tab.classList.remove('ac-hidden');
-    tab.classList.toggle('ac-panel-open', _acOpen);
-  } else {
-    panel.classList.add('ac-hidden');
-    tab.classList.add('ac-hidden');
-    _acOpen = false;
-    panel.classList.remove('ac-open');
-    tab.classList.remove('ac-panel-open');
-  }
-}
-</script>
 
 <!-- ── ADD/BULK TASK PANEL (fixed, right-docked) ── -->
 <div id="taPanel" class="ta-hidden">
@@ -10521,7 +9988,6 @@ window.toggleSetsDock = function() {
   const panel = document.getElementById('setsDockPanel');
   const tab   = document.getElementById('setsDockTab');
   if (_setsDockOpen) {
-    if (typeof _acOpen !== 'undefined' && _acOpen && typeof window.toggleActionCenter === 'function') window.toggleActionCenter();
     if (typeof _taOpen !== 'undefined' && _taOpen && typeof window.toggleTaskAddPanel === 'function') window.toggleTaskAddPanel();
     if (typeof _accDockOpen !== 'undefined' && _accDockOpen && typeof window.toggleAccDock === 'function') window.toggleAccDock();
     if (typeof _payDockOpen !== 'undefined' && _payDockOpen && typeof window.togglePayDock === 'function') window.togglePayDock();
@@ -10690,9 +10156,6 @@ window.toggleAccDock = function() {
   const panel = document.getElementById('accDockPanel');
   const tab   = document.getElementById('accDockTab');
   if (_accDockOpen) {
-    if (typeof _acOpen !== 'undefined' && _acOpen && typeof window.toggleActionCenter === 'function') {
-      window.toggleActionCenter();
-    }
     if (typeof _taOpen !== 'undefined' && _taOpen && typeof window.toggleTaskAddPanel === 'function') {
       window.toggleTaskAddPanel();
     }
@@ -10754,9 +10217,6 @@ window.toggleTaskSwitcher = function() {
   const panel = document.getElementById('taskSwitcherPanel');
   const tab   = document.getElementById('taskSwitcherTab');
   if (_tsOpen) {
-    if (typeof _acOpen !== 'undefined' && _acOpen && typeof window.toggleActionCenter === 'function') {
-      window.toggleActionCenter();
-    }
     if (typeof _taOpen !== 'undefined' && _taOpen && typeof window.toggleTaskAddPanel === 'function') {
       window.toggleTaskAddPanel();
     }
@@ -10837,7 +10297,6 @@ function setupDockHover(tabId, panelId, hiddenClass, getOpen, toggleFn) {
 
 setupDockHover('taskSwitcherTab', 'taskSwitcherPanel', 'ts-hidden', () => _tsOpen, () => window.toggleTaskSwitcher());
 setupDockHover('setsDockTab', 'setsDockPanel', 'sets-dock-hidden', () => _setsDockOpen, () => window.toggleSetsDock());
-setupDockHover('acTab', 'acPanel', 'ac-hidden', () => _acOpen, () => window.toggleActionCenter());
 setupDockHover('accDockTab', 'accDockPanel', 'acc-dock-hidden', () => _accDockOpen, () => window.toggleAccDock());
 
 // ── PAYOUT SETTINGS DOCK PANEL LOGIC ──────────────────────────────────────
@@ -10851,9 +10310,6 @@ window.togglePayDock = function() {
   const panel = document.getElementById('payDockPanel');
   const tab   = document.getElementById('payDockTab');
   if (_payDockOpen) {
-    if (typeof _acOpen !== 'undefined' && _acOpen && typeof window.toggleActionCenter === 'function') {
-      window.toggleActionCenter();
-    }
     if (typeof _taOpen !== 'undefined' && _taOpen && typeof window.toggleTaskAddPanel === 'function') {
       window.toggleTaskAddPanel();
     }
@@ -10946,9 +10402,6 @@ window.toggleTaskAddPanel = function() {
   const panel = document.getElementById('taPanel');
   const tab   = document.getElementById('taTab');
   if (_taOpen) {
-    if (typeof _acOpen !== 'undefined' && _acOpen && typeof window.toggleActionCenter === 'function') {
-      window.toggleActionCenter();
-    }
     if (typeof _accDockOpen !== 'undefined' && _accDockOpen && typeof window.toggleAccDock === 'function') {
       window.toggleAccDock();
     }
@@ -11006,8 +10459,7 @@ window.taShowTab = function(which) {
 };
 
 // ── Click outside either docked panel closes it ──────────────────────────
-// NOTE: some in-panel buttons (e.g. Action Center's Search/Visited/Completed
-// step buttons) re-render their container's innerHTML on click, which detaches
+// NOTE: some in-panel buttons re-render their container's innerHTML on click, which detaches
 // the clicked element from the DOM *before* this document-level listener runs.
 // A detached node fails el.contains(e.target) even though the click genuinely
 // happened inside the panel. e.composedPath() is captured at dispatch time and
@@ -11021,8 +10473,6 @@ function _pathContains(e, el) {
 }
 
 document.addEventListener('click', function(e) {
-  const acPanel = document.getElementById('acPanel');
-  const acTab   = document.getElementById('acTab');
   const taPanel = document.getElementById('taPanel');
   const taTab   = document.getElementById('taTab');
   const accDockPanel = document.getElementById('accDockPanel');
@@ -11039,10 +10489,6 @@ document.addEventListener('click', function(e) {
   if (typeof _setsDockOpen !== 'undefined' && _setsDockOpen && setsPanel && setsTab &&
       !_pathContains(e, setsPanel) && !_pathContains(e, setsTab)) {
     window.toggleSetsDock();
-  }
-  if (typeof _acOpen !== 'undefined' && _acOpen && acPanel && acTab &&
-      !_pathContains(e, acPanel) && !_pathContains(e, acTab)) {
-    window.toggleActionCenter();
   }
   if (typeof _taOpen !== 'undefined' && _taOpen && taPanel && taTab &&
       !_pathContains(e, taPanel) && !_pathContains(e, taTab)) {
