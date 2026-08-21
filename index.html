@@ -1739,12 +1739,19 @@ select option { background: var(--surface3); color: var(--ink); }
   background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm);
   padding: 10px;
 }
-.dual-col-controls { display: flex; gap: 6px; }
+.dual-col-controls { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
 .dual-col-controls select {
   flex: 1; min-width: 0; font-family: var(--mono); font-size: 11px; padding: 5px 6px;
   border-radius: var(--radius-sm); border: 1px solid var(--border2); background: var(--surface3);
   color: var(--ink); cursor: pointer; outline: none;
 }
+.dual-col-except {
+  display: flex; align-items: center; gap: 5px; flex-shrink: 0;
+  font-family: var(--mono); font-size: 10.5px; font-weight: 700; color: var(--ink2);
+  background: var(--surface3); border: 1px solid var(--border2); border-radius: var(--radius-sm);
+  padding: 5px 8px; cursor: pointer; user-select: none;
+}
+.dual-col-except input[type="checkbox"] { cursor: pointer; accent-color: var(--jt); margin: 0; }
 .dual-col-count { font-family: var(--mono); font-size: 10px; color: var(--ink3); }
 .dual-col-list { display: flex; flex-direction: column; gap: 10px; }
 #tasksList.tasks-list-dual { grid-template-columns: 1fr 1fr; }
@@ -4200,8 +4207,8 @@ function resetTaskLoadMore() {
 // without flipping the shared switcher back and forth.
 let dualAccountMode = false;
 let dualCol = [
-  { accId: 'all', setId: 'all' },
-  { accId: 'all', setId: 'all' }
+  { accId: 'all', setId: 'all', except: true },
+  { accId: 'all', setId: 'all', except: true }
 ];
 let dualLoadedCount = [TASKS_PER_PAGE, TASKS_PER_PAGE];
 
@@ -5285,6 +5292,12 @@ window.setDualColSet = function(i, val) {
   renderTasks();
 };
 
+window.setDualColExcept = function(i, checked) {
+  dualCol[i].except = !!checked;
+  dualLoadedCount[i] = TASKS_PER_PAGE;
+  renderTasks();
+};
+
 window.dualLoadMore = function(i) {
   dualLoadedCount[i] += TASKS_PER_PAGE;
   renderTasks();
@@ -5298,10 +5311,15 @@ function dualColSelectorsHtml(i) {
   const setOptions = ['<option value="all">All Tasks</option>',
     ...(typeof taskSets !== 'undefined' ? taskSets : []).map(s => `<option value="${s.id}" ${s.id===col.setId?'selected':''}>${htmlEscape(s.name)}</option>`)
   ].join('');
+  const exceptChecked = col.except !== false; // default true
   return `
     <div class="dual-col-controls">
       <select onchange="setDualColAccount(${i}, this.value)" title="Account for this column">${accOptions}</select>
       <select onchange="setDualColSet(${i}, this.value)" title="Set for this column">${setOptions}</select>
+      <label class="dual-col-except" title="Checked: show tasks NOT yet assigned to this account (available to assign). Unchecked: show tasks already assigned to this account.">
+        <input type="checkbox" onchange="setDualColExcept(${i}, this.checked)" ${exceptChecked ? 'checked' : ''}>
+        <span>Except</span>
+      </label>
     </div>`;
 }
 
@@ -5315,7 +5333,8 @@ function renderDualTasks() {
 
   const colsHtml = [0, 1].map(i => {
     const col = dualCol[i];
-    const list = computeTaskList(col.accId, col.setId, false, true);
+    const exceptMode = col.except !== false; // default true: show tasks NOT assigned to this account
+    const list = computeTaskList(col.accId, col.setId, exceptMode, true);
     const visibleList = list.slice(0, dualLoadedCount[i] || TASKS_PER_PAGE);
     const cards = visibleList.length
       ? visibleList.map(task => renderTaskCard(task)).join('')
