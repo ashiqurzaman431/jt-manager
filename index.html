@@ -1797,6 +1797,17 @@ select option { background: var(--surface3); color: var(--ink); }
 }
 .task-card:hover { border-color:var(--jt-border); box-shadow:0 10px 28px rgba(0,0,0,0.45); }
 .task-card.has-error { border-color:var(--red-border); }
+.task-card.task-archive-selectable { padding-left: 34px; }
+.task-archive-checkbox {
+  position: absolute; top: 10px; left: 10px; z-index: 5;
+  display: flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px; border-radius: 6px;
+  background: var(--surface2); border: 1px solid var(--border2);
+  cursor: pointer;
+}
+.task-archive-checkbox input[type="checkbox"] {
+  width: 16px; height: 16px; cursor: pointer; accent-color: var(--red); margin: 0;
+}
 
 .sr-rail { width:8px; flex-shrink:0; }
 .sr-body { flex:1; min-width:0; padding:16px 18px; font-family:var(--mono); }
@@ -4220,6 +4231,13 @@ let dualLoadedCount = [TASKS_PER_PAGE, TASKS_PER_PAGE];
 // "Load Thumbnail" placeholder. Cleared only on a full page reload.
 const driveThumbCache = {};
 
+// "Archive Tasks" selection mode — lets the user either archive everything
+// in one go, or check off specific (non-archived) tasks and archive just
+// those. Only non-archived tasks are selectable; archived tasks render via
+// a separate template branch in renderTaskCard and never get a checkbox.
+let taskArchiveMode = false;
+let taskArchiveSelected = new Set();
+
 // ── Task Search State ──
 window._taskTitleSearch = '';
 window._taskRangeFrom = null;
@@ -5345,7 +5363,7 @@ function renderDualTasks() {
     const list = computeTaskList(col.accId, col.setId, exceptMode, true);
     const visibleList = list.slice(0, dualLoadedCount[i] || TASKS_PER_PAGE);
     const cards = visibleList.length
-      ? visibleList.map(task => renderTaskCard(task)).join('')
+      ? visibleList.map(task => renderTaskCard(task, col.accId !== 'all' ? col.accId : null)).join('')
       : `<div class="empty-state"><div class="es-icon">✦</div>No tasks found</div>`;
     const remaining = list.length - visibleList.length;
     const loadMoreHtml = remaining > 0 ? `
@@ -5468,7 +5486,7 @@ window.addTaskError = function() {
 
 // Self-audit system — REMOVED (UPDATE-029)
 
-function renderTaskCard(task) {
+function renderTaskCard(task, dualAccId) {
   // Archived tasks: show minimal row only
   if (task.archived) {
     const archivedDateStr = task.archivedAt
@@ -5633,7 +5651,7 @@ function renderTaskCard(task) {
       <button class="sr-btn danger" onclick="deleteTask('${task.id}')" title="Permanently delete task">🗑 Delete</button>
     </div>` : `
     <div class="sr-actions">
-      <button class="sr-btn primary" onclick="openAssignModal('${task.id}')">+ Assign</button>
+      <button class="sr-btn primary" onclick="openAssignModal('${task.id}'${dualAccId ? `, '${dualAccId}'` : ''})">+ Assign</button>
       <button class="sr-btn accent" onclick="assignToAllActive('${task.id}')">⚡ All</button>
       <button class="sr-btn" onclick="openLinksModal('${task.id}')">🔗 Links</button>
       <button class="sr-btn danger" onclick="openErrorModal('${task.id}')">⚠ Error</button>
@@ -5644,8 +5662,14 @@ function renderTaskCard(task) {
       <button class="sr-btn danger" onclick="deleteTask('${task.id}')" title="Permanently delete task">🗑 Delete</button>
     </div>`;
 
+  const archiveSelectHtml = taskArchiveMode ? `
+    <label class="task-archive-checkbox" title="Select for archiving" onclick="event.stopPropagation()">
+      <input type="checkbox" ${taskArchiveSelected.has(task.id)?'checked':''} onchange="toggleTaskArchiveSelect('${task.id}', this.checked)">
+    </label>` : '';
+
   return `
-  <div class="task-card${hasError ? ' has-error' : ''}">
+  <div class="task-card${hasError ? ' has-error' : ''}${taskArchiveMode ? ' task-archive-selectable' : ''}">
+    ${archiveSelectHtml}
     <div class="sr-rail" style="background:${typeColor};"></div>
     <div class="sr-body">
       <div class="sr-top-row">
@@ -6142,6 +6166,73 @@ window.archiveTask = function(id) {
   });
 };
 
+// Renders the "Archive Tasks" control in the +Task dock — a single trigger
+// button when idle, or a small action bar (selected count + Archive
+// Selected / Archive All / Cancel) once selection mode is active.
+function renderArchiveTasksBar() {
+  const el = document.getElementById('archiveTasksControl');
+  if (!el) return;
+  if (!taskArchiveMode) {
+    el.innerHTML = `
+      <button class="btn-secondary" style="width:100%;font-size:11.5px;padding:7px 10px;color:var(--red);border-color:var(--red-border);background:var(--red-light);" onclick="toggleTaskArchiveMode()" title="Archive every task, or pick specific ones to archive">
+        📦 Archive Tasks
+      </button>`;
+    return;
+  }
+  const n = taskArchiveSelected.size;
+  el.innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:6px;padding:8px;background:var(--red-light);border:1px solid var(--red-border);border-radius:var(--radius-sm);">
+      <div style="font-family:var(--mono);font-size:11px;font-weight:700;color:var(--red);">📦 Selecting tasks to archive — ${n} selected</div>
+      <div style="display:flex;gap:6px;">
+        <button class="btn-primary" style="flex:1;font-size:11px;padding:6px 8px;" ${n ? '' : 'disabled'} onclick="archiveSelectedTasks()">Archive Selected (${n})</button>
+        <button class="btn-secondary" style="flex:1;font-size:11px;padding:6px 8px;" onclick="archiveAllTasks()">Archive All</button>
+      </div>
+      <button class="btn-secondary" style="font-size:11px;padding:6px 8px;" onclick="toggleTaskArchiveMode()">✕ Cancel</button>
+    </div>`;
+}
+
+window.toggleTaskArchiveMode = function(on) {
+  taskArchiveMode = (on === undefined) ? !taskArchiveMode : !!on;
+  if (!taskArchiveMode) taskArchiveSelected.clear();
+  renderArchiveTasksBar();
+  renderTasks();
+};
+
+window.toggleTaskArchiveSelect = function(taskId, checked) {
+  const t = tasks.find(t => t.id === taskId);
+  if (!t || t.archived) return; // only non-archived tasks are selectable
+  if (checked) taskArchiveSelected.add(taskId);
+  else taskArchiveSelected.delete(taskId);
+  renderArchiveTasksBar();
+};
+
+// Archives only the checked-off (non-archived) tasks.
+window.archiveSelectedTasks = function() {
+  if (!requireAdminForTaskEdit()) return;
+  const toArchive = tasks.filter(t => taskArchiveSelected.has(t.id) && !t.archived);
+  if (!toArchive.length) { toast('No tasks selected'); return; }
+
+  const extraContent = document.getElementById('confirmExtraContent');
+  if (extraContent) extraContent.innerHTML = '';
+
+  openConfirm(`Archive ${toArchive.length} selected task${toArchive.length===1?'':'s'}? They'll be hidden. Uncheck "📦 Hide archived" in the task filters to view archived tasks.`, () => {
+    pushUndo(`Archive selected tasks (${toArchive.length})`);
+    toArchive.forEach(t => {
+      t.archiveCount = (t.archiveCount || 0) + 1;
+      t.archived = true;
+      t.archivedAt = now();
+      if (t.archiveCount >= 5) t.permanentArchive = true;
+    });
+    taskArchiveMode = false;
+    taskArchiveSelected.clear();
+    taskPage = 0;
+    renderArchiveTasksBar();
+    renderTasks();
+    markUnsaved(true);
+    toast(`📦 Archived ${toArchive.length} task${toArchive.length===1?'':'s'}`);
+  });
+};
+
 // Archives every not-yet-archived task in one go (from the +Task dock).
 window.archiveAllTasks = function() {
   if (!requireAdminForTaskEdit()) return;
@@ -6159,7 +6250,10 @@ window.archiveAllTasks = function() {
       t.archivedAt = now();
       if (t.archiveCount >= 5) t.permanentArchive = true;
     });
+    taskArchiveMode = false;
+    taskArchiveSelected.clear();
     taskPage = 0;
+    renderArchiveTasksBar();
     renderTasks();
     markUnsaved(true);
     toast(`📦 Archived ${toArchive.length} task${toArchive.length===1?'':'s'}`);
@@ -6536,13 +6630,16 @@ function _doAssign(taskId, accId, customReward) {
   toast('Task assigned → ' + accCheck.name);
 }
 
-window.openAssignModal = function(taskId) {
+window.openAssignModal = function(taskId, forcedAccId) {
   assigningTaskId = taskId;
   const t = tasks.find(t => t.id===taskId); if(!t) return;
 
-  // ── Auto-assign when a specific account is selected in the task filter ──
-  if (taskAccountFilter !== 'all') {
-    const accId = taskAccountFilter;
+  // ── Auto-assign when a specific account context is already known —
+  // either the normal single-list account filter, or (in Dual Account
+  // Mode) the account selected for the column this card belongs to. ──
+  const contextAccId = forcedAccId || (taskAccountFilter !== 'all' ? taskAccountFilter : null);
+  if (contextAccId) {
+    const accId = contextAccId;
     const accCheck = accounts.find(a => a.id === accId);
     const alreadyAssigned = (t.assignments||[]).some(a => a.accountId === accId);
     if (alreadyAssigned) {
@@ -9845,6 +9942,7 @@ renderBugState();
 renderDashboard();
 renderAccList();
 renderTasks();
+renderArchiveTasksBar();
 renderActionCenter();
 // Sync AC panel visibility with whichever page is active on load
 setAcPanelVisibility(document.getElementById('page-tasks') && document.getElementById('page-tasks').classList.contains('active'));
@@ -10058,9 +10156,9 @@ function setAcPanelVisibility(visible) {
     </div>
     <button id="taCollapseBtn" onclick="toggleTaskAddPanel()" title="Collapse">›</button>
   </div>
-  <div style="padding:10px 14px 0;">
-    <button class="btn-secondary" style="width:100%;font-size:11.5px;padding:7px 10px;color:var(--red);border-color:var(--red-border);background:var(--red-light);" onclick="archiveAllTasks()" title="Archive every task that isn't already archived">
-      📦 Archive All Tasks
+  <div style="padding:10px 14px 0;" id="archiveTasksControl">
+    <button class="btn-secondary" style="width:100%;font-size:11.5px;padding:7px 10px;color:var(--red);border-color:var(--red-border);background:var(--red-light);" onclick="toggleTaskArchiveMode()" title="Archive every task, or pick specific ones to archive">
+      📦 Archive Tasks
     </button>
   </div>
   <div id="taSwitcher">
