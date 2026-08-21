@@ -1836,6 +1836,7 @@ select option { background: var(--surface3); color: var(--ink); }
   font-family: var(--mono); font-size: 26px; font-weight: 900;
   color: #fff; letter-spacing: 1px; font-variant-numeric: tabular-nums;
   text-shadow: 0 0 12px rgba(255,255,255,0.6);
+  display: inline-flex; overflow: hidden;
 }
 .task-card-timer-clickable {
   cursor: pointer; user-select: none; transition: transform 0.12s ease, box-shadow 0.12s ease;
@@ -1849,6 +1850,33 @@ select option { background: var(--surface3); color: var(--ink); }
   color: #fff; background: rgba(0,0,0,0.22); border-radius: 6px; padding: 4px 9px;
   white-space: nowrap; letter-spacing: 0.3px;
 }
+
+/* ── Timer morph animations ──
+   1) Ticking clock: each digit that actually changes on a given second
+      flips/fades in on its own (odometer style) instead of the whole
+      string jump-cutting. 2) Step badge (Search → Visited → Complete):
+      the whole pill does a quick pop + color-morph, and its label/icon
+      crossfades in, only when the step genuinely changed. */
+.timer-char { display: inline-block; will-change: transform, opacity; }
+@keyframes timerCharMorph {
+  0%   { transform: translateY(-55%) scale(0.85); opacity: 0; filter: blur(2px); }
+  60%  { transform: translateY(8%) scale(1.05); opacity: 1; filter: blur(0); }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+.timer-char-morph { animation: timerCharMorph 0.32s cubic-bezier(.34,1.56,.64,1); }
+
+@keyframes timerStepMorph {
+  0%   { transform: scale(0.88); filter: brightness(1.6) saturate(1.5); }
+  55%  { transform: scale(1.04); }
+  100% { transform: scale(1); filter: brightness(1) saturate(1); }
+}
+.step-morphed { animation: timerStepMorph 0.45s cubic-bezier(.34,1.56,.64,1); }
+@keyframes timerLabelMorph {
+  0%   { opacity: 0; transform: translateY(-6px) scale(0.9); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+.step-morphed .task-card-timer-action { animation: timerLabelMorph 0.35s ease 0.08s both; }
+.step-morphed .task-card-timer-label  { animation: timerLabelMorph 0.35s ease both; }
 
 .sr-tags { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px; }
 .sr-tag { font-size:9.5px; font-weight:700; padding:2px 8px; border-radius:3px; border:1px solid; letter-spacing:0.2px; }
@@ -5372,10 +5400,34 @@ function renderDualTasks() {
           ↓ Load More (${remaining} more · ${list.length} total)
         </button>
       </div>` : '';
+
+    // Pinned in-progress banner (ported from single-account mode / Change 2):
+    // once a specific account is picked for this column, a task currently
+    // "assigned" (in-progress) to that account stays pinned on top of the
+    // column regardless of the Except/Only setting — and drops out on its
+    // own the moment it's no longer "assigned" (completed/rewarded), since
+    // this list is recomputed on every render.
+    let pinnedHtml = '';
+    if (col.accId !== 'all') {
+      const inProgressForAcc = tasks.filter(t =>
+        !t.archived &&
+        (t.assignments||[]).some(a => a.accountId === col.accId && a.status === 'assigned')
+      );
+      if (inProgressForAcc.length) {
+        const accName = (accounts.find(a => a.id === col.accId)||{}).name || 'Selected Account';
+        pinnedHtml = `
+          <div class="pinned-inprogress-banner">
+            <div class="pinned-inprogress-label">◷ ${accName} — Currently In Progress (${inProgressForAcc.length})</div>
+            ${inProgressForAcc.map(t => `<div class="pinned-task-overlay">${renderTaskCard(t, col.accId)}</div>`).join('')}
+          </div>`;
+      }
+    }
+
     return `
       <div class="dual-task-col">
         ${dualColSelectorsHtml(i)}
         <div class="dual-col-count">${list.length} task${list.length===1?'':'s'}</div>
+        ${pinnedHtml}
         <div class="dual-col-list">${cards}</div>
         ${loadMoreHtml}
       </div>`;
@@ -5485,6 +5537,18 @@ window.addTaskError = function() {
 };
 
 // Self-audit system — REMOVED (UPDATE-029)
+
+// Tracks the last step (0/1/2) seen per assignment so the in-progress timer
+// badge only plays its morph animation on an actual search→visited→complete
+// change, not on every incidental re-render.
+const _timerStepSeen = {};
+
+// Wraps each character of a ticking timer string in its own span so the
+// per-second ticker can morph only the digit(s) that actually changed
+// (odometer-style) instead of replacing the whole string at once.
+function timerCharsHtml(str) {
+  return str.split('').map((ch, i) => `<span class="timer-char" data-ci="${i}">${ch}</span>`).join('');
+}
 
 function renderTaskCard(task, dualAccId) {
   // Archived tasks: show minimal row only
@@ -5619,10 +5683,16 @@ function renderTaskCard(task, dualAccId) {
           : step === 1
             ? { icon: '👁', label: 'Visited',  hint: 'Tap when you visited' }
             : { icon: '✅', label: 'Complete', hint: 'Tap to mark completed' };
+        // Only play the step-morph animation when the step actually changed
+        // since the last time this assignment was rendered — not on every
+        // unrelated re-render (pagination, filters, other cards updating).
+        const prevStep = _timerStepSeen[a.id];
+        const stepChanged = prevStep !== undefined && prevStep !== step;
+        _timerStepSeen[a.id] = step;
         return `
-          <div class="task-card-timer-wrap task-card-timer-clickable step-${step}" onclick="taskCardStepClick('${task.id}','${a.id}')" title="${stepInfo.hint}">
+          <div class="task-card-timer-wrap task-card-timer-clickable step-${step}${stepChanged ? ' step-morphed' : ''}" onclick="taskCardStepClick('${task.id}','${a.id}')" title="${stepInfo.hint}">
             <span class="task-card-timer-label">◷ ${acc ? htmlEscape(acc.name) : 'In Progress'}</span>
-            <span class="task-card-timer" data-start="${startEpoch}">${elapsed}</span>
+            <span class="task-card-timer" data-start="${startEpoch}">${timerCharsHtml(elapsed)}</span>
             <span class="task-card-timer-action">${stepInfo.icon} ${stepInfo.label}</span>
           </div>`;
       }).join('')}
@@ -5712,9 +5782,31 @@ setInterval(() => {
     const h = Math.floor(totalSec / 3600);
     const m = Math.floor((totalSec % 3600) / 60);
     const s = totalSec % 60;
-    el.textContent = (h > 0 ? h + ':' + String(m).padStart(2,'0') : String(m).padStart(2,'0')) + ':' + String(s).padStart(2,'0');
+    const next = (h > 0 ? h + ':' + String(m).padStart(2,'0') : String(m).padStart(2,'0')) + ':' + String(s).padStart(2,'0');
+    updateTimerCharsMorph(el, next);
   });
 }, 1000);
+
+// Odometer-style morph for the ticking timer: only the character(s) that
+// actually changed get a flip/fade animation each second — everything else
+// stays put instead of the whole string jump-cutting to the new value.
+function updateTimerCharsMorph(el, next) {
+  const spans = el.querySelectorAll('.timer-char');
+  if (spans.length !== next.length) {
+    // Digit count changed (e.g. 9:59 -> 10:00, or 59:59 -> 1:00:00) — the
+    // per-index diff below doesn't apply cleanly, so just rebuild fresh.
+    el.innerHTML = timerCharsHtml(next);
+    return;
+  }
+  spans.forEach((span, i) => {
+    const ch = next[i];
+    if (span.textContent === ch) return;
+    span.textContent = ch;
+    span.classList.remove('timer-char-morph');
+    void span.offsetWidth; // force reflow so the animation restarts every tick
+    span.classList.add('timer-char-morph');
+  });
+}
 
 window.removeTaskImage = function(taskId) {
   const t = tasks.find(t => t.id === taskId); if (!t) return;
