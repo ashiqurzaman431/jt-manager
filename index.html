@@ -4807,11 +4807,18 @@ function computeTaskList(accId, setId, exceptMode, hideCompletedForAcc) {
       const matchesVideoId = links.some(l => l.videoId && l.videoId === searchVideoId);
       const matchesThumbId = links.some(l => l.thumbId && l.thumbId === searchThumbId);
       // Link search: match the query as a substring against any link URL
-      // stored on the task (videoLink, thumbLink, or legacy url field).
+      // stored on the task (videoLink, thumbLink, or legacy url field), or
+      // against the per-link search keyword / topic name. New links only
+      // populate searchKeyword/topicName when no video/thumb URL was given
+      // (so l.url ends up empty) — those weren't being checked before,
+      // which is why only old (url/label-based) tasks matched keyword search.
       const matchesLink = titleQ && links.some(l =>
         (l.videoLink && l.videoLink.toLowerCase().includes(titleQ)) ||
         (l.thumbLink && l.thumbLink.toLowerCase().includes(titleQ)) ||
-        (l.url && l.url.toLowerCase().includes(titleQ))
+        (l.url && l.url.toLowerCase().includes(titleQ)) ||
+        (l.searchKeyword && l.searchKeyword.toLowerCase().includes(titleQ)) ||
+        (l.topicName && l.topicName.toLowerCase().includes(titleQ)) ||
+        (l.label && l.label.toLowerCase().includes(titleQ))
       );
       if (!matchesTitle && !matchesVideoId && !matchesThumbId && !matchesLink) return false;
     }
@@ -9135,10 +9142,16 @@ function acPlayBeep() {
   } catch (e) { /* audio not available, ignore */ }
 }
 
-// Fires a beep on schedule counted from the moment the "Visited" step was
-// clicked (acStepTimes[asgnId].visitedEpoch) — no beep before that step is
-// reached. First beep at 2:00 after Visited, then one every 15s after that,
-// until the flow is completed (acStopTimer clears acBeepCount).
+// Fires a beep on schedule counted from the moment "Visited" was clicked
+// (acStepTimes[asgnId].visitedEpoch) — NOT from assignment start, and not
+// reset by any click (visitedEpoch is set exactly once, the first time
+// Visited is clicked, and never changes again for this flow). No beep at
+// all before Visited has been clicked. First beep at 2:00 after Visited,
+// then one every 15s after that, until the flow is completed (acStopTimer
+// clears acBeepCount and stops the interval entirely).
+// Note: the visible ticking clock on the task card is separate — it always
+// runs continuously from assignment start (acTimers[asgnId].startEpoch)
+// and is never affected by this.
 function acCheckBeep(asgnId) {
   const visitedEpoch = acStepTimes[asgnId] && acStepTimes[asgnId].visitedEpoch;
   if (!visitedEpoch) return;
@@ -9267,6 +9280,7 @@ window.acStepVisit = function(taskId, asgnId) {
   if (!acStepTimes[asgnId]) acStepTimes[asgnId] = {};
   acStepTimes[asgnId].visitedEpoch = Date.now();
   acStepTimes[asgnId].visitHalt = haltMs;
+  delete acBeepCount[asgnId]; // clean start for the beep countdown that begins now (see acCheckBeep)
 
   const recNum = acGetRecNum(asgn);
   acAppendRec(asgn, `TaskRec${String(recNum).padStart(2,'0')}: visited at ${elapsedFmt}, hault ${haltFmt}`);
