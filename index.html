@@ -1598,11 +1598,11 @@ select option { background: var(--surface3); color: var(--ink); }
 .sr-reward-edit-hint { font-size:9px; opacity:0.5; }
 
 .sr-thumb-wrap { flex-shrink:0; cursor:pointer; }
-.sr-thumb { width:132px; height:74px; border-radius:8px; object-fit:cover; display:block; border:1px solid var(--border2); }
+.sr-thumb { width:220px; height:124px; border-radius:8px; object-fit:cover; display:block; border:1px solid var(--border2); }
 .sr-thumb-placeholder {
-  width:132px; height:74px; border-radius:8px; border:1.5px dashed var(--border2); background:var(--surface2);
+  width:220px; height:124px; border-radius:8px; border:1.5px dashed var(--border2); background:var(--surface2);
   display:flex; align-items:center; justify-content:center; text-align:center;
-  font-size:9.5px; color:var(--ink3); font-weight:700; line-height:1.4; transition:all .12s;
+  font-size:11px; color:var(--ink3); font-weight:700; line-height:1.4; transition:all .12s;
 }
 .sr-thumb-placeholder:hover { border-color:var(--jt-border); color:var(--jt); background:var(--jt-light); }
 
@@ -5555,7 +5555,7 @@ window.handleThumbClick = async function(el) {
   const kindLabel = el.dataset.kind === 'thumbnail' ? 'Thumbnail' : 'Preview';
   const searchTitle = t.driveSearchTitle || t.title;
   el.classList.remove('sr-thumb-placeholder');
-  el.innerHTML = `<div class="sr-thumb-placeholder" style="width:132px;height:74px;">Loading…</div>`;
+  el.innerHTML = `<div class="sr-thumb-placeholder" style="width:220px;height:124px;">Loading…</div>`;
 
   try {
     const url = `${THUMB_SCRIPT_URL}?action=findImage&title=${encodeURIComponent(searchTitle)}`;
