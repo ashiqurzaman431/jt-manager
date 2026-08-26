@@ -1498,7 +1498,13 @@ select option { background: var(--surface3); color: var(--ink); }
 .sr-type-badge { font-family:var(--mono); font-size:10.5px; font-weight:800; letter-spacing:1px; padding:3px 10px; border-radius:5px; color:#fff; flex-shrink:0; }
 .sr-date { font-family:var(--mono); font-size:10.5px; color:var(--ink3); font-weight:600; white-space:nowrap; }
 
-.sr-title { font-family:var(--sans); font-size:22px; font-weight:800; letter-spacing:-0.01em; line-height:1.3; margin-bottom:10px; color:var(--ink); }
+.sr-title { font-family:var(--sans); font-size:22px; font-weight:800; letter-spacing:-0.01em; line-height:1.3; color:var(--ink); }
+
+/* Head row — title (+ tags) on the left, thumbnail pinned top-right */
+.sr-head-row { display:flex; justify-content:space-between; align-items:flex-start; gap:14px; margin-bottom:10px; }
+.sr-head-left { flex:1; min-width:0; }
+.sr-head-left .sr-title { margin-bottom:8px; }
+.sr-head-left .sr-tags { margin-bottom:0; }
 
 /* In-progress task card timer — large, high-contrast, ticking live */
 .task-card-timers { display:flex; flex-direction:column; gap:6px; margin-bottom:12px; }
@@ -1582,26 +1588,14 @@ select option { background: var(--surface3); color: var(--ink); }
 .sr-tag.today  { color:var(--jt); border-color:var(--jt-border); background:var(--jt-light); }
 .sr-tag.quicky { color:var(--amber); border-color:var(--amber-border); background:var(--amber-light); }
 
-.sr-mid-row { display:flex; gap:16px; align-items:flex-start; margin-bottom:14px; }
-.sr-stats-col { flex:1; min-width:0; }
-
 .sr-reward-block {
-  display:flex; align-items:baseline; gap:8px; margin:-4px -6px 10px; padding:5px 6px;
+  display:flex; align-items:baseline; gap:8px; margin:-4px -6px 14px; padding:5px 6px;
   border-radius:6px; cursor:pointer; transition:background .12s; width:fit-content;
 }
 .sr-reward-block:hover { background:var(--surface2); }
 .sr-reward-usd { font-family:var(--mono); font-size:20px; font-weight:800; color:var(--green); }
 .sr-reward-pts { font-family:var(--mono); font-size:11px; color:var(--ink3); font-weight:600; }
 .sr-reward-edit-hint { font-size:9px; opacity:0.5; }
-
-.sr-status-bar { display:flex; border-radius:8px; overflow:hidden; border:1px solid var(--border2); }
-.sr-status-seg { flex:1; text-align:center; padding:7px 4px; }
-.sr-status-seg .n { font-size:14px; font-weight:800; display:block; }
-.sr-status-seg .l { font-size:7.5px; text-transform:uppercase; letter-spacing:0.4px; opacity:0.85; }
-.sr-status-seg.unassigned { background:var(--red-light); color:var(--red); }
-.sr-status-seg.assigned   { background:var(--amber-light); color:var(--amber); }
-.sr-status-seg.completed  { background:var(--jt-light); color:var(--jt); }
-.sr-status-seg.rewarded   { background:var(--green-light); color:var(--green); }
 
 .sr-thumb-wrap { flex-shrink:0; cursor:pointer; }
 .sr-thumb { width:132px; height:74px; border-radius:8px; object-fit:cover; display:block; border:1px solid var(--border2); }
@@ -4311,20 +4305,15 @@ function renderDashboard() {
       agg.pointsBalance = agg.rewardedPoints - pointsWithdrawn;
     });
 
+    // Sorted by last payout amount, highest first. Accounts with no payout
+    // history yet sort to the bottom (treated as 0).
+    const getLastPayoutAmt = (acc) => {
+      const hist = acc.payoutHistory || [];
+      return hist.length ? parseFloat(hist[hist.length-1].amount || 0) : 0;
+    };
     const sortedForDash = [...accounts]
       .filter(a => a.status !== 'dead' && !a.deleted)
-      .sort((a, b) => {
-      // payout_ready always on top
-      const aReady = a.status === 'payout_ready' ? 1 : 0;
-      const bReady = b.status === 'payout_ready' ? 1 : 0;
-      if (bReady !== aReady) return bReady - aReady;
-      // then by USD balance desc
-      const aBal = _agg.get(a.id).balance;
-      const bBal = _agg.get(b.id).balance;
-      if (bBal !== aBal) return bBal - aBal;
-      // then by due rewards (completed tasks) desc
-      return _agg.get(b.id).completedDue - _agg.get(a.id).completedDue;
-    });
+      .sort((a, b) => getLastPayoutAmt(b) - getLastPayoutAmt(a));
 
     document.getElementById('dashCards').innerHTML = sortedForDash.map(a => {
       const agg = _agg.get(a.id);
@@ -5277,11 +5266,6 @@ function renderTaskCard(task, dualAccId) {
   }
 
   const asgns = (task.assignments||[]);
-  const assignedCount   = countAsgns(task, 'assigned');
-  const completedCount  = countAsgns(task, 'completed');
-  const rewardedCount   = countAsgns(task, 'rewarded');
-  const assignedAccs    = new Set(asgns.map(x => x.accountId));
-  const unassignedCount = Math.max(0, accounts.length - assignedAccs.size);
   const isYT = task.type === 'youtube';
 
   // Error state
@@ -5328,15 +5312,6 @@ function renderTaskCard(task, dualAccId) {
       <span class="sr-reward-usd">${fmtUSDT(task.defaultReward)}</span>
       <span class="sr-reward-pts">/ ${pointsVal(task)} PTS</span>
       <span class="sr-reward-edit-hint">✎</span>
-    </div>` : '';
-
-  // Status bar
-  const statusBar = !hasError ? `
-    <div class="sr-status-bar">
-      <div class="sr-status-seg unassigned"><span class="n">${unassignedCount}</span><span class="l">Unassign</span></div>
-      <div class="sr-status-seg assigned"><span class="n">${assignedCount}</span><span class="l">Assigned</span></div>
-      <div class="sr-status-seg completed"><span class="n">${completedCount}</span><span class="l">Complete</span></div>
-      <div class="sr-status-seg rewarded"><span class="n">${rewardedCount}</span><span class="l">Rewarded</span></div>
     </div>` : '';
 
   // Error alert block
@@ -5452,18 +5427,17 @@ function renderTaskCard(task, dualAccId) {
         <span class="sr-type-badge" style="background:${typeColor};">${isYT?'YOUTUBE':'GOOGLE'}</span>
         <span class="sr-date">${fmtDate(task.createdAt||'')}</span>
       </div>
-      <div class="sr-title">${task.title}</div>
-      ${timerHtml}
-      ${tagBadges ? `<div class="sr-tags">${tagBadges}</div>` : ''}
-      ${errorBlock}
-      ${!hasError ? `
-      <div class="sr-mid-row">
-        <div class="sr-stats-col">
-          ${rewardBlock}
-          ${statusBar}
+      <div class="sr-head-row">
+        <div class="sr-head-left">
+          <div class="sr-title">${task.title}</div>
+          ${tagBadges ? `<div class="sr-tags">${tagBadges}</div>` : ''}
         </div>
         ${thumbHtml}
       </div>
+      ${timerHtml}
+      ${errorBlock}
+      ${!hasError ? `
+      ${rewardBlock}
       ${asgns.length ? `<div class="sr-accounts">${chips}</div>` : `<div class="sr-unassigned-note">Not assigned yet</div>`}
       ${linkChips ? `<div class="sr-links">${linkChips}</div>` : ''}
       ` : ''}
