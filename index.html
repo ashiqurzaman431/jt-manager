@@ -1501,10 +1501,10 @@ select option { background: var(--surface3); color: var(--ink); }
 .sr-title { font-family:var(--sans); font-size:22px; font-weight:800; letter-spacing:-0.01em; line-height:1.3; color:var(--ink); }
 
 /* Head row — badge+title+tags on one line (left), date+thumbnail stacked top-right */
-.sr-head-row { display:flex; justify-content:space-between; align-items:flex-start; gap:14px; margin-bottom:2px; }
-.sr-head-left { flex:1; min-width:0; }
+.sr-head-row { margin-bottom:2px; }
+.sr-head-left { min-width:0; }
 .sr-head-left .sr-tags { margin-bottom:0; }
-.sr-head-right { display:flex; flex-direction:column; align-items:flex-end; gap:8px; flex-shrink:0; }
+.sr-head-right { display:flex; flex-direction:column; align-items:flex-end; gap:8px; float:right; margin-left:14px; }
 
 /* In-progress task card timer — large, high-contrast, ticking live */
 .task-card-timers { display:flex; flex-direction:column; gap:6px; margin-bottom:12px; }
@@ -1627,7 +1627,7 @@ select option { background: var(--surface3); color: var(--ink); }
 .sr-links { display:flex; gap:6px; flex-wrap:wrap; }
 .sr-link-chip { font-size:10px; font-weight:700; color:var(--purple); background:var(--purple-light); border:1px solid var(--purple-border); border-radius:99px; padding:3px 9px; cursor:pointer; }
 
-.sr-divider { height:1px; background:var(--border2); margin:0 0 14px; }
+.sr-divider { height:1px; background:var(--border2); margin:0 0 14px; clear:both; }
 
 .sr-alert { border:1px solid var(--red-border); background:rgba(239,68,68,0.08); border-radius:8px; padding:10px 12px; margin-bottom:14px; }
 .sr-alert-badges { display:flex; gap:5px; flex-wrap:wrap; }
@@ -2472,6 +2472,10 @@ select option { background: var(--surface3); color: var(--ink); }
       <div style="display:flex;align-items:center;gap:5px;flex:1;min-width:180px;">
         <span style="font-family:var(--mono);font-size:10px;color:var(--ink3);white-space:nowrap;">Title</span>
         <input type="text" id="taskTitleSearch" placeholder="Search by title, ID, or link…" oninput="applyTaskSearch()" style="flex:1;font-family:var(--mono);font-size:11.5px;padding:5px 8px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--surface2);color:var(--ink);outline:none;">
+      </div>
+      <div style="display:flex;align-items:center;gap:5px;flex:1;min-width:200px;">
+        <span style="font-family:var(--mono);font-size:10px;color:var(--ink3);white-space:nowrap;" title="Ranked multi-word search — separate words with ; . Tasks matching more words rank first; among ties, matches on your earlier words rank higher.">Words</span>
+        <input type="text" id="taskWordSearch" placeholder="word1; word2; word3…" oninput="applyTaskSearch()" style="flex:1;font-family:var(--mono);font-size:11.5px;padding:5px 8px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--surface2);color:var(--ink);outline:none;">
       </div>
       <div style="display:flex;align-items:center;gap:5px;">
         <span style="font-family:var(--mono);font-size:10px;color:var(--ink3);white-space:nowrap;">Range</span>
@@ -3967,6 +3971,7 @@ let taskArchiveSelected = new Set();
 
 // ── Task Search State ──
 window._taskTitleSearch = '';
+window._taskWordSearch = ''; // ranked multi-word search — words separated by ';'
 window._taskRangeFrom = null;
 window._taskRangeTo = null;
 window._taskDateFrom = null; // date filter (YYYY-MM-DD), matched against task.createdAt day-key
@@ -4700,11 +4705,13 @@ window.applyTaskSearch = function() {
   clearTimeout(_taskSearchDebounceTimer);
   _taskSearchDebounceTimer = setTimeout(() => {
     const titleEl = document.getElementById('taskTitleSearch');
+    const wordEl  = document.getElementById('taskWordSearch');
     const fromEl  = document.getElementById('taskRangeFrom');
     const toEl    = document.getElementById('taskRangeTo');
     const dateFromEl = document.getElementById('taskDateFrom');
     const dateToEl   = document.getElementById('taskDateTo');
     window._taskTitleSearch = titleEl ? titleEl.value : '';
+    window._taskWordSearch  = wordEl  ? wordEl.value  : '';
     const fromVal = fromEl && fromEl.value !== '' ? parseFloat(fromEl.value) : null;
     const toVal   = toEl && toEl.value !== '' ? parseFloat(toEl.value) : null;
     // Range search only active when BOTH fields are filled
@@ -4720,16 +4727,19 @@ window.applyTaskSearch = function() {
 
 window.clearTaskSearch = function() {
   const titleEl = document.getElementById('taskTitleSearch');
+  const wordEl  = document.getElementById('taskWordSearch');
   const fromEl  = document.getElementById('taskRangeFrom');
   const toEl    = document.getElementById('taskRangeTo');
   const dateFromEl = document.getElementById('taskDateFrom');
   const dateToEl   = document.getElementById('taskDateTo');
   if (titleEl) titleEl.value = '';
+  if (wordEl)  wordEl.value  = '';
   if (fromEl)  fromEl.value  = '';
   if (toEl)    toEl.value    = '';
   if (dateFromEl) dateFromEl.value = '';
   if (dateToEl)   dateToEl.value   = '';
   window._taskTitleSearch = '';
+  window._taskWordSearch = '';
   window._taskRangeFrom = null;
   window._taskRangeTo   = null;
   window._taskDateFrom = null;
@@ -4780,11 +4790,39 @@ function requireAdminForTaskEdit() {
 // by each column in Dual Account Mode (its own accId/setId pair). All other
 // filters (search, type, tags, today/assigned-only, hide archived/errors,
 // sort) stay shared/global across both.
+// Ranked multi-word search: words are separated by ';' (e.g. "hostinger; coupon; discount").
+// A task needs at least one word to match to be included. Tasks that match more words rank
+// first; among equal match counts, matching the words listed earlier ranks higher.
+function taskSearchableText(t) {
+  const parts = [t.title || ''];
+  (t.links || []).forEach(l => {
+    parts.push(l.videoLink||'', l.thumbLink||'', l.url||'', l.searchKeyword||'', l.topicName||'', l.label||'');
+  });
+  return parts.join(' ').toLowerCase();
+}
+function taskWordSearchScore(t, words) {
+  const hay = taskSearchableText(t);
+  let count = 0, score = 0;
+  words.forEach((w, i) => {
+    if (w && hay.includes(w)) { count++; score += (words.length - i); }
+  });
+  return { count, score };
+}
+
 function computeTaskList(accId, setId, exceptMode, hideCompletedForAcc) {
   const todayStr = todayISO();
   const todayDayKey = todayStr; // same value — todayISO() already uses the 5pm cutoff
 
+  const wordQueryRaw = (window._taskWordSearch || '').trim();
+  const wordQueryWords = wordQueryRaw ? wordQueryRaw.split(';').map(w => w.trim().toLowerCase()).filter(Boolean) : [];
+  const wordScores = {}; // taskId -> { count, score }, filled during the filter pass below
+
   let list = tasks.filter(t => {
+    if (wordQueryWords.length) {
+      const info = taskWordSearchScore(t, wordQueryWords);
+      if (info.count === 0) return false;
+      wordScores[t.id] = info;
+    }
     // Search filters (title search + range search) — apply to ALL tasks
     // (including archived) FIRST so search works on archived tasks too.
     const titleQRaw = (window._taskTitleSearch || '').trim();
@@ -4873,6 +4911,18 @@ function computeTaskList(accId, setId, exceptMode, hideCompletedForAcc) {
     }
     return true;
   });
+
+  // Ranked word search overrides the normal sort dropdown: most matched words
+  // first, ties broken by whichever task matched the earlier-listed words.
+  if (wordQueryWords.length) {
+    return [...list].sort((a, b) => {
+      const sb = wordScores[b.id] || { count: 0, score: 0 };
+      const sa = wordScores[a.id] || { count: 0, score: 0 };
+      if (sb.count !== sa.count) return sb.count - sa.count;
+      if (sb.score !== sa.score) return sb.score - sa.score;
+      return (b.createdAt||'').localeCompare(a.createdAt||'');
+    });
+  }
 
   // Sort — always use running-tab sort (unified list)
   list = [...list].sort((a, b) => {
