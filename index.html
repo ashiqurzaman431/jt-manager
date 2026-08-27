@@ -1624,8 +1624,15 @@ select option { background: var(--surface3); color: var(--ink); }
 .sr-unassigned-note { font-size:10px; color:var(--ink3); }
 
 /* Links use a distinct purple accent so they read apart from status/reward colors */
-.sr-links { display:flex; gap:6px; flex-wrap:wrap; }
-.sr-link-chip { font-size:10px; font-weight:700; color:var(--purple); background:var(--purple-light); border:1px solid var(--purple-border); border-radius:99px; padding:3px 9px; cursor:pointer; }
+.sr-links { display:flex; gap:8px; flex-wrap:wrap; }
+.sr-link-chip {
+  font-size:11.5px; font-weight:700; color:#0a0a0a; background:#fff;
+  border:1px solid #fff; border-radius:8px; padding:9px 14px;
+  min-height:38px; display:inline-flex; align-items:center; gap:5px;
+  cursor:pointer; line-height:1.2; transition:background .12s, transform .08s;
+}
+.sr-link-chip:hover { background:#e4e4e4; }
+.sr-link-chip:active { background:#000; color:#fff; transform:scale(0.97); }
 
 .sr-divider { height:1px; background:var(--border2); margin:0 0 14px; clear:both; }
 
