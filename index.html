@@ -369,16 +369,16 @@ body {
 
 /* ── NAV (fixed bottom bar on mobile, thumb-reachable) ── */
 .nav {
-  display:flex; position:relative; background:var(--nav-dark);
+  display:flex; position:relative; background:#0a0a0a;
   -webkit-backdrop-filter: blur(18px) saturate(160%);
   backdrop-filter: blur(18px) saturate(160%);
-  border:1px solid var(--border); border-radius:99px;
+  border:1px solid #2b6fe0; border-radius:99px;
   padding:6px; margin:0 auto 24px; box-shadow:var(--shadow-md);
   width:fit-content; max-width:100%;
 }
 .nav-indicator {
   position:absolute; top:6px; left:0; bottom:6px;
-  background:#ffffff; border-radius:99px; z-index:0;
+  background:#2b6fe0; border-radius:99px; z-index:0;
   transition: transform 0.42s cubic-bezier(0.34, 1.4, 0.4, 1), width 0.42s cubic-bezier(0.34, 1.4, 0.4, 1);
   pointer-events:none;
 }
@@ -393,16 +393,16 @@ body {
 .nav-btn .nav-label { display:none; margin-left:7px; white-space:nowrap; }
 .nav-btn.active .nav-label { display:inline; }
 .nav-btn.active { padding:11px 18px 11px 14px; }
-.nav-btn:hover:not(.active) { background:rgba(255,255,255,0.08); color:rgba(255,255,255,0.8); }
+.nav-btn:hover:not(.active) { background:rgba(77,148,255,0.15); color:rgba(255,255,255,0.85); }
 .nav-btn.active {
   background: transparent;
-  color: var(--nav-ink);
+  color: #fff;
   border-color:transparent; font-weight:700;
 }
 .nav-icon { font-size:16px; display:inline-flex; align-items:center; justify-content:center; color: inherit; }
 .nav-icon svg { width:16px; height:16px; display:block; }
 .nav-icon-jt img { width:16px; height:16px; border-radius:5px; display:block; filter: grayscale(1) brightness(1.6); opacity: 0.75; transition: filter 0.15s, opacity 0.15s; }
-.nav-btn.active .nav-icon-jt img { filter: grayscale(1) brightness(0.2); opacity: 1; }
+.nav-btn.active .nav-icon-jt img { filter: grayscale(1) brightness(2.2); opacity: 1; }
 
 @media (max-width: 768px) {
   body { padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px) + 16px); }
@@ -475,7 +475,7 @@ body {
   padding: 6px 4px;
   line-height: 1.15;
 }
-.task-side-label-line.set-line { color: var(--jt); }
+.task-side-label-line.set-line { color: #4d94ff; }
 .task-side-label-line.acc-line:empty { display: none; }
 
 /* ── ADD/BULK TASK PANEL (docked right) ── */
@@ -507,7 +507,7 @@ body {
   align-items: center;
   justify-content: center;
   gap: 5px;
-  background: var(--jt-grad);
+  background: #0a0a0a; border: 1px solid #2b6fe0; border-right: none;
   color: #fff;
   width: 28px;
   padding: 14px 0;
@@ -522,7 +522,7 @@ body {
   letter-spacing: 0.5px;
   user-select: none;
 }
-#taTab:hover { background: linear-gradient(135deg,#1976D2,#1565C0); }
+#taTab:hover { background: #12224a; border-color:#4d94ff; }
 #taTab.ta-hidden { display: none; }
 #taTab.ta-panel-open { pointer-events: none; }
 /* Panel header */
@@ -758,7 +758,7 @@ body {
   align-items: center;
   justify-content: center;
   gap: 5px;
-  background: var(--jt-grad);
+  background: #0a0a0a; border: 1px solid #2b6fe0; border-right: none;
   color: #fff;
   width: 28px;
   padding: 14px 0 30px;
@@ -773,7 +773,7 @@ body {
   letter-spacing: 0.5px;
   user-select: none;
 }
-#setsDockTab:hover { background: linear-gradient(135deg,#1976D2,#1565C0); }
+#setsDockTab:hover { background: #12224a; border-color:#4d94ff; }
 #setsDockTab.sets-dock-hidden { display: none; }
 #setsDockTab.sets-dock-panel-open { pointer-events: none; }
 #setsDockTabCount {
@@ -896,7 +896,7 @@ body {
   align-items: center;
   justify-content: center;
   gap: 5px;
-  background: var(--jt-grad);
+  background: #0a0a0a; border: 1px solid #2b6fe0; border-right: none;
   color: #fff;
   width: 28px;
   padding: 14px 0 30px;
@@ -911,7 +911,7 @@ body {
   letter-spacing: 0.5px;
   user-select: none;
 }
-#taskSwitcherTab:hover, #taskSwitcherTab.ts-panel-open { background: linear-gradient(135deg,#1976D2,#1565C0); }
+#taskSwitcherTab:hover, #taskSwitcherTab.ts-panel-open { background: #12224a; border-color:#4d94ff; }
 #taskSwitcherTab.ts-hidden { display: none; }
 #taskSwitcherPanel {
   position: fixed;
@@ -1198,6 +1198,97 @@ body {
 #ipCheckerResult {
   margin-top: 12px;
 }
+/* ── TASK KITS DOCK PANEL (fixed, right-docked, Task Manager tab only) ── */
+#taskKitsDockPanel {
+  position: fixed;
+  top: 0; right: 0;
+  height: 100vh;
+  width: 320px;
+  max-width: 100vw;
+  background: rgba(51, 55, 80, 0.61);
+  border-left: 1.5px solid var(--jt-border);
+  box-shadow: -4px 0 24px rgba(0,0,0,0.10);
+  z-index: 800;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform 0.25s cubic-bezier(0.4,0,0.2,1);
+}
+#taskKitsDockPanel.tk-dock-open { transform: translateX(0); }
+#taskKitsDockPanel.tk-dock-hidden { display: none; }
+#taskKitsDockTab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  background: #0a0a0a; border: 1px solid #2b6fe0; border-right: none;
+  color: #fff;
+  width: 28px;
+  padding: 14px 0;
+  border-radius: 10px 0 0 10px;
+  cursor: pointer;
+  box-shadow: -2px 0 12px rgba(0,0,0,0.18);
+  transition: width 0.2s, background 0.15s;
+  writing-mode: vertical-rl;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  user-select: none;
+}
+#taskKitsDockTab:hover { background: #12224a; border-color:#4d94ff; }
+#taskKitsDockTab.tk-dock-hidden { display: none; }
+#taskKitsDockTab.tk-dock-panel-open { pointer-events: none; }
+#taskKitsDockPanelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 14px 12px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  background: linear-gradient(135deg, rgba(154,158,166,0.10), rgba(154,147,184,0.06));
+}
+#taskKitsDockPanelTitle {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--jt);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  line-height: 1;
+  white-space: nowrap;
+}
+#taskKitsDockPanelTitle > span:first-child {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px;
+  font-size: 13px;
+}
+#taskKitsDockCollapseBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--jt);
+  font-size: 16px;
+  line-height: 1;
+  padding: 2px 4px;
+  border-radius: 6px;
+  transition: background 0.15s;
+}
+#taskKitsDockCollapseBtn:hover { background: var(--jt-border); }
+#taskKitsDockPanelBody {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+#taskKitsDockPanelBody .search-input-bw,
+#taskKitsDockPanelBody .search-clear-bw { width: 100%; }
 .ip-info-row {
   display: flex;
   justify-content: space-between;
@@ -1625,14 +1716,36 @@ select option { background: var(--surface3); color: var(--ink); }
 
 /* Links use a distinct purple accent so they read apart from status/reward colors */
 .sr-links { display:flex; gap:8px; flex-wrap:wrap; }
+
+/* Search / dock panel inputs — black/blue design to match the Sort/Dir/Type dropdowns */
+.search-input-bw {
+  font-family:var(--mono); font-size:11.5px; padding:5px 8px; flex:1;
+  border-radius:var(--radius-sm); border:1px solid #2b6fe0; background:#0a0a0a; color:#fff; outline:none;
+}
+.search-input-bw::placeholder { color:#8fa8c9; }
+.search-input-bw:focus { border-color:#4d94ff; box-shadow:0 0 0 2px rgba(77,148,255,0.25); }
+.search-clear-bw {
+  font-family:var(--mono); font-size:10px; padding:5px 8px;
+  border-radius:var(--radius-sm); border:1px solid #2b6fe0; background:#0a0a0a; color:#fff; cursor:pointer;
+}
+.search-clear-bw:hover { border-color:#4d94ff; }
+/* Black/blue dropdown design for Sort, Dir, Type selects */
+.select-bw-blue {
+  font-family:var(--mono); font-size:11.5px; padding:5px 8px;
+  border-radius:var(--radius-sm); border:1px solid #2b6fe0;
+  background:#0a0a0a; color:#fff; cursor:pointer; outline:none;
+}
+.select-bw-blue:focus { border-color:#4d94ff; box-shadow:0 0 0 2px rgba(77,148,255,0.25); }
+.select-bw-blue option { background:#0a0a0a; color:#fff; }
+.select-bw-blue option:checked { background:#2b6fe0; color:#fff; }
 .sr-link-chip {
-  font-size:11.5px; font-weight:700; color:#0a0a0a; background:#fff;
-  border:1px solid #fff; border-radius:8px; padding:9px 14px;
+  font-size:11.5px; font-weight:700; color:var(--purple); background:var(--purple-light);
+  border:1px solid var(--purple-border); border-radius:99px; padding:9px 14px;
   min-height:38px; display:inline-flex; align-items:center; gap:5px;
   cursor:pointer; line-height:1.2; transition:background .12s, transform .08s;
 }
-.sr-link-chip:hover { background:#e4e4e4; }
-.sr-link-chip:active { background:#000; color:#fff; transform:scale(0.97); }
+.sr-link-chip:hover { background:var(--purple-border); }
+.sr-link-chip:active { transform:scale(0.97); }
 
 .sr-divider { height:1px; background:var(--border2); margin:0 0 14px; clear:both; }
 
@@ -2059,9 +2172,9 @@ select option { background: var(--surface3); color: var(--ink); }
 /* ── EMPTY STATE ── */
 .empty-state {
   grid-column: 1 / -1;
-  text-align:center; padding:32px 16px; color:var(--ink3);
-  border:1.5px dashed var(--border2); border-radius:var(--radius);
-  font-family:var(--mono); font-size:12.1px; background:var(--surface);
+  text-align:center; padding:32px 16px; color:#fff;
+  border:1.5px dashed #2b6fe0; border-radius:var(--radius);
+  font-family:var(--mono); font-size:12.1px; background:#0a0a0a;
 }
 .empty-state .es-icon { font-size:30.8px; margin-bottom:8px; }
 
@@ -2115,11 +2228,11 @@ select option { background: var(--surface3); color: var(--ink); }
 .user-pill {
   display:flex; align-items:center; gap:7px;
   padding:4px 10px 4px 4px; border-radius:99px;
-  border:1px solid var(--border2); background:var(--surface2);
-  font-family:var(--mono); font-size:11px; color:var(--ink2);
+  border:1px solid #2b6fe0; background:#0a0a0a;
+  font-family:var(--mono); font-size:11px; color:#fff;
   cursor:pointer; transition:all 0.12s;
 }
-.user-pill:hover { background: rgba(108, 93, 211, 0.12); border-color:rgba(108, 93, 211, 0.3); color: var(--neon-blue); }
+.user-pill:hover { background: #12224a; border-color:#4d94ff; color: #fff; }
 .user-avatar {
   width:24px; height:24px; border-radius:50%;
   background:var(--jt-grad); display:flex; align-items:center;
@@ -2467,51 +2580,22 @@ select option { background: var(--surface3); color: var(--ink); }
     <!-- Task Count Chips -->
     <div id="taskCountChips">
       <div style="display:flex;gap:8px;flex-wrap:wrap;padding:8px 0 12px;">
-        <span style="font-family:var(--mono);font-size:10px;padding:3px 10px;border-radius:99px;background:var(--surface2);border:1px solid var(--border);color:var(--ink2);">Total: <b>0</b></span>
+        <span style="font-family:var(--mono);font-size:10px;padding:3px 10px;border-radius:99px;background:#0a0a0a;border:1px solid #2b6fe0;color:#fff;">Total: <b>0</b></span>
         <span style="font-family:var(--mono);font-size:10px;padding:3px 10px;border-radius:99px;background:var(--red-light);border:1px solid var(--red-border);color:var(--red);">▶ YouTube: <b>0</b></span>
         <span style="font-family:var(--mono);font-size:10px;padding:3px 10px;border-radius:99px;background:var(--green-light);border:1px solid var(--green-border);color:var(--green);">🔍 Google: <b>0</b></span>
         <span style="font-family:var(--mono);font-size:10px;padding:3px 10px;border-radius:99px;background:var(--amber-light);border:1px solid var(--amber-border);color:var(--amber);">◷ Assigned: <b>0</b></span>
         <span style="font-family:var(--mono);font-size:10px;padding:3px 10px;border-radius:99px;background:var(--jt-light);border:1px solid var(--jt-border);color:var(--jt);">📅 Today: <b>0</b></span>
       </div></div>
 
-    <!-- Search Bar -->
-    <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap;align-items:center;">
-      <div style="display:flex;align-items:center;gap:5px;flex:1;min-width:180px;">
-        <span style="font-family:var(--mono);font-size:10px;color:var(--ink3);white-space:nowrap;">Title</span>
-        <input type="text" id="taskTitleSearch" placeholder="Search by title, ID, or link…" oninput="applyTaskSearch()" style="flex:1;font-family:var(--mono);font-size:11.5px;padding:5px 8px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--surface2);color:var(--ink);outline:none;">
-      </div>
-      <div style="display:flex;align-items:center;gap:5px;flex:1;min-width:200px;">
-        <span style="font-family:var(--mono);font-size:10px;color:var(--ink3);white-space:nowrap;" title="Ranked multi-word search — separate words with ; . Tasks matching more words rank first; among ties, matches on your earlier words rank higher.">Words</span>
-        <input type="text" id="taskWordSearch" placeholder="word1; word2; word3…" oninput="applyTaskSearch()" style="flex:1;font-family:var(--mono);font-size:11.5px;padding:5px 8px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--surface2);color:var(--ink);outline:none;">
-      </div>
-      <div style="display:flex;align-items:center;gap:5px;">
-        <span style="font-family:var(--mono);font-size:10px;color:var(--ink3);white-space:nowrap;">Range</span>
-        <input type="number" id="taskRangeFrom" placeholder="From" oninput="applyTaskSearch()" style="width:72px;font-family:var(--mono);font-size:11.5px;padding:5px 6px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--surface2);color:var(--ink);outline:none;">
-        <span style="font-family:var(--mono);font-size:10px;color:var(--ink3);">–</span>
-        <input type="number" id="taskRangeTo" placeholder="To" oninput="applyTaskSearch()" style="width:72px;font-family:var(--mono);font-size:11.5px;padding:5px 6px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--surface2);color:var(--ink);outline:none;">
-      </div>
-      <div style="display:flex;align-items:center;gap:5px;">
-        <span style="font-family:var(--mono);font-size:10px;color:var(--ink3);white-space:nowrap;">📅 Date</span>
-        <input type="date" id="taskDateFrom" oninput="applyTaskSearch()" style="font-family:var(--mono);font-size:11.5px;padding:5px 6px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--surface2);color:var(--ink);outline:none;color-scheme:dark;">
-        <span style="font-family:var(--mono);font-size:10px;color:var(--ink3);">–</span>
-        <input type="date" id="taskDateTo" oninput="applyTaskSearch()" style="font-family:var(--mono);font-size:11.5px;padding:5px 6px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--surface2);color:var(--ink);outline:none;color-scheme:dark;">
-        <button onclick="clearTaskSearch()" style="font-family:var(--mono);font-size:10px;padding:4px 8px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--surface3);color:var(--ink2);cursor:pointer;" title="Clear search">✕</button>
-      </div>
-    </div>
-
-    <!-- Filter + Sort row (dropdowns) -->
+    <!-- Search + Sort row (Range/Date/Clear/Type/Tags/checkboxes live in the Task Kits dock panel) -->
     <div id="taskFilterRow" style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
       <div style="display:flex;align-items:center;gap:5px;">
-        <span style="font-family:var(--mono);font-size:10px;color:var(--ink3);white-space:nowrap;">Type</span>
-        <select id="taskTypeFilterBar" onchange="setTaskTypeFilterDropdown(this.value)" style="font-family:var(--mono);font-size:11.5px;padding:5px 8px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--surface2);color:var(--ink);cursor:pointer;outline:none;">
-          <option value="all">All Tasks</option>
-          <option value="google">🔍 Google</option>
-          <option value="youtube">▶ YouTube</option>
-        </select>
+        <span style="font-family:var(--mono);font-size:10px;color:var(--ink3);white-space:nowrap;" title="Search by title, ID, or link. Separate multiple words with ; to rank tasks by how many words match.">Search</span>
+        <input type="text" id="taskTitleSearch" placeholder="Search…" oninput="applyTaskSearch()" class="search-input-bw" style="width:40vw;flex:none;">
       </div>
       <div id="taskSortBar" style="display:flex;align-items:center;gap:5px;">
         <span style="font-family:var(--mono);font-size:10px;color:var(--ink3);white-space:nowrap;">Sort</span>
-        <select id="taskSortSelect" onchange="setTaskSortDropdown(this.value)" style="font-family:var(--mono);font-size:11.5px;padding:5px 8px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--surface2);color:var(--ink);cursor:pointer;outline:none;">
+        <select id="taskSortSelect" onchange="setTaskSortDropdown(this.value)" class="select-bw-blue">
           <option value="last-edited">Last Edited</option>
           <option value="unassigned">Default</option>
           <option value="alpha">A → Z</option>
@@ -2524,36 +2608,11 @@ select option { background: var(--surface3); color: var(--ink); }
       </div>
       <div id="taskSortDirBar" style="display:flex;align-items:center;gap:5px;">
         <span style="font-family:var(--mono);font-size:10px;color:var(--ink3);white-space:nowrap;">Dir</span>
-        <select id="taskSortDirSelect" onchange="setTaskSortDirDropdown(this.value)" style="font-family:var(--mono);font-size:11.5px;padding:5px 8px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--surface2);color:var(--ink);cursor:pointer;outline:none;">
+        <select id="taskSortDirSelect" onchange="setTaskSortDirDropdown(this.value)" class="select-bw-blue">
           <option value="asc">Asc ↑</option>
           <option value="desc">Desc ↓</option>
         </select>
       </div>
-      <div style="display:flex;align-items:center;gap:5px;">
-        <label style="display:flex;align-items:center;gap:4px;font-family:var(--mono);font-size:11px;color:var(--ink3);cursor:pointer;white-space:nowrap;">
-          <input type="checkbox" id="typeBtnToday" onchange="setTaskTodayFilter(this.checked)" style="accent-color:var(--jt);width:13px;height:13px;">
-          📅 Today only
-        </label>
-        <label style="display:flex;align-items:center;gap:4px;font-family:var(--mono);font-size:11px;color:var(--ink3);cursor:pointer;white-space:nowrap;">
-          <input type="checkbox" id="typeBtnAssignedOnly" onchange="setTaskAssignedFilter(this.checked)" style="accent-color:var(--jt);width:13px;height:13px;">
-          ◷ Assigned only
-        </label>
-        <label style="display:flex;align-items:center;gap:4px;font-family:var(--mono);font-size:11px;color:var(--ink3);cursor:pointer;white-space:nowrap;">
-          <input type="checkbox" id="hideArchivedCb" onchange="setHideArchived(this.checked)" style="accent-color:var(--jt);width:13px;height:13px;">
-          📦 Hide archived
-        </label>
-        <label style="display:flex;align-items:center;gap:4px;font-family:var(--mono);font-size:11px;color:var(--ink3);cursor:pointer;white-space:nowrap;">
-          <input type="checkbox" id="hideErrorTaskCb" onchange="setHideErrorTask(this.checked)" style="accent-color:var(--jt);width:13px;height:13px;">
-          ⚠ Hide errors
-        </label>
-      </div>
-    </div>
-
-    <div id="tagFilterBar" style="display:flex;align-items:center;gap:6px;padding:6px 0 2px 0;flex-wrap:wrap;">
-      <span style="font-family:var(--mono);font-size:10px;color:var(--ink3);">Tags:</span>
-      <button class="tag-filter-btn tag-fresh-btn" id="tagBtnFresh" onclick="toggleTagFilter('fresh')">🌱 Fresh</button>
-      <button class="tag-filter-btn tag-today-btn" id="tagBtnToday" onclick="toggleTagFilter('today')">📅 Today's Task</button>
-      <button class="tag-filter-btn tag-quicky-btn" id="tagBtnQuicky" onclick="toggleTagFilter('quicky')">⚡ Quicky</button>
     </div>
 
     <div class="tasks-list" id="tasksList">
@@ -3978,7 +4037,6 @@ let taskArchiveSelected = new Set();
 
 // ── Task Search State ──
 window._taskTitleSearch = '';
-window._taskWordSearch = ''; // ranked multi-word search — words separated by ';'
 window._taskRangeFrom = null;
 window._taskRangeTo = null;
 window._taskDateFrom = null; // date filter (YYYY-MM-DD), matched against task.createdAt day-key
@@ -4090,6 +4148,8 @@ function showPage(id) {
   if (typeof setIpDockVisibility === 'function') setIpDockVisibility(id === 'accounts');
   // Sets dock panel: only visible on Task Management tab
   if (typeof setSetsDockVisibility === 'function') setSetsDockVisibility(id === 'tasks');
+  // Task Kits dock panel: only visible on Task Management tab
+  if (typeof setTaskKitsDockVisibility === 'function') setTaskKitsDockVisibility(id === 'tasks');
   // Left-edge Set/Account name label: only visible on Task Management tab
   if (typeof renderTaskSideLabel === 'function') renderTaskSideLabel();
   // Hide scroll-to-top when leaving tasks page
@@ -4712,13 +4772,11 @@ window.applyTaskSearch = function() {
   clearTimeout(_taskSearchDebounceTimer);
   _taskSearchDebounceTimer = setTimeout(() => {
     const titleEl = document.getElementById('taskTitleSearch');
-    const wordEl  = document.getElementById('taskWordSearch');
     const fromEl  = document.getElementById('taskRangeFrom');
     const toEl    = document.getElementById('taskRangeTo');
     const dateFromEl = document.getElementById('taskDateFrom');
     const dateToEl   = document.getElementById('taskDateTo');
     window._taskTitleSearch = titleEl ? titleEl.value : '';
-    window._taskWordSearch  = wordEl  ? wordEl.value  : '';
     const fromVal = fromEl && fromEl.value !== '' ? parseFloat(fromEl.value) : null;
     const toVal   = toEl && toEl.value !== '' ? parseFloat(toEl.value) : null;
     // Range search only active when BOTH fields are filled
@@ -4734,19 +4792,16 @@ window.applyTaskSearch = function() {
 
 window.clearTaskSearch = function() {
   const titleEl = document.getElementById('taskTitleSearch');
-  const wordEl  = document.getElementById('taskWordSearch');
   const fromEl  = document.getElementById('taskRangeFrom');
   const toEl    = document.getElementById('taskRangeTo');
   const dateFromEl = document.getElementById('taskDateFrom');
   const dateToEl   = document.getElementById('taskDateTo');
   if (titleEl) titleEl.value = '';
-  if (wordEl)  wordEl.value  = '';
   if (fromEl)  fromEl.value  = '';
   if (toEl)    toEl.value    = '';
   if (dateFromEl) dateFromEl.value = '';
   if (dateToEl)   dateToEl.value   = '';
   window._taskTitleSearch = '';
-  window._taskWordSearch = '';
   window._taskRangeFrom = null;
   window._taskRangeTo   = null;
   window._taskDateFrom = null;
@@ -4820,8 +4875,13 @@ function computeTaskList(accId, setId, exceptMode, hideCompletedForAcc) {
   const todayStr = todayISO();
   const todayDayKey = todayStr; // same value — todayISO() already uses the 5pm cutoff
 
-  const wordQueryRaw = (window._taskWordSearch || '').trim();
-  const wordQueryWords = wordQueryRaw ? wordQueryRaw.split(';').map(w => w.trim().toLowerCase()).filter(Boolean) : [];
+  // The Title field doubles as a ranked multi-word search when it contains ';'
+  // (e.g. "hostinger; coupon; discount"). Plain single-term queries keep the
+  // original startsWith/includes behavior below.
+  const titleQRawFull = (window._taskTitleSearch || '').trim();
+  const wordQueryWords = titleQRawFull.includes(';')
+    ? titleQRawFull.split(';').map(w => w.trim().toLowerCase()).filter(Boolean)
+    : [];
   const wordScores = {}; // taskId -> { count, score }, filled during the filter pass below
 
   let list = tasks.filter(t => {
@@ -4832,7 +4892,7 @@ function computeTaskList(accId, setId, exceptMode, hideCompletedForAcc) {
     }
     // Search filters (title search + range search) — apply to ALL tasks
     // (including archived) FIRST so search works on archived tasks too.
-    const titleQRaw = (window._taskTitleSearch || '').trim();
+    const titleQRaw = wordQueryWords.length ? '' : titleQRawFull;
     const titleQ = titleQRaw.toLowerCase();
     const rangeFrom = window._taskRangeFrom;
     const rangeTo = window._taskRangeTo;
@@ -5028,7 +5088,7 @@ function renderTasks() {
     const totalLabel = isFiltered ? `${displayList.length} <span style="opacity:0.6;font-weight:400;">/ ${runningTasks.length}</span>` : `${runningTasks.length}`;
     countChipEl.innerHTML = `
       <div style="display:flex;gap:8px;flex-wrap:wrap;padding:8px 0 12px;">
-        <span style="font-family:var(--mono);font-size:10px;padding:3px 10px;border-radius:99px;background:var(--surface2);border:1px solid var(--border);color:var(--ink2);">Total: <b>${totalLabel}</b></span>
+        <span style="font-family:var(--mono);font-size:10px;padding:3px 10px;border-radius:99px;background:#0a0a0a;border:1px solid #2b6fe0;color:#fff;">Total: <b>${totalLabel}</b></span>
         <span style="font-family:var(--mono);font-size:10px;padding:3px 10px;border-radius:99px;background:var(--red-light);border:1px solid var(--red-border);color:var(--red);">▶ YouTube: <b>${ytCount}</b></span>
         <span style="font-family:var(--mono);font-size:10px;padding:3px 10px;border-radius:99px;background:var(--green-light);border:1px solid var(--green-border);color:var(--green);">🔍 Google: <b>${gCount}</b></span>
         <span style="font-family:var(--mono);font-size:10px;padding:3px 10px;border-radius:99px;background:var(--amber-light);border:1px solid var(--amber-border);color:var(--amber);">◷ Assigned: <b>${assignedCount}</b></span>
@@ -8176,7 +8236,7 @@ function setUserRoleBadge(role) {
   const colors = {
     Admin: ['rgba(212,160,23,0.15)', '#d4a017', 'rgba(212,160,23,0.4)'],
     User:  ['rgba(55,78,153,0.15)', '#7d94d6', 'rgba(55,78,153,0.4)'],
-    Guest: ['rgba(255,255,255,0.06)', 'var(--ink3)', 'rgba(255,255,255,0.14)'],
+    Guest: ['#0a0a0a', '#4d94ff', '#2b6fe0'],
   };
   const [bg, fg, border] = colors[role] || colors.Guest;
   el.style.background = bg;
@@ -9669,6 +9729,7 @@ renderTasks();
 renderArchiveTasksBar();
 setTaPanelVisibility(document.getElementById('page-tasks') && document.getElementById('page-tasks').classList.contains('active'));
 if (typeof setSetsDockVisibility === 'function') setSetsDockVisibility(document.getElementById('page-tasks') && document.getElementById('page-tasks').classList.contains('active'));
+if (typeof setTaskKitsDockVisibility === 'function') setTaskKitsDockVisibility(document.getElementById('page-tasks') && document.getElementById('page-tasks').classList.contains('active'));
 renderAuditLog();
 // Pre-populate earnings history so it's ready when user clicks the tab
 populateEhAccountSelect();
@@ -9780,6 +9841,9 @@ document.addEventListener('paste', function(e) {
   <div id="setsDockTab" class="sets-dock-hidden" onclick="toggleSetsDock()">
     🗂 Sets
     <span id="setsDockTabCount">0</span>
+  </div>
+  <div id="taskKitsDockTab" class="tk-dock-hidden" onclick="toggleTaskKitsDock()">
+    🧰 Task Kits
   </div>
   <div id="taTab" class="ta-hidden" onclick="toggleTaskAddPanel()">
     + TASK
@@ -10010,6 +10074,69 @@ document.addEventListener('paste', function(e) {
   </div>
 </div>
 
+<!-- ── TASK KITS DOCK PANEL (fixed, right-docked, Task Manager tab only) ── -->
+<div id="taskKitsDockPanel" class="tk-dock-hidden">
+  <div id="taskKitsDockPanelHeader">
+    <div id="taskKitsDockPanelTitle">
+      <span>🧰</span> Task Kits
+    </div>
+    <button id="taskKitsDockCollapseBtn" onclick="toggleTaskKitsDock()" title="Collapse">›</button>
+  </div>
+  <div id="taskKitsDockPanelBody">
+    <div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--ink3);margin-bottom:5px;">Type</div>
+      <select id="taskTypeFilterBar" onchange="setTaskTypeFilterDropdown(this.value)" class="select-bw-blue" style="width:100%;">
+        <option value="all">All Tasks</option>
+        <option value="google">🔍 Google</option>
+        <option value="youtube">▶ YouTube</option>
+      </select>
+    </div>
+    <div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--ink3);margin-bottom:5px;">Tags:</div>
+      <div id="tagFilterBar" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+        <button class="tag-filter-btn tag-fresh-btn" id="tagBtnFresh" onclick="toggleTagFilter('fresh')">🌱 Fresh</button>
+        <button class="tag-filter-btn tag-today-btn" id="tagBtnToday" onclick="toggleTagFilter('today')">📅 Today's Task</button>
+        <button class="tag-filter-btn tag-quicky-btn" id="tagBtnQuicky" onclick="toggleTagFilter('quicky')">⚡ Quicky</button>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <label style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;color:var(--ink3);cursor:pointer;white-space:nowrap;">
+        <input type="checkbox" id="typeBtnToday" onchange="setTaskTodayFilter(this.checked)" style="accent-color:var(--jt);width:13px;height:13px;">
+        📅 Today only
+      </label>
+      <label style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;color:var(--ink3);cursor:pointer;white-space:nowrap;">
+        <input type="checkbox" id="typeBtnAssignedOnly" onchange="setTaskAssignedFilter(this.checked)" style="accent-color:var(--jt);width:13px;height:13px;">
+        ◷ Assigned only
+      </label>
+      <label style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;color:var(--ink3);cursor:pointer;white-space:nowrap;">
+        <input type="checkbox" id="hideArchivedCb" onchange="setHideArchived(this.checked)" style="accent-color:var(--jt);width:13px;height:13px;">
+        📦 Hide archived
+      </label>
+      <label style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;color:var(--ink3);cursor:pointer;white-space:nowrap;">
+        <input type="checkbox" id="hideErrorTaskCb" onchange="setHideErrorTask(this.checked)" style="accent-color:var(--jt);width:13px;height:13px;">
+        ⚠ Hide errors
+      </label>
+    </div>
+    <div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--ink3);margin-bottom:5px;">Range</div>
+      <div style="display:flex;align-items:center;gap:5px;">
+        <input type="number" id="taskRangeFrom" placeholder="From" oninput="applyTaskSearch()" class="search-input-bw">
+        <span style="font-family:var(--mono);font-size:10px;color:var(--ink3);">–</span>
+        <input type="number" id="taskRangeTo" placeholder="To" oninput="applyTaskSearch()" class="search-input-bw">
+      </div>
+    </div>
+    <div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--ink3);margin-bottom:5px;">📅 Date</div>
+      <div style="display:flex;align-items:center;gap:5px;">
+        <input type="date" id="taskDateFrom" oninput="applyTaskSearch()" class="search-input-bw" style="color-scheme:dark;">
+        <span style="font-family:var(--mono);font-size:10px;color:var(--ink3);">–</span>
+        <input type="date" id="taskDateTo" oninput="applyTaskSearch()" class="search-input-bw" style="color-scheme:dark;">
+      </div>
+    </div>
+    <button onclick="clearTaskSearch()" class="search-clear-bw" title="Clear search">✕ Clear Search</button>
+  </div>
+</div>
+
 <!-- ── SETS DOCK PANEL (fixed, right-docked, Task Manager tab only) ── -->
 <div id="setsDockPanel" class="sets-dock-hidden">
   <div id="setsDockPanelHeader">
@@ -10083,6 +10210,7 @@ window.toggleSetsDock = function() {
     if (typeof _taOpen !== 'undefined' && _taOpen && typeof window.toggleTaskAddPanel === 'function') window.toggleTaskAddPanel();
     if (typeof _accDockOpen !== 'undefined' && _accDockOpen && typeof window.toggleAccDock === 'function') window.toggleAccDock();
     if (typeof _payDockOpen !== 'undefined' && _payDockOpen && typeof window.togglePayDock === 'function') window.togglePayDock();
+    if (typeof _taskKitsDockOpen !== 'undefined' && _taskKitsDockOpen && typeof window.toggleTaskKitsDock === 'function') window.toggleTaskKitsDock();
     closeSetEditor();
     renderSetsList();
     positionSetsDock();
@@ -10480,6 +10608,53 @@ function setIpDockVisibility(visible) {
     panel.classList.remove('ip-dock-open');
   }
 }
+
+let _taskKitsDockOpen = false;
+let _taskKitsDockToggling = false;
+
+window.toggleTaskKitsDock = function() {
+  if (_taskKitsDockToggling) return;
+  _taskKitsDockToggling = true;
+  _taskKitsDockOpen = !_taskKitsDockOpen;
+  const panel = document.getElementById('taskKitsDockPanel');
+  const tab   = document.getElementById('taskKitsDockTab');
+  if (_taskKitsDockOpen) {
+    if (typeof _ipDockOpen !== 'undefined' && _ipDockOpen && typeof window.toggleIpDock === 'function') {
+      window.toggleIpDock();
+    }
+    if (typeof _accDockOpen !== 'undefined' && _accDockOpen && typeof window.toggleAccDock === 'function') {
+      window.toggleAccDock();
+    }
+    if (typeof _payDockOpen !== 'undefined' && _payDockOpen && typeof window.togglePayDock === 'function') {
+      window.togglePayDock();
+    }
+    if (typeof _setsDockOpen !== 'undefined' && _setsDockOpen && typeof window.toggleSetsDock === 'function') {
+      window.toggleSetsDock();
+    }
+    panel.classList.add('tk-dock-open');
+    tab.classList.add('tk-dock-panel-open');
+  } else {
+    panel.classList.remove('tk-dock-open');
+    tab.classList.remove('tk-dock-panel-open');
+  }
+  setTimeout(() => { _taskKitsDockToggling = false; }, 50);
+};
+
+window.setTaskKitsDockVisibility = function(visible) {
+  const panel = document.getElementById('taskKitsDockPanel');
+  const tab   = document.getElementById('taskKitsDockTab');
+  if (!panel || !tab) return;
+  if (visible) {
+    panel.classList.remove('tk-dock-hidden');
+    tab.classList.remove('tk-dock-hidden');
+    tab.classList.toggle('tk-dock-panel-open', _taskKitsDockOpen);
+    if (_taskKitsDockOpen) panel.classList.add('tk-dock-open');
+  } else {
+    panel.classList.add('tk-dock-hidden');
+    tab.classList.add('tk-dock-hidden');
+    panel.classList.remove('tk-dock-open');
+  }
+};
 </script>
 
 <script>
@@ -10577,6 +10752,8 @@ document.addEventListener('click', function(e) {
   const tsTab   = document.getElementById('taskSwitcherTab');
   const setsPanel = document.getElementById('setsDockPanel');
   const setsTab   = document.getElementById('setsDockTab');
+  const tkPanel = document.getElementById('taskKitsDockPanel');
+  const tkTab   = document.getElementById('taskKitsDockTab');
 
   if (typeof _setsDockOpen !== 'undefined' && _setsDockOpen && setsPanel && setsTab &&
       !_pathContains(e, setsPanel) && !_pathContains(e, setsTab)) {
@@ -10603,6 +10780,10 @@ document.addEventListener('click', function(e) {
   if (typeof _tsOpen !== 'undefined' && _tsOpen && tsPanel && tsTab &&
       !_pathContains(e, tsPanel) && !_pathContains(e, tsTab)) {
     window.toggleTaskSwitcher();
+  }
+  if (typeof _taskKitsDockOpen !== 'undefined' && _taskKitsDockOpen && tkPanel && tkTab &&
+      !_pathContains(e, tkPanel) && !_pathContains(e, tkTab)) {
+    window.toggleTaskKitsDock();
   }
 });
 </script>
