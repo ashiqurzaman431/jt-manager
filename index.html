@@ -3394,6 +3394,10 @@ TaskRec01: task assigned, timer started.</div>
         <label>Default Reward (USDT)</label>
         <input type="number" id="editTaskModalReward" placeholder="0.00" step="any" min="0">
       </div>
+      <div class="field">
+        <label>Beep Delay (minutes)</label>
+        <input type="number" id="editTaskModalBeepDelay" placeholder="2" step="any" min="0.1">
+      </div>
     </div>
     <div class="modal-actions">
       <button class="btn-primary" onclick="saveEditTask()">Save Changes</button>
@@ -5996,6 +6000,7 @@ window.addTask = function() {
     type,
     title,
     defaultReward: reward,
+    beepDelayMin: 2,
     thumbnail: type==='youtube' ? (thumbBase64||null) : null,
     previewButton: document.getElementById('newTaskPreviewButton').checked,
     quicky: document.getElementById('newTaskQuicky')?.checked || false,
@@ -6313,6 +6318,7 @@ window.openEditTaskModal = function(taskId) {
   document.getElementById('editTaskModalTitle').value = t.title||'';
   document.getElementById('editTaskModalType').value = t.type||'google';
   document.getElementById('editTaskModalReward').value = t.defaultReward||'';
+  document.getElementById('editTaskModalBeepDelay').value = t.beepDelayMin || 2;
   openModal('editTaskModal');
 };
 
@@ -6328,6 +6334,7 @@ window.saveEditTask = function() {
   t.title = newTitle;
   t.type = document.getElementById('editTaskModalType').value;
   t.defaultReward = parseFloat(document.getElementById('editTaskModalReward').value)||0;
+  t.beepDelayMin = parseFloat(document.getElementById('editTaskModalBeepDelay').value) || 2;
   closeModal('editTaskModal');
   taskPage = 0;
   renderTasks();
@@ -9294,10 +9301,10 @@ function acStopTimer(asgnId) {
   delete acBeepCount[asgnId];
 }
 
-// ── AC Beep alert (2 min after "Visited" is clicked, then every 15s) ───────
+// ── AC Beep alert (N min after "Visited" is clicked, then every 15s) ───────
 // acBeepCount: { [asgnId]: number of beeps already fired }
 const acBeepCount = {};
-const AC_BEEP_FIRST_MS  = 120000; // 2 minutes after the Visited step is clicked
+const AC_BEEP_FIRST_MS_DEFAULT = 120000; // fallback: 2 minutes, used if a task has no beepDelayMin set
 const AC_BEEP_REPEAT_MS = 15000;  // then every 15 seconds until Completed
 
 let acAudioCtx = null;
@@ -9333,18 +9340,23 @@ function acPlayBeep() {
 // (acStepTimes[asgnId].visitedEpoch) — NOT from assignment start, and not
 // reset by any click (visitedEpoch is set exactly once, the first time
 // Visited is clicked, and never changes again for this flow). No beep at
-// all before Visited has been clicked. First beep at 2:00 after Visited,
-// then one every 15s after that, until the flow is completed (acStopTimer
-// clears acBeepCount and stops the interval entirely).
+// all before Visited has been clicked. First beep after the task's
+// beepDelayMin (default 2:00, editable per task via Edit Task → Beep Delay
+// — locked into acStepTimes[asgnId].beepFirstMs at the moment Visited was
+// clicked, so a later edit to the task's delay never changes a flow already
+// in progress), then one every 15s after that, until the flow is completed
+// (acStopTimer clears acBeepCount and stops the interval entirely).
 // Note: the visible ticking clock on the task card is separate — it always
 // runs continuously from assignment start (acTimers[asgnId].startEpoch)
 // and is never affected by this.
 function acCheckBeep(asgnId) {
-  const visitedEpoch = acStepTimes[asgnId] && acStepTimes[asgnId].visitedEpoch;
+  const times = acStepTimes[asgnId];
+  const visitedEpoch = times && times.visitedEpoch;
   if (!visitedEpoch) return;
+  const firstMs = (times && times.beepFirstMs) || AC_BEEP_FIRST_MS_DEFAULT;
   const elapsed = Date.now() - visitedEpoch;
-  if (elapsed < AC_BEEP_FIRST_MS) return;
-  const expected = 1 + Math.floor((elapsed - AC_BEEP_FIRST_MS) / AC_BEEP_REPEAT_MS);
+  if (elapsed < firstMs) return;
+  const expected = 1 + Math.floor((elapsed - firstMs) / AC_BEEP_REPEAT_MS);
   if (expected > (acBeepCount[asgnId] || 0)) {
     acBeepCount[asgnId] = expected;
     acPlayBeep();
@@ -9467,6 +9479,10 @@ window.acStepVisit = function(taskId, asgnId) {
   if (!acStepTimes[asgnId]) acStepTimes[asgnId] = {};
   acStepTimes[asgnId].visitedEpoch = Date.now();
   acStepTimes[asgnId].visitHalt = haltMs;
+  // Lock in this task's current beep delay for the whole flow — a later edit
+  // to the task's Beep Delay setting won't retroactively change a flow that's
+  // already counting down.
+  acStepTimes[asgnId].beepFirstMs = (task.beepDelayMin > 0 ? task.beepDelayMin : 2) * 60000;
   delete acBeepCount[asgnId]; // clean start for the beep countdown that begins now (see acCheckBeep)
 
   const recNum = acGetRecNum(asgn);
@@ -10889,6 +10905,6 @@ if ('serviceWorker' in navigator) {
          font-size:18px;cursor:pointer;
          box-shadow:0 2px 12px rgba(0,0,0,0.22);
          align-items:center;justify-content:center;">↑</button>
-<script>// 37</script>
+<script>// 38</script>
 <protonpass-root-8df7 data-protonpass-role="root" data-protonpass-theme="dark"></protonpass-root-8df7>
 </body></html>
