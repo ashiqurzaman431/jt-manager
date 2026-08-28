@@ -5599,29 +5599,70 @@ function timerCharsHtml(str) {
 }
 
 function renderTaskCard(task, dualAccId) {
-  // Archived tasks: show minimal row only
+  const asgns = (task.assignments||[]);
+  const isYT = task.type === 'youtube';
+
+  // Thumbnail slot — shared by archived and active cards (computed here so
+  // the archived branch below can render it too). Shows the attached image
+  // immediately (if any); if not, shows a "Load Thumbnail" placeholder.
+  // Clicking either one calls openTaskMediaModal / handleThumbClick, which
+  // shows the local image instantly or fetches it from Drive on demand.
+  const showThumbSlot = !!(task.thumbnail || task.previewButton);
+  const cachedFileId = driveThumbCache[task.id];
+  const thumbHtml = showThumbSlot
+    ? (task.thumbnail
+        ? `<div class="sr-thumb-wrap" data-task-id="${task.id}" data-revealed="0" data-kind="${isYT?'thumbnail':'preview'}" onclick="handleThumbClick(this)" title="Click to view, click again to open">
+             <img src="${task.thumbnail}" alt="thumb" class="sr-thumb">
+           </div>`
+        : cachedFileId
+          ? `<div class="sr-thumb-wrap" data-task-id="${task.id}" data-revealed="1" data-kind="${isYT?'thumbnail':'preview'}" onclick="handleThumbClick(this)" title="Click to open">
+               <img src="https://drive.google.com/thumbnail?id=${cachedFileId}&sz=w300" alt="thumb" class="sr-thumb">
+             </div>`
+          : `<div class="sr-thumb-wrap sr-thumb-placeholder" data-task-id="${task.id}" data-revealed="0" data-kind="${isYT?'thumbnail':'preview'}" onclick="handleThumbClick(this)" title="Load ${isYT?'thumbnail':'preview'} from Drive">
+               📥<br>Load<br>${isYT?'Thumbnail':'Preview'}
+             </div>`)
+    : '';
+
+  // Link chips — shared by archived and active cards. Purple accent chips
+  // that copy the underlying value/URL to the clipboard on click.
+  const linkChips = (task.links||[]).map((l,i)=>{
+    const isLegacy = !l.searchKeyword && !l.topicName && !l.videoLink && !l.thumbLink && (l.label || l.url);
+    if (isLegacy) {
+      return `<button class="sr-link-chip" onclick="copyLink('${task.id}',${i})" title="${htmlEscape(l.url)}">📋 ${htmlEscape(l.label||l.url)}</button>`;
+    }
+    return [
+      l.searchKeyword ? `<button class="sr-link-chip" onclick="copyToClipboard('${jsEscape(l.searchKeyword)}')" title="Click to copy keyword">🔍 ${htmlEscape(l.searchKeyword)}</button>` : '',
+      l.topicName ? `<button class="sr-link-chip" onclick="copyToClipboard('${jsEscape(l.topicName)}')" title="Click to copy topic name only (not the timestamp)">🏷 ${htmlEscape(l.topicMss||"0'00")} · ${htmlEscape(l.topicName)}</button>` : '',
+      l.videoLink ? `<button class="sr-link-chip" onclick="copyToClipboard('${jsEscape(l.videoLink)}')" title="${htmlEscape(l.videoLink)}">📋 🎬</button>` : '',
+      l.thumbLink ? `<button class="sr-link-chip" onclick="copyToClipboard('${jsEscape(l.thumbLink)}')" title="${htmlEscape(l.thumbLink)}">📋 🖼</button>` : '',
+    ].filter(Boolean).join('');
+  }).join('');
+
+  // Archived tasks: compact row, but still surface the thumbnail slot and
+  // link chips so a worker can load/copy without restoring the task first.
   if (task.archived) {
     const archivedDateStr = task.archivedAt
       ? fmtDateTime(task.archivedAt)
       : (task.updatedAt ? fmtDateTime(task.updatedAt) : (task.createdAt ? fmtDateTime(task.createdAt) : 'Unknown date'));
     return `
       <div class="task-archived" style="background:#12131d;border:1px solid var(--border2);border-radius:10px;
-        padding:10px 16px;margin-bottom:8px;display:flex;align-items:center;gap:10px;">
-        <span style="font-size:15px;flex-shrink:0;">📦</span>
-        <div style="flex:1;min-width:0;">
-          <div style="font-family:var(--mono);font-size:13px;color:var(--ink);font-weight:700;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-            ${task.title || '(untitled)'}
+        padding:10px 16px;margin-bottom:8px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+        ${thumbHtml ? `<div style="flex-shrink:0;">${thumbHtml}</div>` : ''}
+        <div style="flex:1;min-width:160px;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px;">
+            <span style="font-size:15px;flex-shrink:0;">📦</span>
+            <div style="font-family:var(--mono);font-size:13px;color:var(--ink);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+              ${task.title || '(untitled)'}
+            </div>
           </div>
           <span style="font-family:var(--mono);font-size:11px;color:var(--ink3);">
             Task has been archived at <strong style="color:var(--ink2);">${archivedDateStr}</strong>
           </span>
+          ${linkChips ? `<div class="sr-link-row" style="margin-top:8px;">${linkChips}</div>` : ''}
         </div>
-        <button class="btn-secondary" style="font-size:10.5px;padding:4px 10px;flex-shrink:0;" onclick="unarchiveTask('${task.id}')">↩ Restore</button>
+        <button class="btn-secondary" style="font-size:10.5px;padding:4px 10px;flex-shrink:0;" onclick="event.stopPropagation();unarchiveTask('${task.id}')">↩ Restore</button>
       </div>`;
   }
-
-  const asgns = (task.assignments||[]);
-  const isYT = task.type === 'youtube';
 
   // Error state
   const errors = task.errors || [];
@@ -5639,27 +5680,6 @@ function renderTaskCard(task, dualAccId) {
 
   // Type accent colour — solid rail + badge (Google is now red, was blue)
   const typeColor = isYT ? '#4d94ff' : 'var(--red)';
-
-  // Thumbnail slot — shows the attached image immediately (if any); if not,
-  // shows a "Load Thumbnail" placeholder. Clicking either one calls
-  // openTaskMediaModal, which shows the local image instantly or fetches it
-  // from Drive on demand. This replaces the old separate "View Thumbnails" /
-  // "View Websites" button entirely.
-  const showThumbSlot = !!(task.thumbnail || task.previewButton);
-  const cachedFileId = driveThumbCache[task.id];
-  const thumbHtml = showThumbSlot
-    ? (task.thumbnail
-        ? `<div class="sr-thumb-wrap" data-task-id="${task.id}" data-revealed="0" data-kind="${isYT?'thumbnail':'preview'}" onclick="handleThumbClick(this)" title="Click to view, click again to open">
-             <img src="${task.thumbnail}" alt="thumb" class="sr-thumb">
-           </div>`
-        : cachedFileId
-          ? `<div class="sr-thumb-wrap" data-task-id="${task.id}" data-revealed="1" data-kind="${isYT?'thumbnail':'preview'}" onclick="handleThumbClick(this)" title="Click to open">
-               <img src="https://drive.google.com/thumbnail?id=${cachedFileId}&sz=w300" alt="thumb" class="sr-thumb">
-             </div>`
-          : `<div class="sr-thumb-wrap sr-thumb-placeholder" data-task-id="${task.id}" data-revealed="0" data-kind="${isYT?'thumbnail':'preview'}" onclick="handleThumbClick(this)" title="Load ${isYT?'thumbnail':'preview'} from Drive">
-               📥<br>Load<br>${isYT?'Thumbnail':'Preview'}
-             </div>`)
-    : '';
 
   // Reward block — clicking anywhere on it opens the edit modal instantly
   const rewardBlock = !hasError ? `
@@ -5733,20 +5753,6 @@ function renderTaskCard(task, dualAccId) {
           </div>`;
       }).join('')}
     </div>` : '';
-
-  // Links — purple accent chips for visibility against the rest of the card
-  const linkChips = (task.links||[]).map((l,i)=>{
-    const isLegacy = !l.searchKeyword && !l.topicName && !l.videoLink && !l.thumbLink && (l.label || l.url);
-    if (isLegacy) {
-      return `<button class="sr-link-chip" onclick="copyLink('${task.id}',${i})" title="${htmlEscape(l.url)}">📋 ${htmlEscape(l.label||l.url)}</button>`;
-    }
-    return [
-      l.searchKeyword ? `<button class="sr-link-chip" onclick="copyToClipboard('${jsEscape(l.searchKeyword)}')" title="Click to copy keyword">🔍 ${htmlEscape(l.searchKeyword)}</button>` : '',
-      l.topicName ? `<button class="sr-link-chip" onclick="copyToClipboard('${jsEscape(l.topicName)}')" title="Click to copy topic name only (not the timestamp)">🏷 ${htmlEscape(l.topicMss||"0'00")} · ${htmlEscape(l.topicName)}</button>` : '',
-      l.videoLink ? `<button class="sr-link-chip" onclick="copyToClipboard('${jsEscape(l.videoLink)}')" title="${htmlEscape(l.videoLink)}">📋 🎬</button>` : '',
-      l.thumbLink ? `<button class="sr-link-chip" onclick="copyToClipboard('${jsEscape(l.thumbLink)}')" title="${htmlEscape(l.thumbLink)}">📋 🖼</button>` : '',
-    ].filter(Boolean).join('');
-  }).join('');
 
   // Google-type tasks: latest Website Version link (+N expand to see all,
   // newest to oldest) and a button into the shared Keyword Collections
@@ -6052,9 +6058,21 @@ async function _runThumbQueueProcessor() {
 
 // Triggered from the Task Kits dock — queues every currently-visible
 // unloaded thumbnail slot, top task first, and loads them one at a time.
+// Only ACTIVE tasks are included: archived tasks and tasks currently
+// showing an error are skipped even if their placeholder is visible on
+// screen, so a bulk run never quietly loads thumbnails (and, for archived
+// tasks, auto-restores them — see loadThumbForElement) behind the user's
+// back. Those can still be loaded individually via a direct click.
 window.loadAllTaskThumbnails = function() {
   if (_thumbQueueBusy) { toast('Already loading thumbnails…'); return; }
-  const placeholders = Array.from(document.querySelectorAll('.sr-thumb-wrap.sr-thumb-placeholder[data-revealed="0"]'));
+  const placeholders = Array.from(document.querySelectorAll('.sr-thumb-wrap.sr-thumb-placeholder[data-revealed="0"]'))
+    .filter(el => {
+      const t = tasks.find(x => x.id === el.dataset.taskId);
+      if (!t) return false;
+      if (t.archived) return false;
+      if ((t.errors||[]).length > 0) return false;
+      return true;
+    });
   if (!placeholders.length) { toast('No thumbnails to load'); return; }
   _thumbAutoQueue = placeholders;
   _thumbPriorityQueue = [];
@@ -6538,13 +6556,15 @@ window.deleteTask = function(id) {
 window.unarchiveTask = function(id) {
   if (!requireAdminForTaskEdit()) return;
   const t = tasks.find(t => t.id===id);
-  pushUndo('Restore task ' + (t ? t.title : id));
-  if (t) {
-    t.archived = false;
-    // Reset counters on manual restore
-    t.archiveCount = 0;
-    t.permanentArchive = false;
-  }
+  if (!t) { toast('Task not found'); return; }
+  // Snapshot for undo first, but don't let a snapshot failure (e.g. a huge
+  // embedded thumbnail tripping JSON.stringify) block the actual restore —
+  // the mutation below always runs regardless.
+  try { pushUndo('Restore task ' + t.title); } catch (err) { console.error('pushUndo failed', err); }
+  t.archived = false;
+  // Reset counters on manual restore
+  t.archiveCount = 0;
+  t.permanentArchive = false;
   taskPage = 0; 
   renderTasks(); 
   markUnsaved(true); 
