@@ -3325,7 +3325,7 @@ TaskRec01: task assigned, timer started.</div>
     <div style="font-family:var(--mono);font-size:11px;color:var(--ink3);margin-bottom:12px;" id="replicateTaskModalSrc"></div>
     <div class="field" style="margin-bottom:12px;">
       <label>New Task Title</label>
-      <input type="text" id="replicateTaskModalTitle" placeholder="Enter new title">
+      <input type="text" id="replicateTaskModalTitle" placeholder="Enter new title" onkeydown="if(event.key==='Enter')saveReplicateTask()">
       <input type="hidden" id="replicateTaskModalId">
     </div>
     <div style="font-family:var(--mono);font-size:10.5px;color:var(--ink3);margin-bottom:4px;line-height:1.5;">
