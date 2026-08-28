@@ -129,6 +129,29 @@
     return snap.exists() ? snap.val() : {};
   };
 
+  // Google-task assignment titles — a Google task's own title is ignored at
+  // assignment time; instead a numeric title is entered by hand on every
+  // single assignment (even re-assigning the same task to the same account
+  // again). Uniqueness is scoped PER ACCOUNT — the same numeric title is
+  // free to reuse on a different account, it just can't repeat on the same
+  // one. Because per-user assignment records live under each user's own
+  // private uid subtree (see above) and are never visible to other users,
+  // this still needs to be a small shared registry every approved user can
+  // read and write — keyed by accountId then title, so a collision check
+  // is a single O(1) lookup scoped to that one account. Value is just
+  // bookkeeping (not read back for the check).
+  // Requires a rule granting any admin OR allowed_user read+write here:
+  //   "shared/taskManager/googleTitles": {
+  //     ".read":  "auth != null && (root.child('admins/'+auth.uid).exists() || root.child('allowed_users/'+auth.uid).exists())",
+  //     ".write": "auth != null && (root.child('admins/'+auth.uid).exists() || root.child('allowed_users/'+auth.uid).exists())"
+  //   }
+  window.firebaseCheckGoogleTitleTaken = async (accountId, title) => {
+    const snap = await get(ref(fbDb, 'shared/taskManager/googleTitles/' + accountId + '/' + title));
+    return snap.exists();
+  };
+  window.firebaseClaimGoogleTitle = (accountId, title, meta) =>
+    set(ref(fbDb, 'shared/taskManager/googleTitles/' + accountId + '/' + title), meta);
+
   window.firebaseReady = true;
 </script>
 <script>
@@ -2609,12 +2632,12 @@ select option { background: var(--surface3); color: var(--ink); }
       </div></div>
 
     <!-- Search + Sort row (Range/Date/Clear/Type/Tags/checkboxes live in the Task Kits dock panel) -->
-    <div id="taskFilterRow" style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
-      <div style="display:flex;align-items:center;gap:5px;">
+    <div id="taskFilterRow" style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;">
+      <div style="display:flex;align-items:center;gap:5px;flex-shrink:0;">
         <span style="font-family:var(--mono);font-size:10px;color:var(--ink3);white-space:nowrap;" title="Search by title, ID, or link. Separate multiple words with ; to rank tasks by how many words match.">Search</span>
-        <input type="text" id="taskTitleSearch" placeholder="Search…" oninput="applyTaskSearch()" class="search-input-bw" style="width:40vw;flex:none;">
+        <input type="text" id="taskTitleSearch" placeholder="Search…" oninput="applyTaskSearch()" class="search-input-bw" style="width:34vw;min-width:90px;max-width:220px;flex:none;">
       </div>
-      <div id="taskSortBar" style="display:flex;align-items:center;gap:5px;">
+      <div id="taskSortBar" style="display:flex;align-items:center;gap:5px;flex-shrink:0;">
         <span style="font-family:var(--mono);font-size:10px;color:var(--ink3);white-space:nowrap;">Sort</span>
         <select id="taskSortSelect" onchange="setTaskSortDropdown(this.value)" class="select-bw-blue">
           <option value="last-edited">Last Edited</option>
@@ -2627,7 +2650,7 @@ select option { background: var(--surface3); color: var(--ink); }
           <option value="rewarded">★ Rewarded</option>
         </select>
       </div>
-      <div id="taskSortDirBar" style="display:flex;align-items:center;gap:5px;">
+      <div id="taskSortDirBar" style="display:flex;align-items:center;gap:5px;flex-shrink:0;">
         <span style="font-family:var(--mono);font-size:10px;color:var(--ink3);white-space:nowrap;">Dir</span>
         <select id="taskSortDirSelect" onchange="setTaskSortDirDropdown(this.value)" class="select-bw-blue">
           <option value="asc">Asc ↑</option>
@@ -3043,14 +3066,18 @@ TaskRec01: task assigned, timer started.</div>
     <div style="font-family:var(--mono);font-size:12.1px;color:var(--ink3);margin-bottom:14px;" id="assignModalTaskInfo">Task: 6854 · Default: $ 0.04</div>
     <div class="field" style="margin-bottom:12px;">
       <label>Select Account</label>
-      <select id="assignModalAccSelect"><option value="t9pgt7rh2kmpidg2xw">Mayk0626 (Germany) · Active</option><option value="rm76fskvnolmpid4djn">GrowMax96 (Germany) · Active</option><option value="ay5gvbgk8zimpi9hqbg">Kesler51 (Germany) · Payout Ready</option><option value="4lehzx4rlmxmpid8d4b">Antonila43 (Germany) · Active</option><option value="0qh676el20smpicodvu">SonicThunder (Germany) · Active</option><option value="drsd00qdflqmpid187v">Noah82 (Germany) · Active</option></select>
+      <select id="assignModalAccSelect"></select>
+    </div>
+    <div class="field" id="assignModalTitleField" style="margin-bottom:12px;display:none;">
+      <label>Title (numeric, must be unique on this account)</label>
+      <input type="text" id="assignModalTitle" placeholder="e.g. 4821" inputmode="numeric" pattern="[0-9]*" autocomplete="off">
     </div>
     <div class="field" style="margin-bottom:12px;">
       <label>Custom Reward (leave blank for default)</label>
       <input type="number" id="assignModalReward" placeholder="default reward" step="any" min="0">
     </div>
     <div class="modal-actions">
-      <button class="btn-primary" onclick="confirmAssign()">Assign Task</button>
+      <button class="btn-primary" id="assignModalConfirmBtn" onclick="confirmAssign()">Assign Task</button>
       <button class="btn-secondary" onclick="closeModal('assignModal')">Cancel</button>
     </div>
   </div>
@@ -5620,6 +5647,16 @@ function renderTaskCard(task, dualAccId) {
   </div>`;
 }
 
+// Google tasks ignore the task's own title for identifying a specific
+// assignment — each assignment carries its own manually-entered, unique
+// numeric title instead (see openAssignModal/confirmAssign). Anywhere an
+// assigned task is shown against a specific account, use this so the
+// right one is distinguishable; every other task type is unaffected.
+function asgnDisplayTitle(task, asgn) {
+  if (task.type === 'google' && asgn && asgn.title) return asgn.title;
+  return task.title;
+}
+
 function pointsVal(task) {
   return Math.round(parseFloat(task.defaultReward||0) * 1000);
 }
@@ -6306,6 +6343,10 @@ window.unarchiveTask = function(id) {
 
 window.assignToAllActive = function(taskId) {
   const t = tasks.find(t => t.id===taskId); if(!t) return;
+  if (t.type === 'google') {
+    toast('⚠ Google tasks need a unique title entered per account — use + to assign one at a time');
+    return;
+  }
   const alreadyAssigned = new Set((t.assignments||[]).map(a => a.accountId));
   const eligible = accounts.filter(a => a.status !== 'dead' && !a.deleted && !alreadyAssigned.has(a.id));
   if (!eligible.length) { toast('All active accounts already assigned'); return; }
@@ -6635,7 +6676,7 @@ window.confirmIpAssign = function() {
 };
 
 // Shared: actually write the assignment record and refresh UI
-function _doAssign(taskId, accId, customReward) {
+function _doAssign(taskId, accId, customReward, title) {
   const t = tasks.find(t => t.id===taskId); if(!t) return;
   const accCheck = accounts.find(a => a.id === accId); if(!accCheck) return;
 
@@ -6653,6 +6694,11 @@ function _doAssign(taskId, accId, customReward) {
     ipName: ipMeta.ipName,
     acDescription: 'TaskRec01: task assigned, timer started.' + (ipMeta.ipName ? ' · IP: ' + ipMeta.ipName : '')
   };
+  // Google tasks: the task's own title is ignored for identifying an
+  // assignment — a manually entered, globally-unique numeric title (already
+  // checked/claimed in the registry before we got here — see confirmAssign)
+  // is stored on the assignment itself instead.
+  if (title) asgn.title = title;
   if (!t.assignments) t.assignments = [];
   t.assignments.push(asgn);
   sessOnTaskAssigned(asgn.accountId);
@@ -6666,12 +6712,17 @@ function _doAssign(taskId, accId, customReward) {
 window.openAssignModal = function(taskId, forcedAccId) {
   assigningTaskId = taskId;
   const t = tasks.find(t => t.id===taskId); if(!t) return;
+  const isGoogleTask = t.type === 'google';
 
   // ── Auto-assign when a specific account context is already known —
   // either the normal single-list account filter, or (in Dual Account
   // Mode) the account selected for the column this card belongs to. ──
+  // Google tasks always need a manually-entered, uniqueness-checked title
+  // (see below), so they skip this instant shortcut and always go through
+  // the modal — even when the account context is already known, in which
+  // case the modal just opens with that one account pre-selected.
   const contextAccId = forcedAccId || (taskAccountFilter !== 'all' ? taskAccountFilter : null);
-  if (contextAccId) {
+  if (contextAccId && !isGoogleTask) {
     const accId = contextAccId;
     const accCheck = accounts.find(a => a.id === accId);
     const alreadyAssigned = (t.assignments||[]).some(a => a.accountId === accId);
@@ -6690,11 +6741,21 @@ window.openAssignModal = function(taskId, forcedAccId) {
     return;
   }
 
-  // ── Normal modal flow when "All Accounts" is selected ──
+  // ── Normal modal flow ──
   document.getElementById('assignModalTaskInfo').textContent = `Task: ${t.title} · Default: ${fmtUSDT(t.defaultReward)}`;
   document.getElementById('assignModalReward').value = '';
+  const titleField = document.getElementById('assignModalTitleField');
+  const titleInput = document.getElementById('assignModalTitle');
+  if (titleField) titleField.style.display = isGoogleTask ? '' : 'none';
+  if (titleInput) titleInput.value = '';
+
+  // Google tasks can be re-assigned to the same account any time (each
+  // assignment is distinguished by its own unique numeric title, not by
+  // account), so already-assigned accounts stay in the eligible list.
+  // Every other task type keeps the old behavior: an account already
+  // assigned to this task is excluded until it's freed up again.
   const alreadyAssigned = new Set((t.assignments||[]).map(a => a.accountId));
-  const eligible = accounts.filter(a => a.status !== 'dead' && !a.deleted && !alreadyAssigned.has(a.id));
+  const eligible = accounts.filter(a => a.status !== 'dead' && !a.deleted && (isGoogleTask || !alreadyAssigned.has(a.id)));
 
   // Sort: most recently assigned first — but if the top account has a task currently
   // in progress (status === 'assigned'), demote it so the next available account shows first
@@ -6732,15 +6793,61 @@ window.openAssignModal = function(taskId, forcedAccId) {
   sel.innerHTML = eligible.length
     ? eligible.map(a => `<option value="${a.id}">${a.name} (${a.country||'—'}) · ${statusLabel(a.status)}</option>`).join('')
     : `<option disabled>${noEligibleMsg}</option>`;
-  sel.selectedIndex = 0;
+  // Google tasks reaching here with a known account context (see the
+  // shortcut above, which they always skip) start pre-selected on that
+  // account rather than whatever the recency sort put first.
+  if (contextAccId && isGoogleTask) {
+    const idx = eligible.findIndex(a => a.id === contextAccId);
+    sel.selectedIndex = idx !== -1 ? idx : 0;
+  } else {
+    sel.selectedIndex = 0;
+  }
   openModal('assignModal');
 };
 
-window.confirmAssign = function() {
+window.confirmAssign = async function() {
   if (!assigningTaskId) return;
+  const t = tasks.find(t => t.id === assigningTaskId);
   const accId = document.getElementById('assignModalAccSelect').value;
   if (!accId) { toast('No eligible account to assign'); return; }
   const customReward = document.getElementById('assignModalReward').value;
+
+  if (t && t.type === 'google') {
+    const titleInput = document.getElementById('assignModalTitle');
+    const title = (titleInput ? titleInput.value : '').trim();
+    if (!/^[0-9]+$/.test(title)) {
+      toast('⚠ Enter a numeric title');
+      if (titleInput) titleInput.focus();
+      return;
+    }
+    const btn = document.getElementById('assignModalConfirmBtn');
+    if (btn) { btn.disabled = true; btn.textContent = 'Checking…'; }
+    try {
+      const taken = await window.firebaseCheckGoogleTitleTaken(accId, title);
+      if (taken) {
+        toast('⚠ Title "' + title + '" is already used on this account — pick another');
+        if (titleInput) { titleInput.focus(); titleInput.select(); }
+        return;
+      }
+      await window.firebaseClaimGoogleTitle(accId, title, {
+        taskId: assigningTaskId,
+        accountId: accId,
+        assignedBy: firebaseUid || null,
+        assignedAt: now()
+      });
+    } catch (e) {
+      console.error(e);
+      toast('✗ Could not verify title uniqueness — try again');
+      return;
+    } finally {
+      if (btn) { btn.disabled = false; btn.textContent = 'Assign Task'; }
+    }
+    closeModal('assignModal');
+    _doAssign(assigningTaskId, accId, customReward, title);
+    assigningTaskId = null;
+    return;
+  }
+
   closeModal('assignModal');
   _doAssign(assigningTaskId, accId, customReward);
   assigningTaskId = null;
@@ -7082,7 +7189,7 @@ function renderAccDetail(accId) {
     <div class="acc-task-card" id="atask-${assignment.id}" onclick="toggleTaskCardSelect(event,'${assignment.id}','${accId}')">
       <input type="checkbox" class="bulk-task-cb" data-taskid="${task.id}" data-asgnid="${assignment.id}" onchange="updateBulkCount('${accId}')" style="display:none;">
       <span class="acc-task-card-status-dot ${assignment.status}" title="${assignment.status}"></span>
-      <span class="acc-task-card-title">${task.title}</span>
+      <span class="acc-task-card-title">${asgnDisplayTitle(task, assignment)}</span>
       ${assignment.ipName ? `<span class="acc-task-card-ip" title="IP used: ${escapeHtml(assignment.ipName)}">🌐 ${escapeHtml(assignment.ipName)}</span>` : ''}
       <button type="button" class="acc-task-card-dot" onclick="event.stopPropagation();openTaskDetailModal('${task.id}','${assignment.id}')">⋮</button>
     </div>`;}).join('')}
@@ -7161,7 +7268,7 @@ function renderAccDetail(accId) {
       <div class="history-date-header">${group.dateKey}</div>
       ${group.items.map(item => item.type==='task'
         ? `<div class="history-item task-hist">
-            <div class="history-item-head"><div class="history-item-title">${item.task.title}</div><div class="history-item-amount">${fmtUSDT(item.asgn.reward||item.task.defaultReward)}${item.asgn.pointsEarned ? ` · <span style="color:var(--jt)">${fmtPoints(item.asgn.pointsEarned)}</span>` : ''}</div></div>
+            <div class="history-item-head"><div class="history-item-title">${asgnDisplayTitle(item.task, item.asgn)}</div><div class="history-item-amount">${fmtUSDT(item.asgn.reward||item.task.defaultReward)}${item.asgn.pointsEarned ? ` · <span style="color:var(--jt)">${fmtPoints(item.asgn.pointsEarned)}</span>` : ''}</div></div>
             <div class="history-item-meta">Rewarded · ${fmtTime(item.asgn.rewardedAt)} · <span style="text-transform:uppercase;font-size:9.9px;">${item.task.type}</span>${item.asgn.ipName ? ` · 🌐 ${escapeHtml(item.asgn.ipName)}` : ''}${item.asgn.statusNote ? ` · 📝 ${item.asgn.statusNote}` : ''}</div>
           </div>`
         : `<div class="history-item payout-hist">
@@ -7370,7 +7477,7 @@ window.openTaskDetailModal = function(taskId, asgnId) {
   const task = tasks.find(t => t.id===taskId); if(!task) return;
   const assignment = (task.assignments||[]).find(a => a.id===asgnId); if(!assignment) return;
   const pointsForTask = Math.round(parseFloat(assignment.reward||task.defaultReward||0) * 1000);
-  document.getElementById('tdmTitle').textContent = task.title;
+  document.getElementById('tdmTitle').textContent = asgnDisplayTitle(task, assignment);
   document.getElementById('tdmBody').innerHTML = `
     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
       <span class="acc-active-task-status ${assignment.status}">${assignment.status}</span>
@@ -9155,7 +9262,7 @@ window.renderEarningsHistory = function() {
         amount: parseFloat(asgn.reward || task.defaultReward || 0),
         pointsEarned: asgn.pointsEarned || 0,
         accName: acc ? (acc.name + (acc.deleted ? ' (Deleted)' : '')) : 'Deleted Account',
-        taskTitle: task.title,
+        taskTitle: asgnDisplayTitle(task, asgn),
         type: task.type,
       });
     });
@@ -10944,6 +11051,6 @@ if ('serviceWorker' in navigator) {
          font-size:18px;cursor:pointer;
          box-shadow:0 2px 12px rgba(0,0,0,0.22);
          align-items:center;justify-content:center;">↑</button>
-<script>// 39</script>
+<script>// 41</script>
 <protonpass-root-8df7 data-protonpass-role="root" data-protonpass-theme="dark"></protonpass-root-8df7>
 </body></html>
