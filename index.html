@@ -3137,7 +3137,7 @@ TaskRec01: task assigned, timer started.</div>
     </div>
     <!-- Add new link — YouTube-type tasks -->
     <div id="linksModalYtWrap" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;display:flex;flex-direction:column;gap:8px;">
-      <div style="font-family:var(--mono);font-size:11px;color:var(--ink3);text-transform:uppercase;font-weight:600;">Add New Link</div>
+      <div style="font-family:var(--mono);font-size:11px;color:var(--ink3);text-transform:uppercase;font-weight:600;" id="addLinkHeader">Add New Link</div>
       <div class="field"><label>Search Keyword</label><input type="text" id="newLinkKeyword" placeholder="e.g. best budget phone"></div>
       <div class="form-row">
         <div class="field"><label>Topic Name</label><input type="text" id="newLinkTopicName" placeholder="e.g. intro, pricing, outro"></div>
@@ -3145,7 +3145,7 @@ TaskRec01: task assigned, timer started.</div>
       </div>
       <div class="field"><label>Video Link</label><input type="text" id="newLinkVideoLink" placeholder="paste full link or just the video ID" onblur="normalizeLinkField('newLinkVideoLink','youtube')" onkeydown="if(event.key==='Enter')addLink()"></div>
       <div class="field"><label>Thumbnail Link</label><input type="text" id="newLinkThumbLink" placeholder="paste full link or just the ID" onblur="normalizeLinkField('newLinkThumbLink','thumb')" onkeydown="if(event.key==='Enter')addLink()"></div>
-      <button class="btn-primary" style="width:100%;" onclick="addLink()">+ Add Link</button>
+      <button class="btn-primary" style="width:100%;" id="addLinkBtn" onclick="addLink()">+ Add Link</button>
     </div>
     <!-- Google-type tasks: Website Version Links + Keyword Collections -->
     <div id="linksModalGoogleWrap" style="display:none;flex-direction:column;gap:14px;">
@@ -7970,11 +7970,7 @@ window.openLinksModal = function(taskId) {
   const t = tasks.find(t => t.id===taskId); if(!t) return;
   document.getElementById('linksModalTaskId').value = taskId;
   document.getElementById('linksModalTaskName').textContent = `Task: ${t.title}`;
-  document.getElementById('newLinkKeyword').value = '';
-  document.getElementById('newLinkTopicName').value = '';
-  document.getElementById('newLinkTopicMss').value = '';
-  document.getElementById('newLinkVideoLink').value = '';
-  document.getElementById('newLinkThumbLink').value = '';
+  resetLinkEditState();
   renderLinksModalList(taskId);
 
   // Google-type tasks get Website Version Links + Keyword Collections
@@ -8246,6 +8242,33 @@ window.copyKcWord = function(index) {
   copyToClipboard(k.word);
 };
 
+let linksModalEditIndex = null;
+
+function resetLinkEditState() {
+  linksModalEditIndex = null;
+  document.getElementById('newLinkKeyword').value = '';
+  document.getElementById('newLinkTopicName').value = '';
+  document.getElementById('newLinkTopicMss').value = '';
+  document.getElementById('newLinkVideoLink').value = '';
+  document.getElementById('newLinkThumbLink').value = '';
+  document.getElementById('addLinkHeader').textContent = 'Add New Link';
+  document.getElementById('addLinkBtn').textContent = '+ Add Link';
+}
+
+window.editLink = function(taskId, index) {
+  const t = tasks.find(t => t.id===taskId); if(!t||!t.links) return;
+  const l = t.links[index]; if(!l) return;
+  linksModalEditIndex = index;
+  document.getElementById('newLinkKeyword').value = l.searchKeyword || '';
+  document.getElementById('newLinkTopicName').value = l.topicName || l.label || '';
+  document.getElementById('newLinkTopicMss').value = l.topicMss || '';
+  document.getElementById('newLinkVideoLink').value = l.videoLink || l.url || '';
+  document.getElementById('newLinkThumbLink').value = l.thumbLink || '';
+  document.getElementById('addLinkHeader').textContent = 'Edit Link';
+  document.getElementById('addLinkBtn').textContent = '✓ Update Link';
+  document.getElementById('newLinkKeyword').focus();
+};
+
 function renderLinksModalList(taskId) {
   const t = tasks.find(t => t.id===taskId); if(!t) return;
   const links = t.links||[];
@@ -8260,6 +8283,7 @@ function renderLinksModalList(taskId) {
       return `<div style="display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 12px;">
         <button onclick="copyLink('${taskId}',${i})" style="font-family:var(--mono);font-size:12.1px;color:var(--jt);background:var(--jt-light);border:1px solid var(--jt-border);border-radius:6px;padding:4px 10px;cursor:pointer;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left;">📋 ${htmlEscape(l.label||l.url)}</button>
         <span style="font-family:var(--mono);font-size:9.9px;color:var(--ink3);flex-shrink:0;overflow:hidden;text-overflow:ellipsis;max-width:120px;" title="${htmlEscape(l.url)}">${htmlEscape(l.url)}</span>
+        <button onclick="editLink('${taskId}',${i})" style="flex-shrink:0;background:var(--jt-light);color:var(--jt);border:1px solid var(--jt-border);border-radius:4px;width:22px;height:22px;cursor:pointer;font-size:12.1px;">✎</button>
         <button onclick="deleteLink('${taskId}',${i})" style="flex-shrink:0;background:var(--red-light);color:var(--red);border:1px solid var(--red-border);border-radius:4px;width:22px;height:22px;cursor:pointer;font-size:12.1px;">✕</button>
       </div>`;
     }
@@ -8271,6 +8295,7 @@ function renderLinksModalList(taskId) {
           ${l.searchKeyword ? `<button onclick="copyToClipboard('${jsEscape(l.searchKeyword)}')" style="font-family:var(--mono);font-size:11px;color:var(--jt);background:var(--jt-light);border:1px solid var(--jt-border);border-radius:6px;padding:2px 8px;cursor:pointer;" title="Click to copy keyword">🔍 ${htmlEscape(l.searchKeyword)}</button>` : ''}
           ${!l.topicName && !l.searchKeyword ? `<span style="font-family:var(--mono);font-size:11px;color:var(--ink3);">(no keyword/topic set)</span>` : ''}
         </div>
+        <button onclick="editLink('${taskId}',${i})" style="flex-shrink:0;background:var(--jt-light);color:var(--jt);border:1px solid var(--jt-border);border-radius:4px;width:22px;height:22px;cursor:pointer;font-size:12.1px;">✎</button>
         <button onclick="deleteLink('${taskId}',${i})" style="flex-shrink:0;background:var(--red-light);color:var(--red);border:1px solid var(--red-border);border-radius:4px;width:22px;height:22px;cursor:pointer;font-size:12.1px;">✕</button>
       </div>
       <div style="display:flex;flex-wrap:wrap;gap:4px;">
@@ -8293,7 +8318,7 @@ window.addLink = function() {
   }
   const t = tasks.find(t => t.id===taskId); if(!t) return;
   if (!t.links) t.links = [];
-  t.links.push({
+  const linkData = {
     searchKeyword,
     topicName,
     topicMss,
@@ -8304,21 +8329,28 @@ window.addLink = function() {
     // Legacy fields kept in sync so any old label/url-based code still works.
     label: topicName || searchKeyword,
     url: videoNorm.fullLink || thumbNorm.fullLink
-  });
-  document.getElementById('newLinkKeyword').value = '';
-  document.getElementById('newLinkTopicName').value = '';
-  document.getElementById('newLinkTopicMss').value = '';
-  document.getElementById('newLinkVideoLink').value = '';
-  document.getElementById('newLinkThumbLink').value = '';
+  };
+  const isEditing = linksModalEditIndex !== null && t.links[linksModalEditIndex];
+  if (isEditing) {
+    t.links[linksModalEditIndex] = linkData;
+  } else {
+    t.links.push(linkData);
+  }
+  resetLinkEditState();
   renderLinksModalList(taskId);
   taskPage = 0;
   renderTasks();
-  toast('Link added');
+  toast(isEditing ? 'Link updated' : 'Link added');
 };
 
 window.deleteLink = function(taskId, index) {
   const t = tasks.find(t => t.id===taskId); if(!t||!t.links) return;
   t.links.splice(index, 1);
+  if (linksModalEditIndex === index) {
+    resetLinkEditState();
+  } else if (linksModalEditIndex !== null && index < linksModalEditIndex) {
+    linksModalEditIndex -= 1;
+  }
   renderLinksModalList(taskId);
   taskPage = 0;
   renderTasks();
