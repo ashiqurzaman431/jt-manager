@@ -2632,14 +2632,14 @@ select option { background: var(--surface3); color: var(--ink); }
       </div></div>
 
     <!-- Search + Sort row (Range/Date/Clear/Type/Tags/checkboxes live in the Task Kits dock panel) -->
-    <div id="taskFilterRow" style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;">
+    <div id="taskFilterRow" style="display:flex !important;flex-direction:row !important;align-items:center;gap:6px;margin-bottom:12px;flex-wrap:nowrap !important;overflow-x:auto;-webkit-overflow-scrolling:touch;">
       <div style="display:flex;align-items:center;gap:5px;flex-shrink:0;">
         <span style="font-family:var(--mono);font-size:10px;color:var(--ink3);white-space:nowrap;" title="Search by title, ID, or link. Separate multiple words with ; to rank tasks by how many words match.">Search</span>
-        <input type="text" id="taskTitleSearch" placeholder="Search…" oninput="applyTaskSearch()" class="search-input-bw" style="width:34vw;min-width:90px;max-width:220px;flex:none;">
+        <input type="text" id="taskTitleSearch" placeholder="Search…" oninput="applyTaskSearch()" class="search-input-bw" style="width:28vw;min-width:80px;max-width:160px;flex:none !important;">
       </div>
       <div id="taskSortBar" style="display:flex;align-items:center;gap:5px;flex-shrink:0;">
         <span style="font-family:var(--mono);font-size:10px;color:var(--ink3);white-space:nowrap;">Sort</span>
-        <select id="taskSortSelect" onchange="setTaskSortDropdown(this.value)" class="select-bw-blue">
+        <select id="taskSortSelect" onchange="setTaskSortDropdown(this.value)" class="select-bw-blue" style="max-width:120px;">
           <option value="last-edited">Last Edited</option>
           <option value="unassigned">Default</option>
           <option value="alpha">A → Z</option>
@@ -2652,7 +2652,7 @@ select option { background: var(--surface3); color: var(--ink); }
       </div>
       <div id="taskSortDirBar" style="display:flex;align-items:center;gap:5px;flex-shrink:0;">
         <span style="font-family:var(--mono);font-size:10px;color:var(--ink3);white-space:nowrap;">Dir</span>
-        <select id="taskSortDirSelect" onchange="setTaskSortDirDropdown(this.value)" class="select-bw-blue">
+        <select id="taskSortDirSelect" onchange="setTaskSortDirDropdown(this.value)" class="select-bw-blue" style="max-width:90px;">
           <option value="asc">Asc ↑</option>
           <option value="desc">Desc ↓</option>
         </select>
@@ -5097,11 +5097,13 @@ function computeTaskList(accId, setId, exceptMode, hideCompletedForAcc) {
 }
 
 function renderTasks() {
-  // Always show sort and direction bars (unified list, no archive tab)
+  // Sort and direction bars are admin-only — non-admin (regular user)
+  // accounts get a fixed, non-configurable sort order (see computeTaskList)
+  // and no controls for it. Search stays visible for everyone.
   const sortBar = document.getElementById('taskSortBar');
-  if (sortBar) sortBar.style.display = 'flex';
+  if (sortBar) sortBar.style.display = window.isAdmin ? 'flex' : 'none';
   const sortDirBar = document.getElementById('taskSortDirBar');
-  if (sortDirBar) sortDirBar.style.display = 'flex';
+  if (sortDirBar) sortDirBar.style.display = window.isAdmin ? 'flex' : 'none';
   // Sync dropdown values to state
   const typeSel = document.getElementById('taskTypeFilterBar');
   if (typeSel) typeSel.value = taskTypeFilter;
@@ -8568,14 +8570,17 @@ function applyAdminUIState() {
 
   // Non-admin (regular user) accounts get a stripped-down Task Manager:
   // no dock panels of any kind (Add/Bulk Task, Accounts, Payout, IP
-  // Checker, Task Kits, Sets), and no search/sort/filter chrome above the
-  // list — just the task list and plain task cards. Clearing the inline
-  // style ('') for admins hands control back to each panel's own
-  // open/closed CSS classes, exactly as before this gating existed.
+  // Checker, Task Kits, Sets), and no count chips — just the task list,
+  // a working Search box, and plain task cards. taskFilterRow itself stays
+  // visible (it holds Search, which non-admins keep); Sort/Dir within it
+  // are hidden per-render in renderTasks() instead, since non-admins get a
+  // fixed sort order they can't control. Clearing the inline style ('')
+  // for admins hands control back to each panel's own open/closed CSS
+  // classes, exactly as before this gating existed.
   const adminOnlyPageEls = [
     'taTab','taPanel','accDockTab','accDockPanel','payDockTab','payDockPanel',
     'ipDockTab','ipDockPanel','taskKitsDockTab','taskKitsDockPanel',
-    'setsDockTab','setsDockPanel','taskFilterRow','taskCountChips'
+    'setsDockTab','setsDockPanel','taskCountChips'
   ];
   adminOnlyPageEls.forEach(id => {
     const el = document.getElementById(id);
@@ -11051,6 +11056,6 @@ if ('serviceWorker' in navigator) {
          font-size:18px;cursor:pointer;
          box-shadow:0 2px 12px rgba(0,0,0,0.22);
          align-items:center;justify-content:center;">↑</button>
-<script>// 41</script>
+<script>// 43</script>
 <protonpass-root-8df7 data-protonpass-role="root" data-protonpass-theme="dark"></protonpass-root-8df7>
 </body></html>
