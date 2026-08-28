@@ -5982,6 +5982,25 @@ async function loadThumbForElement(el) {
     el.innerHTML = `<img src="https://drive.google.com/thumbnail?id=${data.fileId}&sz=w300" alt="thumb" class="sr-thumb">`;
     el.dataset.revealed = '1';
     driveThumbCache[taskId] = data.fileId;
+
+    // Loading a thumbnail on an archived task counts as reviving it —
+    // auto-unarchive so it doesn't sit hidden behind the archived filter
+    // with a freshly-loaded thumbnail nobody can act on. During a batch
+    // "Load All" run we defer the re-render to the end of the run, since
+    // renderTasks() would rebuild the DOM and orphan the rest of the queue.
+    if (t.archived) {
+      t.archived = false;
+      t.archiveCount = 0;
+      t.permanentArchive = false;
+      markUnsaved(true);
+      if (_thumbQueueBusy) {
+        _thumbArchiveRerenderNeeded = true;
+      } else {
+        taskPage = 0;
+        renderTasks();
+      }
+      if (!_thumbQueueBusy) toast('Thumbnail loaded — task restored from archive');
+    }
   } catch (err) {
     el.classList.add('sr-thumb-placeholder');
     el.innerHTML = `📥<br>Load<br>${kindLabel}`;
@@ -6000,6 +6019,7 @@ let _thumbAutoQueue = [];
 let _thumbPriorityQueue = [];
 let _thumbQueueBusy = false;
 let _thumbMutexChain = Promise.resolve();
+let _thumbArchiveRerenderNeeded = false;
 
 function queueThumbLoad(el, opts) {
   opts = opts || {};
@@ -6022,6 +6042,11 @@ async function _runThumbQueueProcessor() {
     toast('All thumbnails loaded');
   } finally {
     _thumbQueueBusy = false;
+    if (_thumbArchiveRerenderNeeded) {
+      _thumbArchiveRerenderNeeded = false;
+      taskPage = 0;
+      renderTasks();
+    }
   }
 }
 
