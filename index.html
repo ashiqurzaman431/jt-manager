@@ -4967,8 +4967,11 @@ function computeTaskList(accId, setId, exceptMode, hideCompletedForAcc) {
       const activeSet = (typeof taskSets !== 'undefined' ? taskSets : []).find(s => s.id === setId);
       if (!activeSet || !(activeSet.taskIds || []).includes(t.id)) return false;
     }
-    // Archived: hide if hideArchived is checked; archived tasks skip all other filters below
+    // Archived: admin-only, always — non-admin (regular user) accounts never
+    // see archived tasks under any filter/checkbox state. For admins, hide
+    // if hideArchived is checked; archived tasks skip all other filters below.
     if (t.archived) {
+      if (!window.isAdmin) return false;
       return !hideArchived; // show only if user unchecked the hide box
     }
     // Error tasks: hide if hideErrorTask is checked
@@ -5013,6 +5016,19 @@ function computeTaskList(accId, setId, exceptMode, hideCompletedForAcc) {
       if (sb.count !== sa.count) return sb.count - sa.count;
       if (sb.score !== sa.score) return sb.score - sa.score;
       return (b.createdAt||'').localeCompare(a.createdAt||'');
+    });
+  }
+
+  // Non-admin (regular user) accounts: no sort controls are shown to them,
+  // so their order is fixed — YouTube tasks first, then Google tasks, each
+  // group sorted A→Z descending by title. This replaces the normal
+  // taskSort/taskSortDir-driven sort below entirely for them.
+  if (!window.isAdmin) {
+    return [...list].sort((a, b) => {
+      const aYT = a.type === 'youtube' ? 0 : 1;
+      const bYT = b.type === 'youtube' ? 0 : 1;
+      if (aYT !== bYT) return aYT - bYT;
+      return (b.title||b.id||'').localeCompare(a.title||a.id||'', undefined, {numeric: true, sensitivity: 'base'});
     });
   }
 
@@ -5545,7 +5561,10 @@ function renderTaskCard(task, dualAccId) {
 
   // Action buttons — "View Thumbnails"/"View Websites" removed; that action
   // now lives on the thumbnail slot itself (see thumbHtml above).
-  const actions = hasError ? `
+  // Non-admin (regular user) accounts get plain cards with no action chips
+  // at all — assign/edit/duplicate/archive/delete/error are all admin-only
+  // actions, so the whole row is omitted rather than gated button-by-button.
+  const actions = !window.isAdmin ? '' : hasError ? `
     <div class="sr-actions">
       <button class="sr-btn-icon danger" onclick="openErrorModal('${task.id}')" title="Manage Errors (${errors.length})">⚠</button>
       <button class="sr-btn-icon" onclick="archiveTask('${task.id}')" title="Archive">📦</button>
@@ -5595,7 +5614,7 @@ function renderTaskCard(task, dualAccId) {
         ${linkChips ? `<div class="sr-links">${linkChips}</div>` : ''}
       </div>
       ` : ''}
-      <div class="sr-divider"></div>
+      ${actions ? `<div class="sr-divider"></div>` : ''}
       ${actions}
     </div>
   </div>`;
@@ -8439,6 +8458,26 @@ function applyAdminUIState() {
   // including guest mode.
   const tsLock = document.getElementById('taskshotLockOverlay');
   if (tsLock) tsLock.style.display = window.isAdmin ? 'none' : 'flex';
+
+  // Non-admin (regular user) accounts get a stripped-down Task Manager:
+  // no dock panels of any kind (Add/Bulk Task, Accounts, Payout, IP
+  // Checker, Task Kits, Sets), and no search/sort/filter chrome above the
+  // list — just the task list and plain task cards. Clearing the inline
+  // style ('') for admins hands control back to each panel's own
+  // open/closed CSS classes, exactly as before this gating existed.
+  const adminOnlyPageEls = [
+    'taTab','taPanel','accDockTab','accDockPanel','payDockTab','payDockPanel',
+    'ipDockTab','ipDockPanel','taskKitsDockTab','taskKitsDockPanel',
+    'setsDockTab','setsDockPanel','taskFilterRow','taskCountChips'
+  ];
+  adminOnlyPageEls.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = window.isAdmin ? '' : 'none';
+  });
+
+  // Task list itself re-renders with archived tasks removed and action
+  // chips stripped for non-admins — see computeTaskList/renderTaskCard.
+  if (typeof renderTasks === 'function') renderTasks();
 }
 window.applyAdminUIState = applyAdminUIState;
 
@@ -10905,6 +10944,6 @@ if ('serviceWorker' in navigator) {
          font-size:18px;cursor:pointer;
          box-shadow:0 2px 12px rgba(0,0,0,0.22);
          align-items:center;justify-content:center;">↑</button>
-<script>// 38</script>
+<script>// 39</script>
 <protonpass-root-8df7 data-protonpass-role="root" data-protonpass-theme="dark"></protonpass-root-8df7>
 </body></html>
