@@ -5174,14 +5174,27 @@ function computeTaskList(accId, setId, exceptMode, hideCompletedForAcc) {
     // Account filter: support normal and "except" mode
     if (accId && accId !== 'all') {
       const hasAcc = (t.assignments||[]).some(a => a.accountId === accId);
-      if (exceptMode ? hasAcc : !hasAcc) return false;
+      if (t.type === 'google') {
+        // Google tasks are reusable per account — once assigned, a new
+        // unique title lets the same task be assigned to the same account
+        // again, so an existing assignment must never hide it from that
+        // account's "Except" (not-yet-assigned) view the way it would for
+        // other task types. "Only" (assigned) view still needs hasAcc.
+        if (!exceptMode && !hasAcc) return false;
+      } else {
+        if (exceptMode ? hasAcc : !hasAcc) return false;
+      }
       // Dual Account Mode: once a specific account is selected for a column
       // (regardless of which Set / "All Tasks" is chosen), hide tasks that
       // are already completed for that account — only not-yet-completed
-      // assignments should surface there.
+      // assignments should surface there. Checks ALL of this account's
+      // assignments on the task (not just the first): a Google task can
+      // have an old completed assignment plus a fresh reassignment under a
+      // new title, and that fresh one must still keep it visible.
       if (hideCompletedForAcc) {
-        const asgnForAcc = (t.assignments||[]).find(a => a.accountId === accId);
-        if (asgnForAcc && (asgnForAcc.status === 'completed' || asgnForAcc.status === 'rewarded')) return false;
+        const asgnsForAcc = (t.assignments||[]).filter(a => a.accountId === accId);
+        const hasActiveForAcc = asgnsForAcc.some(a => a.status !== 'completed' && a.status !== 'rewarded');
+        if (asgnsForAcc.length && !hasActiveForAcc) return false;
       }
     }
     // Tag filter
@@ -5988,25 +6001,8 @@ async function loadThumbForElement(el) {
     el.innerHTML = `<img src="https://drive.google.com/thumbnail?id=${data.fileId}&sz=w300" alt="thumb" class="sr-thumb">`;
     el.dataset.revealed = '1';
     driveThumbCache[taskId] = data.fileId;
-
-    // Loading a thumbnail on an archived task counts as reviving it —
-    // auto-unarchive so it doesn't sit hidden behind the archived filter
-    // with a freshly-loaded thumbnail nobody can act on. During a batch
-    // "Load All" run we defer the re-render to the end of the run, since
-    // renderTasks() would rebuild the DOM and orphan the rest of the queue.
-    if (t.archived) {
-      t.archived = false;
-      t.archiveCount = 0;
-      t.permanentArchive = false;
-      markUnsaved(true);
-      if (_thumbQueueBusy) {
-        _thumbArchiveRerenderNeeded = true;
-      } else {
-        taskPage = 0;
-        renderTasks();
-      }
-      if (!_thumbQueueBusy) toast('Thumbnail loaded — task restored from archive');
-    }
+    // Note: loading a thumbnail never restores an archived task — archived
+    // tasks stay archived until the user explicitly clicks "↩ Restore".
   } catch (err) {
     el.classList.add('sr-thumb-placeholder');
     el.innerHTML = `📥<br>Load<br>${kindLabel}`;
@@ -6025,7 +6021,6 @@ let _thumbAutoQueue = [];
 let _thumbPriorityQueue = [];
 let _thumbQueueBusy = false;
 let _thumbMutexChain = Promise.resolve();
-let _thumbArchiveRerenderNeeded = false;
 
 function queueThumbLoad(el, opts) {
   opts = opts || {};
@@ -6048,11 +6043,6 @@ async function _runThumbQueueProcessor() {
     toast('All thumbnails loaded');
   } finally {
     _thumbQueueBusy = false;
-    if (_thumbArchiveRerenderNeeded) {
-      _thumbArchiveRerenderNeeded = false;
-      taskPage = 0;
-      renderTasks();
-    }
   }
 }
 
