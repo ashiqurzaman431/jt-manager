@@ -3009,7 +3009,19 @@ TaskRec01: task assigned, timer started.</div>
     </div>
     <!-- Add new link — YouTube-type tasks -->
     <div id="linksModalYtWrap" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;display:flex;flex-direction:column;gap:8px;">
-      <div style="font-family:var(--mono);font-size:11px;color:var(--ink3);text-transform:uppercase;font-weight:600;" id="addLinkHeader">Add New Link</div>
+      <!-- Bulk paste: drop a whole YouTube chapters list ("00:00 Topic name" per
+           line) and it's parsed into one Topic Name + m'ss link entry per line. -->
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <div style="font-family:var(--mono);font-size:11px;color:var(--ink3);text-transform:uppercase;font-weight:600;" id="addLinkHeader">Add New Link</div>
+        <button type="button" class="btn-secondary" style="padding:4px 10px;font-size:10.5px;" onclick="toggleBulkTopicPaste()" id="bulkTopicToggleBtn">📋 Paste Chapters</button>
+      </div>
+      <div id="bulkTopicPasteWrap" style="display:none;flex-direction:column;gap:6px;">
+        <div style="font-family:var(--mono);font-size:10.5px;color:var(--ink3);line-height:1.5;">
+          Paste the whole chapters/timestamps list — one "00:00 Topic name" per line. Each line becomes its own Topic Name + m'ss link entry.
+        </div>
+        <textarea id="bulkTopicPasteInput" rows="6" placeholder="00:00 How to get the Surfshark coupon code&#10;00:12 Which Surfshark plan to pick?&#10;00:35 Surfshark Starter plan" style="width:100%;background:var(--surface3);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:12px;padding:8px 10px;outline:none;resize:vertical;"></textarea>
+        <button class="btn-primary" style="width:100%;" onclick="bulkAddTopics()">+ Add All Parsed Topics</button>
+      </div>
       <div class="field"><label>Search Keyword</label><input type="text" id="newLinkKeyword" placeholder="e.g. best budget phone"></div>
       <div class="form-row">
         <div class="field"><label>Topic Name</label><input type="text" id="newLinkTopicName" placeholder="e.g. intro, pricing, outro"></div>
@@ -8257,6 +8269,75 @@ function renderLinksModalList(taskId) {
     </div>`;
   }).join('');
 }
+
+window.toggleBulkTopicPaste = function() {
+  const wrap = document.getElementById('bulkTopicPasteWrap');
+  const btn = document.getElementById('bulkTopicToggleBtn');
+  if (!wrap) return;
+  const showing = wrap.style.display !== 'none';
+  wrap.style.display = showing ? 'none' : 'flex';
+  if (btn) btn.classList.toggle('active', !showing);
+  if (!showing) document.getElementById('bulkTopicPasteInput').focus();
+};
+
+// Parses one line of a pasted YouTube chapters list — "0:00 Topic name",
+// "00:12 Topic name", or "1:02:35 Topic name" (h:mm:ss for long videos) —
+// into { topicMss, topicName }. topicMss is normalized to the app's own
+// "m'ss" convention (e.g. "0'00", "1'07"), not the clock-style "0:00".
+function parseTopicLine(line) {
+  const m = line.trim().match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?\s+(.+?)\s*$/);
+  if (!m) return null;
+  let totalSeconds;
+  if (m[3] !== undefined) {
+    // h:mm:ss
+    totalSeconds = (parseInt(m[1], 10) * 3600) + (parseInt(m[2], 10) * 60) + parseInt(m[3], 10);
+  } else {
+    // m:ss
+    totalSeconds = (parseInt(m[1], 10) * 60) + parseInt(m[2], 10);
+  }
+  const mins = Math.floor(totalSeconds / 60);
+  const secs = totalSeconds % 60;
+  const topicName = m[4].trim();
+  if (!topicName) return null;
+  return { topicMss: `${mins}'${String(secs).padStart(2, '0')}`, topicName };
+}
+
+window.bulkAddTopics = function() {
+  const taskId = document.getElementById('linksModalTaskId').value;
+  const raw = document.getElementById('bulkTopicPasteInput').value;
+  const lines = raw.split('\n').map(l => l.trim()).filter(Boolean);
+  if (!lines.length) { toast('Paste a chapters list first.'); return; }
+
+  const parsed = [];
+  let skipped = 0;
+  lines.forEach(line => {
+    const p = parseTopicLine(line);
+    if (p) parsed.push(p); else skipped++;
+  });
+  if (!parsed.length) { toast("Couldn't parse any lines — expected e.g. \"00:00 Topic name\"."); return; }
+
+  const t = tasks.find(t => t.id === taskId); if (!t) return;
+  if (!t.links) t.links = [];
+  parsed.forEach(p => {
+    t.links.push({
+      searchKeyword: '',
+      topicName: p.topicName,
+      topicMss: p.topicMss,
+      videoLink: '', videoId: '',
+      thumbLink: '', thumbId: '',
+      label: p.topicName,
+      url: ''
+    });
+  });
+  if (typeof markUnsaved === 'function') markUnsaved(true);
+
+  document.getElementById('bulkTopicPasteInput').value = '';
+  toggleBulkTopicPaste();
+  renderLinksModalList(taskId);
+  taskPage = 0;
+  renderTasks();
+  toast(`✓ Added ${parsed.length} topic${parsed.length===1?'':'s'}${skipped ? ` (${skipped} line${skipped===1?'':'s'} skipped)` : ''}`);
+};
 
 window.addLink = function() {
   const taskId = document.getElementById('linksModalTaskId').value;
