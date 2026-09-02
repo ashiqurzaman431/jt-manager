@@ -4784,8 +4784,6 @@ function renderTaskSideLabel() {
 // Task Switcher list + selection — defined here (inside the same closure as `accounts` /
 // `taskAccountFilter`) because the dock's toggle/hover logic lives in a later, separate
 // <script> tag that has no closure access to those variables.
-let _tsLastSelectedId = null; // keeps the most recently picked account pinned to the top
-
 window.renderTaskSwitcherList = function() {
   const body = document.getElementById('taskSwitcherListItems');
   if (!body) return;
@@ -4794,10 +4792,34 @@ window.renderTaskSwitcherList = function() {
     body.innerHTML = `<div style="padding:16px;text-align:center;font-family:var(--mono);font-size:11px;color:var(--ink3);">No accounts yet</div>`;
     return;
   }
-  if (_tsLastSelectedId) {
-    const i = list.findIndex(a => a.id === _tsLastSelectedId);
-    if (i > 0) list.unshift(list.splice(i, 1)[0]);
-  }
+
+  // Sort order: recently-assigned accounts first (most-recent assignment
+  // wins ties); within that group, accounts with no task currently running
+  // come before accounts with one running; accounts never assigned a task
+  // come last, in their original order.
+  const lastAssignedAt = {};
+  const hasRunning = {};
+  tasks.forEach(task => {
+    (task.assignments||[]).forEach(asgn => {
+      const prev = lastAssignedAt[asgn.accountId] || '';
+      if ((asgn.assignedAt||'') > prev) lastAssignedAt[asgn.accountId] = asgn.assignedAt;
+      if (asgn.status === 'assigned') hasRunning[asgn.accountId] = true;
+    });
+  });
+
+  list.sort((a, b) => {
+    const ta = lastAssignedAt[a.id] || '';
+    const tb = lastAssignedAt[b.id] || '';
+    const aRecent = ta ? 1 : 0;
+    const bRecent = tb ? 1 : 0;
+    if (aRecent !== bRecent) return bRecent - aRecent; // recently-assigned group first
+    if (!aRecent) return 0; // both never assigned — keep original order
+    const aRun = hasRunning[a.id] ? 1 : 0;
+    const bRun = hasRunning[b.id] ? 1 : 0;
+    if (aRun !== bRun) return aRun - bRun; // not running before running
+    return tb.localeCompare(ta); // most recently assigned first
+  });
+
   body.innerHTML = list.map(a => `
     <div class="ts-acc-item" onclick="selectTaskSwitcherAcc('${a.id}')">
       <span class="ts-acc-name ${taskAccountFilter===a.id?'selected':''}">${countryFlag(a.country) ? countryFlag(a.country)+' ' : ''}${a.name}</span>
@@ -4806,7 +4828,6 @@ window.renderTaskSwitcherList = function() {
 
 window.selectTaskSwitcherAcc = function(id) {
   window.setTaskAccountFilter(taskAccountFilter === id ? 'all' : id);
-  if (taskAccountFilter !== 'all') _tsLastSelectedId = id;
   window.renderTaskSwitcherList();
   if (typeof _toolKitsOpen !== 'undefined' && _toolKitsOpen && typeof window.toggleToolKitsDock === 'function') {
     window.toggleToolKitsDock();
@@ -5051,6 +5072,13 @@ function computeTaskList(accId, setId, exceptMode, hideCompletedForAcc) {
         if (!exceptMode && !hasAcc) return false;
       } else {
         if (exceptMode ? hasAcc : !hasAcc) return false;
+        // In "except" (browse-available) mode, a task currently in progress
+        // for a different account shouldn't show up as available here — it
+        // stays pinned to that other account's list instead, not up for grabs.
+        if (exceptMode) {
+          const runningElsewhere = (t.assignments||[]).some(a => a.accountId !== accId && a.status === 'assigned');
+          if (runningElsewhere) return false;
+        }
       }
       // Dual Account Mode: once a specific account is selected for a column
       // (regardless of which Set / "All Tasks" is chosen), hide tasks that
@@ -5230,12 +5258,9 @@ function renderTasks() {
   tasksListEl.classList.remove('tasks-list-dual');
   tasksListEl.style.gridTemplateColumns = '';
 
-  if (!list.length) {
-    tasksListEl.innerHTML = `<div class="empty-state"><div class="es-icon">✦</div>No tasks found</div>`;
-    return;
-  }
-
-  // Build pinned in-progress banner for account filter (Change 2)
+  // Build pinned in-progress banner for account filter (Change 2) — computed
+  // before the empty-list check below, since an in-progress task must stay
+  // pinned on top even if every other task is filtered out of `list`.
   let pinnedHtml = '';
   if (taskAccountFilter !== 'all') {
     const inProgressForAcc = tasks.filter(t =>
@@ -5250,6 +5275,11 @@ function renderTasks() {
           ${inProgressForAcc.map(t => `<div class="pinned-task-overlay">${renderTaskCard(t)}</div>`).join('')}
         </div>`;
     }
+  }
+
+  if (!list.length) {
+    tasksListEl.innerHTML = pinnedHtml + `<div class="empty-state"><div class="es-icon">✦</div>No tasks found</div>`;
+    return;
   }
 
   tasksListEl.innerHTML = pinnedHtml + (() => {
