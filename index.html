@@ -11254,6 +11254,7 @@ window.toggleTaskKitsDock = function() {
     if (typeof _toolKitsOpen !== 'undefined' && _toolKitsOpen && typeof window.toggleToolKitsDock === 'function') {
       window.toggleToolKitsDock();
     }
+    panel.classList.add('tk-dock-open');
     tab.classList.add('tk-dock-panel-open');
   } else {
     panel.classList.remove('tk-dock-open');
