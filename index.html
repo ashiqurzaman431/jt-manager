@@ -517,98 +517,12 @@ body {
 .task-side-label-line.set-line { color: #4d94ff; }
 .task-side-label-line.acc-line:empty { display: none; }
 
-/* ── ADD/BULK TASK PANEL (docked right) ── */
-#taPanel {
-  position: fixed;
-  top: 0; right: 0;
-  height: 100vh;
-  width: 300px;
-  max-width: 100vw;
-  background: rgba(51, 55, 80, 0.61);
-  border-left: 1.5px solid var(--jt-border);
-  box-shadow: -4px 0 24px rgba(0,0,0,0.10);
-  z-index: 800;
-  display: flex;
-  flex-direction: column;
-  transform: translateX(100%);
-  transition: transform 0.25s cubic-bezier(0.4,0,0.2,1);
-}
-#taPanel.ta-open {
-  transform: translateX(0);
-}
-#taPanel.ta-hidden {
-  display: none;
-}
-/* The collapsed tab badge sticking out from right edge — stacked with the AC tab in #dockTabsWrap */
-#taTab {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  background: #0a0a0a; border: 1px solid #2b6fe0; border-right: none;
-  color: #fff;
-  width: 28px;
-  padding: 14px 0;
-  border-radius: 10px 0 0 10px;
-  cursor: pointer;
-  box-shadow: -2px 0 12px rgba(0,0,0,0.18);
-  transition: width 0.2s, background 0.15s;
-  writing-mode: vertical-rl;
-  font-family: var(--mono);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  user-select: none;
-}
-#taTab:hover { background: #12224a; border-color:#4d94ff; }
-#taTab.ta-hidden { display: none; }
-#taTab.ta-panel-open { pointer-events: none; }
-/* Panel header */
-#taPanelHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 14px 14px 12px;
-  border-bottom: 1px solid var(--border);
-  flex-shrink: 0;
-  background: linear-gradient(135deg, rgba(154,158,166,0.10), rgba(154,147,184,0.06));
-}
-#taPanelTitle {
-  font-family: var(--mono);
-  font-size: 12.5px;
-  font-weight: 700;
-  color: var(--jt);
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  line-height: 1;
-  white-space: nowrap;
-}
-#taPanelTitle > span:first-child {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 15px;
-  font-size: 13px;
-}
-#taCollapseBtn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--jt);
-  font-size: 16px;
-  line-height: 1;
-  padding: 2px 4px;
-  border-radius: 6px;
-  transition: background 0.15s;
-}
-#taCollapseBtn:hover { background: var(--jt-border); }
-/* Internal tab switcher (Add New Task / Bulk Add) */
+/* ── Reusable internal tab-switcher + form-section classes — used by the
+   "Add Task" section merged inside the Task Kits dock panel below, and by
+   the Filters/Add Task top-level switch in that same panel. ── */
 #taSwitcher {
   display: flex;
   gap: 6px;
-  padding: 10px 10px 0;
   flex-shrink: 0;
 }
 .ta-switch-btn {
@@ -631,19 +545,12 @@ body {
   color: #fff;
   border-color: var(--jt);
 }
-/* Panel body */
-#taPanelBody {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px 14px 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
 .ta-form-section { display: none; flex-direction: column; gap: 10px; }
 .ta-form-section.active { display: flex; }
+#tkSectionFilters, #tkSectionAddTask { display: none; flex-direction: column; gap: 12px; }
+#tkSectionFilters.active, #tkSectionAddTask.active { display: flex; }
 
-/* ── ACCOUNTS DOCK PANEL (docked right, like AC & +Task) ── */
+/* ── ACCOUNTS DOCK PANEL (docked right, like AC & Task Kits) ── */
 #accDockPanel {
   position: fixed;
   top: 0; right: 0;
@@ -761,13 +668,14 @@ body {
 }
 #accDockPanelBody .acc-list-items { max-height: none; flex: 1; overflow-y: visible; }
 
-/* ── SETS DOCK PANEL (docked right, like AC & Accounts) ── */
-#setsDockPanel {
+/* ── TOOL KITS DOCK PANEL (docked right, floating card — merges the former
+   Switcher + Sets panels into one, with an internal sub-tab switcher) ── */
+#toolKitsDockPanel {
   position: fixed;
   top: 50%;
   right: 42px;
-  width: 220px;
-  max-height: 50vh;
+  width: 232px;
+  max-height: 58vh;
   max-width: calc(100vw - 60px);
   background: rgba(37, 40, 61, 0.98);
   border: 1px solid var(--jt-border);
@@ -784,13 +692,13 @@ body {
   overflow: hidden;
   min-height: 0;
 }
-#setsDockPanel.sets-dock-open {
+#toolKitsDockPanel.tkit-dock-open {
   opacity: 1;
   pointer-events: auto;
   transform: translateX(0) scale(1);
 }
-#setsDockPanel.sets-dock-hidden { display: none; }
-#setsDockTab {
+#toolKitsDockPanel.tkit-dock-hidden { display: none; }
+#toolKitsDockTab {
   position: relative;
   display: flex;
   flex-direction: column;
@@ -812,10 +720,10 @@ body {
   letter-spacing: 0.5px;
   user-select: none;
 }
-#setsDockTab:hover { background: #12224a; border-color:#4d94ff; }
-#setsDockTab.sets-dock-hidden { display: none; }
-#setsDockTab.sets-dock-panel-open { pointer-events: none; }
-#setsDockTabCount {
+#toolKitsDockTab:hover, #toolKitsDockTab.tkit-dock-panel-open { background: #12224a; border-color:#4d94ff; }
+#toolKitsDockTab.tkit-dock-hidden { display: none; }
+#toolKitsDockTab.tkit-dock-panel-open { pointer-events: none; }
+#toolKitsDockTabCount {
   position: absolute;
   left: 50%;
   bottom: 10px;
@@ -830,7 +738,7 @@ body {
   min-width: 18px;
   text-align: center;
 }
-#setsDockPanelHeader {
+#toolKitsDockPanelHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -841,7 +749,7 @@ body {
   font-family: var(--mono);
   font-size: 11px;
 }
-#setsDockPanelTitle {
+#toolKitsDockPanelTitle {
   font-family: var(--mono);
   font-size: 12.5px;
   font-weight: 700;
@@ -852,14 +760,14 @@ body {
   line-height: 1;
   white-space: nowrap;
 }
-#setsDockPanelTitle > span:first-child {
+#toolKitsDockPanelTitle > span:first-child {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 15px;
   font-size: 13px;
 }
-#setsDockCollapseBtn {
+#toolKitsDockCollapseBtn {
   background: none;
   border: none;
   cursor: pointer;
@@ -870,7 +778,62 @@ body {
   border-radius: 6px;
   transition: background 0.15s;
 }
-#setsDockCollapseBtn:hover { background: var(--jt-border); }
+#toolKitsDockCollapseBtn:hover { background: var(--jt-border); }
+/* Internal sub-tab switcher: Switcher / Sets */
+#toolKitsSwitcher {
+  display: flex;
+  gap: 6px;
+  padding: 8px 8px 0;
+  flex-shrink: 0;
+}
+.tkit-switch-btn {
+  flex: 1;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 7px 4px;
+  border-radius: 8px 8px 0 0;
+  border: 1.5px solid var(--jt-border);
+  border-bottom: none;
+  background: var(--surface2);
+  color: var(--ink3);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  text-align: center;
+}
+.tkit-switch-btn.active {
+  background: var(--jt);
+  color: #fff;
+  border-color: var(--jt);
+}
+.tkit-section { display: none; flex-direction: column; flex: 1; min-height: 0; overflow: hidden; }
+.tkit-section.active { display: flex; }
+
+/* Switcher sub-view */
+#toolKitsSwitcherSection > div:first-child {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 8px 10px; border-bottom: 1px solid var(--border); flex-shrink: 0;
+}
+#taskSwitcherBody { flex: 1; overflow-y: auto; padding: 4px; display: flex; flex-direction: column; gap: 1px; min-height: 0; }
+.ts-acc-item {
+  display: flex;
+  align-items: center;
+  padding: 2px 3px;
+  cursor: pointer;
+  border-radius: 6px;
+}
+.ts-acc-name {
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink);
+  padding: 4px 7px;
+  transition: color 0.12s;
+}
+.ts-acc-item:hover .ts-acc-name { color: var(--jt); }
+.ts-acc-name.selected { color: var(--jt); font-weight: 700; }
+
+/* Sets sub-view */
 #setsDockToolbar {
   padding: 10px 12px;
   border-bottom: 1px solid var(--border);
@@ -926,90 +889,6 @@ body {
 .set-task-pick-row:hover { background: var(--surface2); }
 .set-task-pick-row input { accent-color: var(--jt); width: 13px; height: 13px; flex-shrink: 0; }
 .set-task-pick-row span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
-/* ── TASK SWITCHER (floating card, Task Manager tab only — anchored next to its own dock tab, NOT a full slide panel) ── */
-#taskSwitcherTab {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  background: #0a0a0a; border: 1px solid #2b6fe0; border-right: none;
-  color: #fff;
-  width: 28px;
-  padding: 14px 0 30px;
-  border-radius: 10px 0 0 10px;
-  cursor: pointer;
-  box-shadow: -2px 0 12px rgba(0,0,0,0.18);
-  transition: width 0.2s, background 0.15s;
-  writing-mode: vertical-rl;
-  font-family: var(--mono);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  user-select: none;
-}
-#taskSwitcherTab:hover, #taskSwitcherTab.ts-panel-open { background: #12224a; border-color:#4d94ff; }
-#taskSwitcherTab.ts-hidden { display: none; }
-#taskSwitcherPanel {
-  position: fixed;
-  top: 50%;
-  right: 42px;
-  width: 172px;
-  max-height: 46vh;
-  max-width: calc(100vw - 60px);
-  background: rgba(37, 40, 61, 0.98);
-  border: 1px solid var(--jt-border);
-  border-radius: 12px;
-  box-shadow: 0 16px 40px rgba(0,0,0,0.4);
-  z-index: 850;
-  display: flex;
-  flex-direction: column;
-  opacity: 0;
-  pointer-events: none;
-  transform: translateX(8px) scale(0.96);
-  transform-origin: right center;
-  transition: opacity 0.15s ease, transform 0.15s ease;
-  overflow: hidden;
-}
-#taskSwitcherPanel.ts-open {
-  opacity: 1;
-  pointer-events: auto;
-  transform: translateX(0) scale(1);
-}
-#taskSwitcherPanel.ts-hidden { display: none; }
-#taskSwitcherHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 7px 10px 6px;
-  border-bottom: 1px solid var(--border);
-  flex-shrink: 0;
-  background: linear-gradient(135deg, rgba(154,158,166,0.10), rgba(154,147,184,0.06));
-  font-family: var(--mono);
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--jt);
-}
-#taskSwitcherBody { flex: 1; overflow-y: auto; padding: 4px; display: flex; flex-direction: column; gap: 1px; }
-.ts-acc-item {
-  display: flex;
-  align-items: center;
-  padding: 2px 3px;
-  cursor: pointer;
-  border-radius: 6px;
-}
-.ts-acc-name {
-  font-family: var(--sans);
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--ink);
-  padding: 4px 7px;
-  transition: color 0.12s;
-}
-.ts-acc-item:hover .ts-acc-name { color: var(--jt); }
-.ts-acc-name.selected { color: var(--jt); font-weight: 700; }
 
 /* ── Selected-account chip row (appears under the task filter bar once an account is picked from the Switcher) ── */
 #taskAccSwitcherRow { display: none; align-items: center; gap: 6px; padding: 0 0 10px 0; flex-wrap: wrap; }
@@ -2650,16 +2529,9 @@ select option { background: var(--surface3); color: var(--ink); }
   <!-- ════════════════════════════ -->
   <div class="page" id="page-tasks" data-protonpass-form="">
 
-    <!-- Add New Task / Bulk Add Tasks — moved to docked right panel (#taPanel), see below -->
+    <!-- Add New Task / Bulk Add Tasks — moved into the Task Kits dock panel (#taskKitsDockPanel), see below -->
 
     <!-- Task Tabs removed — unified list with Hide Archived checkbox below -->
-
-    <!-- Admin-only: manually republish the guest-demo preview without needing
-         an unrelated change to trigger the dirty flag first -->
-    <button class="admin-only-task-ctl btn-secondary" onclick="publishLatestPreview()"
-      style="font-size:11px;padding:5px 12px;margin-bottom:10px;" title="Push the 5 newest tasks to the guest-demo preview right now">
-      🔄 Republish Guest Preview
-    </button>
 
     <!-- Task Count Chips -->
     <div id="taskCountChips">
@@ -4348,19 +4220,15 @@ function showPage(id) {
   }
   if (id === 'earnings') { populateEhAccountSelect(); renderEarningsHistory(); }
   if (id === 'taskshot') { tsRenderSlots(); }
-  // Add/Bulk Task panel: only visible on Task Management tab
-  setTaPanelVisibility(id === 'tasks');
   // Accounts dock panel: only visible on Accounts tab
   if (typeof setAccDockVisibility === 'function') setAccDockVisibility(id === 'accounts');
-  // Task Switcher (account filter for tasks): only visible on Task Manager tab
-  if (typeof setTaskSwitcherVisibility === 'function') setTaskSwitcherVisibility(id === 'tasks');
+  // Tool Kits dock panel (Switcher + Sets): only visible on Task Manager tab
+  if (typeof window.setToolKitsDockVisibility === 'function') window.setToolKitsDockVisibility(id === 'tasks');
   // Payout settings dock panel: only visible on Accounts tab (open by default)
   if (typeof setPayDockVisibility === 'function') setPayDockVisibility(id === 'accounts');
   // IP Checker dock panel: only visible on Accounts tab
   if (typeof setIpDockVisibility === 'function') setIpDockVisibility(id === 'accounts');
-  // Sets dock panel: only visible on Task Management tab
-  if (typeof setSetsDockVisibility === 'function') setSetsDockVisibility(id === 'tasks');
-  // Task Kits dock panel: only visible on Task Management tab
+  // Task Kits dock panel (filters + Add Task): only visible on Task Management tab
   if (typeof setTaskKitsDockVisibility === 'function') setTaskKitsDockVisibility(id === 'tasks');
   // Left-edge Set/Account name label: only visible on Task Management tab
   if (typeof renderTaskSideLabel === 'function') renderTaskSideLabel();
@@ -4940,8 +4808,8 @@ window.selectTaskSwitcherAcc = function(id) {
   window.setTaskAccountFilter(taskAccountFilter === id ? 'all' : id);
   if (taskAccountFilter !== 'all') _tsLastSelectedId = id;
   window.renderTaskSwitcherList();
-  if (typeof _tsOpen !== 'undefined' && _tsOpen && typeof window.toggleTaskSwitcher === 'function') {
-    window.toggleTaskSwitcher();
+  if (typeof _toolKitsOpen !== 'undefined' && _toolKitsOpen && typeof window.toggleToolKitsDock === 'function') {
+    window.toggleToolKitsDock();
   }
   if (typeof forceTaskListRepaint === 'function') forceTaskListRepaint();
 };
@@ -5211,6 +5079,12 @@ function computeTaskList(accId, setId, exceptMode, hideCompletedForAcc) {
   // first, ties broken by whichever task matched the earlier-listed words.
   if (wordQueryWords.length) {
     return [...list].sort((a, b) => {
+      // Standing order: active/running tasks always sort before archived
+      // ones, regardless of search rank — the system filter (word score)
+      // only breaks ties within each of those two groups.
+      const aArch = a.archived ? 1 : 0;
+      const bArch = b.archived ? 1 : 0;
+      if (aArch !== bArch) return aArch - bArch;
       const sb = wordScores[b.id] || { count: 0, score: 0 };
       const sa = wordScores[a.id] || { count: 0, score: 0 };
       if (sb.count !== sa.count) return sb.count - sa.count;
@@ -5225,6 +5099,12 @@ function computeTaskList(accId, setId, exceptMode, hideCompletedForAcc) {
   // taskSort/taskSortDir-driven sort below entirely for them.
   if (!window.isAdmin) {
     return [...list].sort((a, b) => {
+      // Standing order: active/running tasks always sort before archived
+      // ones — the fixed type/alpha order below only applies within
+      // each of those two groups.
+      const aArch = a.archived ? 1 : 0;
+      const bArch = b.archived ? 1 : 0;
+      if (aArch !== bArch) return aArch - bArch;
       const aYT = a.type === 'youtube' ? 0 : 1;
       const bYT = b.type === 'youtube' ? 0 : 1;
       if (aYT !== bYT) return aYT - bYT;
@@ -5234,6 +5114,13 @@ function computeTaskList(accId, setId, exceptMode, hideCompletedForAcc) {
 
   // Sort — always use running-tab sort (unified list)
   list = [...list].sort((a, b) => {
+    // Standing order: active/running tasks always sort before archived
+    // ones, on top of whatever system sort/filter is currently applied —
+    // the checks below (taskSort etc.) only decide ordering within each
+    // of those two groups.
+    const aArch = a.archived ? 1 : 0;
+    const bArch = b.archived ? 1 : 0;
+    if (aArch !== bArch) return aArch - bArch;
     // Status-based sorts (only for non-archived)
     if (taskSort === 'assigned')      { const d = countAsgns(b,'assigned')  - countAsgns(a,'assigned');  if(d!==0) return d; }
     if (taskSort === 'completed')     { const d = countAsgns(b,'completed') - countAsgns(a,'completed'); if(d!==0) return d; }
@@ -9119,9 +9006,9 @@ function applyAdminUIState() {
   // for admins hands control back to each panel's own open/closed CSS
   // classes, exactly as before this gating existed.
   const adminOnlyPageEls = [
-    'taTab','taPanel','accDockTab','accDockPanel','payDockTab','payDockPanel',
+    'accDockTab','accDockPanel','payDockTab','payDockPanel',
     'ipDockTab','ipDockPanel','taskKitsDockTab','taskKitsDockPanel',
-    'setsDockTab','setsDockPanel','taskCountChips'
+    'taskCountChips'
   ];
   adminOnlyPageEls.forEach(id => {
     const el = document.getElementById(id);
@@ -9505,38 +9392,6 @@ function _triggerLocalDownload(content, filename, mimeType = 'text/plain') {
     else { toast('⚠ Could not download. Check browser download permissions.'); }
   }
 }
-
-// ── Save to Drive (or local fallback) — triggered by tapping Save Data ──
-// Manually (re)publishes the guest-demo preview, independent of the normal
-// Save flow's dirty-check. That check (only save if something actually
-// changed) is correct for the main Save button, but it also meant that if
-// you'd already saved once with no further edits, hitting Save again would
-// no-op and silently skip republishing the preview too — this button always
-// runs, so there's a reliable way to fix a stale/empty guest preview.
-async function publishLatestPreview() {
-  if (!window.isAdmin) { toast('Admin is constantly updating, seat back!'); return; }
-  if (!firebaseUid) { toast('Sign in first.'); return; }
-  setDriveDot('spin', 'publishing preview…');
-  try {
-    const definitionsOnly = tasks.map(t => {
-      const { assignments, ...rest } = t;
-      return rest;
-    });
-    const preview = definitionsOnly
-      .filter(t => !t.archived)
-      .slice()
-      .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
-      .slice(0, 5);
-    await window.firebaseSaveLatestTasksPreview(preview);
-    setDriveDot('green', 'preview published');
-    toast('☁ Guest preview published — ' + preview.length + ' task(s)');
-  } catch (e) {
-    console.error(e);
-    setDriveDot('red', 'publish failed');
-    toast('✗ Could not publish preview: ' + (e.message || e.code || 'unknown error'));
-  }
-}
-window.publishLatestPreview = publishLatestPreview;
 
 async function performSaveToDrive(force) {
   if (isGuestMode) { toast('Sign in first — guest mode can\'t save to Drive.'); return; }
@@ -10532,8 +10387,7 @@ renderDashboard();
 renderAccList();
 renderTasks();
 renderArchiveTasksBar();
-setTaPanelVisibility(document.getElementById('page-tasks') && document.getElementById('page-tasks').classList.contains('active'));
-if (typeof setSetsDockVisibility === 'function') setSetsDockVisibility(document.getElementById('page-tasks') && document.getElementById('page-tasks').classList.contains('active'));
+if (typeof window.setToolKitsDockVisibility === 'function') window.setToolKitsDockVisibility(document.getElementById('page-tasks') && document.getElementById('page-tasks').classList.contains('active'));
 if (typeof setTaskKitsDockVisibility === 'function') setTaskKitsDockVisibility(document.getElementById('page-tasks') && document.getElementById('page-tasks').classList.contains('active'));
 renderAuditLog();
 // Pre-populate earnings history so it's ready when user clicks the tab
@@ -10643,18 +10497,12 @@ document.addEventListener('paste', function(e) {
 
 <!-- ── DOCK TABS (fixed, right-docked) ── -->
 <div id="dockTabsWrap">
-  <div id="setsDockTab" class="sets-dock-hidden" onclick="toggleSetsDock()">
-    🗂 Sets
-    <span id="setsDockTabCount">0</span>
-  </div>
   <div id="taskKitsDockTab" class="tk-dock-hidden" onclick="toggleTaskKitsDock()">
     🧰 Task Kits
   </div>
-  <div id="taTab" class="ta-hidden" onclick="toggleTaskAddPanel()">
-    + TASK
-  </div>
-  <div id="taskSwitcherTab" class="ts-hidden" onclick="toggleTaskSwitcher()">
-    👤 Switcher
+  <div id="toolKitsDockTab" class="tkit-dock-hidden" onclick="toggleToolKitsDock()">
+    🧩 Tool Kits
+    <span id="toolKitsDockTabCount">0</span>
   </div>
   <div id="accDockTab" class="acc-dock-hidden" onclick="toggleAccDock()">
     👤 Accounts
@@ -10665,118 +10513,6 @@ document.addEventListener('paste', function(e) {
   </div>
   <div id="ipDockTab" class="ip-dock-hidden" onclick="toggleIpDock()">
     🌐 IP Checker
-  </div>
-</div>
-
-<!-- ── ADD/BULK TASK PANEL (fixed, right-docked) ── -->
-<div id="taPanel" class="ta-hidden">
-  <div id="taPanelHeader">
-    <div id="taPanelTitle">
-      <span>+</span> Add Task
-    </div>
-    <button id="taCollapseBtn" onclick="toggleTaskAddPanel()" title="Collapse">›</button>
-  </div>
-  <div id="taSwitcher">
-    <button class="ta-switch-btn active" id="taSwitchAdd" onclick="taShowTab('add')">+ Add New</button>
-    <button class="ta-switch-btn" id="taSwitchBulk" onclick="taShowTab('bulk')">⚡ Bulk Add</button>
-    <button class="ta-switch-btn" id="taSwitchDefaults" onclick="taShowTab('defaults')">⚙ Defaults</button>
-  </div>
-  <div id="taPanelBody">
-    <!-- Add New Task form -->
-    <div class="ta-form-section active" id="taSectionAdd">
-      <div class="form-row">
-        <div class="field">
-          <label>Task Type</label>
-          <select id="newTaskType" onchange="toggleThumbField()">
-            <option value="google">Google Task</option>
-            <option value="youtube">YouTube Task</option>
-          </select>
-        </div>
-        <div class="field">
-          <label>Default Reward (USDT)</label>
-          <input type="number" id="newTaskReward" placeholder="0.00" step="any" min="0" data-auto-filled="true">
-        </div>
-      </div>
-      <div class="field">
-        <label>Task Title / Description</label>
-        <input type="text" id="newTaskTitle" inputmode="numeric" placeholder="e.g. Watch video and like, Search and click...">
-      </div>
-      <div class="field" style="flex-direction:row;align-items:center;gap:8px;margin-top:4px;">
-        <label style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:12px;color:var(--ink2);cursor:pointer;">
-          <input type="checkbox" id="newTaskQuicky" style="accent-color:var(--jt);width:13px;height:13px;">
-          ⚡ Mark as Quicky
-        </label>
-      </div>
-      <div class="field" style="display:flex;align-items:center;gap:10px;">
-        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
-          <input type="checkbox" id="newTaskPreviewButton" style="accent-color:var(--jt);width:14px;height:14px;">
-          <span style="font-size:13px;color:var(--ink2);">Show preview button on task</span>
-        </label>
-      </div>
-      <div class="field" id="thumbFieldWrapper" style="display: none;">
-        <label>YouTube Thumbnail</label>
-        <div class="thumb-upload-area" id="thumbDropArea">📷 Click to attach image or paste (Ctrl+V)<input type="file" id="thumbFileInput" accept="image/*" onchange="handleThumbFile(event)">
-          <img id="thumbPreview" class="thumb-preview" style="display: none;" src="">
-        </div>
-      </div>
-      <div style="display:flex;gap:8px;">
-        <button class="btn-primary" onclick="addTask()">Add Task</button>
-        <button class="btn-secondary" onclick="clearTaskForm()">Clear</button>
-      </div>
-    </div>
-    <!-- Bulk Add Tasks form -->
-    <div class="ta-form-section" id="taSectionBulk">
-      <div class="form-row">
-        <div class="field">
-          <label>Task Type</label>
-          <select id="bulkTaskType" onchange="bulkTaskTypeChanged()">
-            <option value="google">Google Task</option>
-            <option value="youtube">YouTube Task</option>
-          </select>
-        </div>
-        <div class="field">
-          <label>Default Reward (USDT)</label>
-          <input type="number" id="bulkTaskReward" placeholder="0.00" step="any" min="0" oninput="this.dataset.userEdited='true'">
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="field">
-          <label>Start Number</label>
-          <input type="number" id="bulkTaskStart" placeholder="e.g. 1000" min="0" step="1">
-        </div>
-        <div class="field">
-          <label>End Number</label>
-          <input type="number" id="bulkTaskEnd" placeholder="e.g. 1050" min="0" step="1">
-        </div>
-      </div>
-      <div class="form-row" style="margin-top:4px;">
-        <div class="field" style="flex-direction:row;align-items:center;gap:8px;padding:6px 0;">
-          <input type="checkbox" id="bulkTaskPreviewButton" style="accent-color:var(--jt);width:14px;height:14px;flex-shrink:0;">
-          <label for="bulkTaskPreviewButton" style="font-family:var(--mono);font-size:11px;color:var(--ink2);cursor:pointer;text-transform:none;">Show "Preview" button on task cards</label>
-        </div>
-      </div>
-      <div id="bulkAddPreview" style="font-family:var(--mono);font-size:11.5px;color:var(--ink3);margin-bottom:10px;min-height:18px;"></div>
-      <div style="display:flex;gap:8px;">
-        <button class="btn-primary" onclick="bulkAddTasks()">⚡ Bulk Add</button>
-        <button class="btn-secondary" onclick="bulkAddPreview()">Preview</button>
-      </div>
-    </div>
-
-    <!-- Default Reward Settings -->
-    <div class="ta-form-section" id="taSectionDefaults">
-      <div style="font-family:var(--mono);font-size:11.5px;color:var(--ink3);line-height:1.6;">
-        Set the default reward pre-filled when adding a new task. You can always override it per task.
-      </div>
-      <div class="field">
-        <label>Default Google Task Reward (USDT)</label>
-        <input type="number" id="defaultGoogleRewardInput" min="0" step="any" placeholder="0.00" style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:14.3px;padding:9px 10px;outline:none;width:100%;">
-      </div>
-      <div class="field">
-        <label>Default YouTube Task Reward (USDT)</label>
-        <input type="number" id="defaultYoutubeRewardInput" min="0" step="any" placeholder="0.00" style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:14.3px;padding:9px 10px;outline:none;width:100%;">
-      </div>
-      <button class="btn-primary" onclick="saveDefaultRewards()">Save Defaults</button>
-    </div>
   </div>
 </div>
 
@@ -10810,21 +10546,6 @@ document.addEventListener('paste', function(e) {
 </div>
 
 <!-- ── TASK SWITCHER (floating, Task Manager tab only — picks the account used to filter the task list) ── -->
-<div id="taskSwitcherPanel" class="ts-hidden">
-  <div id="taskSwitcherHeader">
-    <span>👤 Switcher</span>
-  </div>
-  <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px;border-bottom:1px solid var(--border);">
-    <span style="font-family:var(--mono);font-size:11px;color:var(--ink2);">Dual Account Mode</span>
-    <button id="dualModeToggleBtn" class="dual-mode-toggle" onclick="toggleDualAccountMode()" title="Show two columns, each filtered to its own account/set">
-      <span class="dual-mode-toggle-knob"></span>
-    </button>
-  </div>
-  <div id="taskSwitcherBody">
-    <div id="taskSwitcherListItems"><div style="padding:16px;text-align:center;font-family:var(--mono);font-size:11px;color:var(--ink3);">No accounts yet</div></div>
-  </div>
-</div>
-
 <!-- ── PAYOUT SETTINGS DOCK PANEL (fixed, right-docked) ── -->
 <div id="payDockPanel" class="pay-dock-hidden">
   <div id="payDockPanelHeader">
@@ -10883,6 +10604,13 @@ document.addEventListener('paste', function(e) {
     <button id="taskKitsDockCollapseBtn" onclick="toggleTaskKitsDock()" title="Collapse">›</button>
   </div>
   <div id="taskKitsDockPanelBody">
+    <div id="tkTopSwitcher" style="display:flex;gap:6px;">
+      <button class="ta-switch-btn active" id="tkSecBtnFilters" onclick="tkShowSection('filters')">🔍 Filters</button>
+      <button class="ta-switch-btn" id="tkSecBtnAdd" onclick="tkShowSection('add')">➕ Add Task</button>
+    </div>
+
+    <!-- Filters section (search/type/tags/checkboxes/range/date) -->
+    <div id="tkSectionFilters" class="active">
     <div>
       <div style="font-family:var(--mono);font-size:10px;color:var(--ink3);margin-bottom:5px;">Type</div>
       <select id="taskTypeFilterBar" onchange="setTaskTypeFilterDropdown(this.value)" class="select-bw-blue" style="width:100%;">
@@ -10940,116 +10668,265 @@ document.addEventListener('paste', function(e) {
         📦 Archive Tasks
       </button>
     </div>
+    </div>
+
+    <!-- Add Task section (merged from the former standalone +Task panel) -->
+    <div id="tkSectionAddTask">
+      <div id="taSwitcher">
+        <button class="ta-switch-btn active" id="taSwitchAdd" onclick="taShowTab('add')">+ Add New</button>
+        <button class="ta-switch-btn" id="taSwitchBulk" onclick="taShowTab('bulk')">⚡ Bulk Add</button>
+        <button class="ta-switch-btn" id="taSwitchDefaults" onclick="taShowTab('defaults')">⚙ Defaults</button>
+      </div>
+      <!-- Add New Task form -->
+      <div class="ta-form-section active" id="taSectionAdd">
+        <div class="form-row">
+          <div class="field">
+            <label>Task Type</label>
+            <select id="newTaskType" onchange="toggleThumbField()">
+              <option value="google">Google Task</option>
+              <option value="youtube">YouTube Task</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Default Reward (USDT)</label>
+            <input type="number" id="newTaskReward" placeholder="0.00" step="any" min="0" data-auto-filled="true">
+          </div>
+        </div>
+        <div class="field">
+          <label>Task Title / Description</label>
+          <input type="text" id="newTaskTitle" inputmode="numeric" placeholder="e.g. Watch video and like, Search and click...">
+        </div>
+        <div class="field" style="flex-direction:row;align-items:center;gap:8px;margin-top:4px;">
+          <label style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:12px;color:var(--ink2);cursor:pointer;">
+            <input type="checkbox" id="newTaskQuicky" style="accent-color:var(--jt);width:13px;height:13px;">
+            ⚡ Mark as Quicky
+          </label>
+        </div>
+        <div class="field" style="display:flex;align-items:center;gap:10px;">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+            <input type="checkbox" id="newTaskPreviewButton" style="accent-color:var(--jt);width:14px;height:14px;">
+            <span style="font-size:13px;color:var(--ink2);">Show preview button on task</span>
+          </label>
+        </div>
+        <div class="field" id="thumbFieldWrapper" style="display: none;">
+          <label>YouTube Thumbnail</label>
+          <div class="thumb-upload-area" id="thumbDropArea">📷 Click to attach image or paste (Ctrl+V)<input type="file" id="thumbFileInput" accept="image/*" onchange="handleThumbFile(event)">
+            <img id="thumbPreview" class="thumb-preview" style="display: none;" src="">
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn-primary" onclick="addTask()">Add Task</button>
+          <button class="btn-secondary" onclick="clearTaskForm()">Clear</button>
+        </div>
+      </div>
+      <!-- Bulk Add Tasks form -->
+      <div class="ta-form-section" id="taSectionBulk">
+        <div class="form-row">
+          <div class="field">
+            <label>Task Type</label>
+            <select id="bulkTaskType" onchange="bulkTaskTypeChanged()">
+              <option value="google">Google Task</option>
+              <option value="youtube">YouTube Task</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Default Reward (USDT)</label>
+            <input type="number" id="bulkTaskReward" placeholder="0.00" step="any" min="0" oninput="this.dataset.userEdited='true'">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="field">
+            <label>Start Number</label>
+            <input type="number" id="bulkTaskStart" placeholder="e.g. 1000" min="0" step="1">
+          </div>
+          <div class="field">
+            <label>End Number</label>
+            <input type="number" id="bulkTaskEnd" placeholder="e.g. 1050" min="0" step="1">
+          </div>
+        </div>
+        <div class="form-row" style="margin-top:4px;">
+          <div class="field" style="flex-direction:row;align-items:center;gap:8px;padding:6px 0;">
+            <input type="checkbox" id="bulkTaskPreviewButton" style="accent-color:var(--jt);width:14px;height:14px;flex-shrink:0;">
+            <label for="bulkTaskPreviewButton" style="font-family:var(--mono);font-size:11px;color:var(--ink2);cursor:pointer;text-transform:none;">Show "Preview" button on task cards</label>
+          </div>
+        </div>
+        <div id="bulkAddPreview" style="font-family:var(--mono);font-size:11.5px;color:var(--ink3);margin-bottom:10px;min-height:18px;"></div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn-primary" onclick="bulkAddTasks()">⚡ Bulk Add</button>
+          <button class="btn-secondary" onclick="bulkAddPreview()">Preview</button>
+        </div>
+      </div>
+
+      <!-- Default Reward Settings -->
+      <div class="ta-form-section" id="taSectionDefaults">
+        <div style="font-family:var(--mono);font-size:11.5px;color:var(--ink3);line-height:1.6;">
+          Set the default reward pre-filled when adding a new task. You can always override it per task.
+        </div>
+        <div class="field">
+          <label>Default Google Task Reward (USDT)</label>
+          <input type="number" id="defaultGoogleRewardInput" min="0" step="any" placeholder="0.00" style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:14.3px;padding:9px 10px;outline:none;width:100%;">
+        </div>
+        <div class="field">
+          <label>Default YouTube Task Reward (USDT)</label>
+          <input type="number" id="defaultYoutubeRewardInput" min="0" step="any" placeholder="0.00" style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:14.3px;padding:9px 10px;outline:none;width:100%;">
+        </div>
+        <button class="btn-primary" onclick="saveDefaultRewards()">Save Defaults</button>
+      </div>
+    </div>
   </div>
 </div>
 
-<!-- ── SETS DOCK PANEL (fixed, right-docked, Task Manager tab only) ── -->
-<div id="setsDockPanel" class="sets-dock-hidden">
-  <div id="setsDockPanelHeader">
-    <div id="setsDockPanelTitle">
-      <span>🗂</span> Sets
-      <span class="version-badge" style="font-size:9.9px;" id="setsDockPanelCount">0</span>
+<!-- ── TOOL KITS DOCK PANEL (floating, Task Manager tab only — merges the former Switcher + Sets panels) ── -->
+<div id="toolKitsDockPanel" class="tkit-dock-hidden">
+  <div id="toolKitsDockPanelHeader">
+    <div id="toolKitsDockPanelTitle">
+      <span>🧩</span> Tool Kits
     </div>
-    <button id="setsDockCollapseBtn" onclick="toggleSetsDock()" title="Collapse">›</button>
+    <button id="toolKitsDockCollapseBtn" onclick="toggleToolKitsDock()" title="Collapse">›</button>
+  </div>
+  <div id="toolKitsSwitcher">
+    <button class="tkit-switch-btn active" id="tkitSwitchSwitcher" onclick="toolKitsShowTab('switcher')">👤 Switcher</button>
+    <button class="tkit-switch-btn admin-only-task-ctl" id="tkitSwitchSets" onclick="toolKitsShowTab('sets')">🗂 Sets</button>
   </div>
 
-  <!-- LIST VIEW -->
-  <div id="setsListView">
-    <div id="setsDockToolbar">
-      <button class="btn-primary" style="width:100%;padding:8px 10px;font-size:12.1px;" onclick="openSetEditor(null)">+ New Set</button>
+  <!-- Switcher sub-view: picks the account used to filter the task list -->
+  <div id="toolKitsSwitcherSection" class="tkit-section active">
+    <div>
+      <span style="font-family:var(--mono);font-size:11px;color:var(--ink2);">Dual Account Mode</span>
+      <button id="dualModeToggleBtn" class="dual-mode-toggle" onclick="toggleDualAccountMode()" title="Show two columns, each filtered to its own account/set">
+        <span class="dual-mode-toggle-knob"></span>
+      </button>
     </div>
-    <div id="setsDockPanelBody">
-      <div class="set-row ${'' /* placeholder, real active class set in JS */}" onclick="applyTaskSet('all')" id="setRowAll">
-        <span class="set-row-name">All Tasks</span>
+    <div id="taskSwitcherBody">
+      <div id="taskSwitcherListItems"><div style="padding:16px;text-align:center;font-family:var(--mono);font-size:11px;color:var(--ink3);">No accounts yet</div></div>
+    </div>
+  </div>
+
+  <!-- Sets sub-view: create/apply named subsets of tasks (admin-only) -->
+  <div id="toolKitsSetsSection" class="tkit-section admin-only-task-ctl">
+    <!-- LIST VIEW -->
+    <div id="setsListView">
+      <div id="setsDockToolbar">
+        <button class="btn-primary" style="width:100%;padding:8px 10px;font-size:12.1px;" onclick="openSetEditor(null)">+ New Set</button>
       </div>
-      <div id="setsListItems"><div style="padding:24px;text-align:center;font-family:var(--mono);font-size:11.5px;color:var(--ink3);">No sets yet — create one above</div></div>
+      <div id="setsDockPanelBody">
+        <div class="set-row ${'' /* placeholder, real active class set in JS */}" onclick="applyTaskSet('all')" id="setRowAll">
+          <span class="set-row-name">All Tasks</span>
+        </div>
+        <div id="setsListItems"><div style="padding:24px;text-align:center;font-family:var(--mono);font-size:11.5px;color:var(--ink3);">No sets yet — create one above</div></div>
+      </div>
     </div>
-  </div>
 
-  <!-- EDITOR VIEW (create/edit a set: name + task checklist) -->
-  <div id="setsEditorView" style="display:none;flex:1;overflow:hidden;flex-direction:column;">
-    <div style="padding:10px 12px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:8px;flex-shrink:0;">
-      <input type="text" id="setNameInput" placeholder="Set name…" style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:12.1px;padding:7px 10px;outline:none;">
-      <input type="text" id="setTaskSearchInput" oninput="renderSetTaskPicker()" placeholder="🔍 Search tasks…" style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:12.1px;padding:7px 10px;outline:none;">
-      <div style="display:flex;justify-content:space-between;align-items:center;">
-        <span id="setPickCount" style="font-family:var(--mono);font-size:10px;color:var(--ink3);">0 selected</span>
-        <div style="display:flex;gap:6px;">
-          <button class="btn-secondary" style="padding:5px 10px;font-size:11px;" onclick="closeSetEditor()">Cancel</button>
-          <button class="btn-primary" style="padding:5px 12px;font-size:11px;" onclick="saveTaskSet()">Save</button>
+    <!-- EDITOR VIEW (create/edit a set: name + task checklist) -->
+    <div id="setsEditorView" style="display:none;flex:1;overflow:hidden;flex-direction:column;">
+      <div style="padding:10px 12px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:8px;flex-shrink:0;">
+        <input type="text" id="setNameInput" placeholder="Set name…" style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:12.1px;padding:7px 10px;outline:none;">
+        <input type="text" id="setTaskSearchInput" oninput="renderSetTaskPicker()" placeholder="🔍 Search tasks…" style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:12.1px;padding:7px 10px;outline:none;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span id="setPickCount" style="font-family:var(--mono);font-size:10px;color:var(--ink3);">0 selected</span>
+          <div style="display:flex;gap:6px;">
+            <button class="btn-secondary" style="padding:5px 10px;font-size:11px;" onclick="closeSetEditor()">Cancel</button>
+            <button class="btn-primary" style="padding:5px 12px;font-size:11px;" onclick="saveTaskSet()">Save</button>
+          </div>
         </div>
       </div>
+      <div id="setTaskPickerList" style="flex:1;overflow-y:auto;padding:8px 10px;"></div>
     </div>
-    <div id="setTaskPickerList" style="flex:1;overflow-y:auto;padding:8px 10px;"></div>
   </div>
 </div>
 
 <script>
-// ── SETS DOCK PANEL LOGIC (Task Manager tab only) ──────────────────────────
+// ── TOOL KITS DOCK PANEL LOGIC (Task Manager tab only) ──────────────────────
+// Merges the former standalone Switcher panel and Sets panel into one
+// floating dock with an internal sub-tab switcher.
 function escapeHtml(str) {
   return String(str == null ? '' : str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 let taskSets = []; // { id, name, taskIds: [] }
 let taskSetFilter = 'all'; // 'all' or a set id
-let _setsDockOpen = false;
-let _setsDockToggling = false;
 let _setsEditingId = null; // null while creating a new set
 let _setsEditorPicked = new Set();
 
-function positionSetsDock() {
-  const tab = document.getElementById('setsDockTab');
-  const panel = document.getElementById('setsDockPanel');
+let _toolKitsOpen = false;
+let _toolKitsToggling = false;
+let _toolKitsActiveTab = 'switcher'; // 'switcher' | 'sets'
+
+function positionToolKitsDock() {
+  const tab = document.getElementById('toolKitsDockTab');
+  const panel = document.getElementById('toolKitsDockPanel');
   if (!tab || !panel) return;
   const r = tab.getBoundingClientRect();
-  const panelHeight = panel.offsetHeight || 240;
+  const panelHeight = panel.offsetHeight || 260;
   let top = r.top + r.height / 2 - panelHeight / 2;
   top = Math.max(10, Math.min(top, window.innerHeight - panelHeight - 10));
   panel.style.top = top + 'px';
 }
 
-window.toggleSetsDock = function() {
-  if (_setsDockToggling) return;
-  _setsDockToggling = true;
-  _setsDockOpen = !_setsDockOpen;
-  const panel = document.getElementById('setsDockPanel');
-  const tab   = document.getElementById('setsDockTab');
-  if (_setsDockOpen) {
-    if (typeof _taOpen !== 'undefined' && _taOpen && typeof window.toggleTaskAddPanel === 'function') window.toggleTaskAddPanel();
+window.toggleToolKitsDock = function() {
+  if (_toolKitsToggling) return;
+  _toolKitsToggling = true;
+  _toolKitsOpen = !_toolKitsOpen;
+  const panel = document.getElementById('toolKitsDockPanel');
+  const tab   = document.getElementById('toolKitsDockTab');
+  if (_toolKitsOpen) {
+    if (typeof _taskKitsDockOpen !== 'undefined' && _taskKitsDockOpen && typeof window.toggleTaskKitsDock === 'function') window.toggleTaskKitsDock();
     if (typeof _accDockOpen !== 'undefined' && _accDockOpen && typeof window.toggleAccDock === 'function') window.toggleAccDock();
     if (typeof _payDockOpen !== 'undefined' && _payDockOpen && typeof window.togglePayDock === 'function') window.togglePayDock();
-    if (typeof _taskKitsDockOpen !== 'undefined' && _taskKitsDockOpen && typeof window.toggleTaskKitsDock === 'function') window.toggleTaskKitsDock();
-    closeSetEditor();
-    renderSetsList();
-    positionSetsDock();
-    panel.classList.add('sets-dock-open');
-    tab.classList.add('sets-dock-panel-open');
+    window.toolKitsShowTab(_toolKitsActiveTab);
+    positionToolKitsDock();
+    panel.classList.add('tkit-dock-open');
+    tab.classList.add('tkit-dock-panel-open');
   } else {
-    panel.classList.remove('sets-dock-open');
-    tab.classList.remove('sets-dock-panel-open');
+    closeSetEditor();
+    panel.classList.remove('tkit-dock-open');
+    tab.classList.remove('tkit-dock-panel-open');
   }
-  setTimeout(() => { _setsDockToggling = false; }, 50);
+  setTimeout(() => { _toolKitsToggling = false; }, 50);
 };
 
-function setSetsDockVisibility(visible) {
-  const panel = document.getElementById('setsDockPanel');
-  const tab   = document.getElementById('setsDockTab');
+window.setToolKitsDockVisibility = function(visible) {
+  const panel = document.getElementById('toolKitsDockPanel');
+  const tab   = document.getElementById('toolKitsDockTab');
   if (!panel || !tab) return;
   if (visible) {
-    panel.classList.remove('sets-dock-hidden');
-    tab.classList.remove('sets-dock-hidden');
+    panel.classList.remove('tkit-dock-hidden');
+    tab.classList.remove('tkit-dock-hidden');
   } else {
-    panel.classList.add('sets-dock-hidden');
-    tab.classList.add('sets-dock-hidden');
-    panel.classList.remove('sets-dock-open');
-    tab.classList.remove('sets-dock-panel-open');
-    _setsDockOpen = false;
+    panel.classList.add('tkit-dock-hidden');
+    tab.classList.add('tkit-dock-hidden');
+    panel.classList.remove('tkit-dock-open');
+    tab.classList.remove('tkit-dock-panel-open');
+    _toolKitsOpen = false;
   }
-}
+};
+
+// Switches between the Switcher and Sets sub-views inside the Tool Kits panel.
+window.toolKitsShowTab = function(which) {
+  _toolKitsActiveTab = which;
+  const sections = {
+    switcher: document.getElementById('toolKitsSwitcherSection'),
+    sets:     document.getElementById('toolKitsSetsSection'),
+  };
+  const buttons = {
+    switcher: document.getElementById('tkitSwitchSwitcher'),
+    sets:     document.getElementById('tkitSwitchSets'),
+  };
+  Object.keys(sections).forEach(key => {
+    if (sections[key]) sections[key].classList.toggle('active', key === which);
+    if (buttons[key]) buttons[key].classList.toggle('active', key === which);
+  });
+  if (which === 'sets') {
+    closeSetEditor();
+    renderSetsList();
+  } else {
+    if (typeof window.renderTaskSwitcherList === 'function') window.renderTaskSwitcherList();
+  }
+  positionToolKitsDock();
+};
 
 function updateSetsDockTabCount() {
-  const el = document.getElementById('setsDockTabCount');
+  const el = document.getElementById('toolKitsDockTabCount');
   if (el) el.textContent = taskSets.length;
-  const pc = document.getElementById('setsDockPanelCount');
-  if (pc) pc.textContent = taskSets.length;
 }
 
 function renderSetsList() {
@@ -11090,7 +10967,7 @@ window.applyTaskSet = function(id) {
   if (typeof window.resetTaskLoadedCount === 'function') window.resetTaskLoadedCount();
   renderTasks();
   renderTaskSideLabel();
-  if (_setsDockOpen) toggleSetsDock();
+  if (_toolKitsOpen) window.toggleToolKitsDock();
   forceTaskListRepaint();
 };
 
@@ -11108,8 +10985,10 @@ window.openSetEditor = function(id) {
 window.closeSetEditor = function() {
   _setsEditingId = null;
   _setsEditorPicked = new Set();
-  document.getElementById('setsEditorView').style.display = 'none';
-  document.getElementById('setsListView').style.display = '';
+  const editorView = document.getElementById('setsEditorView');
+  const listView = document.getElementById('setsListView');
+  if (editorView) editorView.style.display = 'none';
+  if (listView) listView.style.display = '';
 };
 
 function renderSetTaskPicker() {
@@ -11182,14 +11061,8 @@ window.toggleAccDock = function() {
   const panel = document.getElementById('accDockPanel');
   const tab   = document.getElementById('accDockTab');
   if (_accDockOpen) {
-    if (typeof _taOpen !== 'undefined' && _taOpen && typeof window.toggleTaskAddPanel === 'function') {
-      window.toggleTaskAddPanel();
-    }
     if (typeof _payDockOpen !== 'undefined' && _payDockOpen && typeof window.togglePayDock === 'function') {
       window.togglePayDock();
-    }
-    if (typeof _setsDockOpen !== 'undefined' && _setsDockOpen && typeof window.toggleSetsDock === 'function') {
-      window.toggleSetsDock();
     }
     if (typeof _ipDockOpen !== 'undefined' && _ipDockOpen && typeof window.toggleIpDock === 'function') {
       window.toggleIpDock();
@@ -11219,59 +11092,10 @@ function setAccDockVisibility(visible) {
   }
 }
 
-// ── TASK SWITCHER LOGIC (Task Manager tab only — separate, floating card, does not touch Accounts tab) ──
 // NOTE: renderTaskSwitcherList / selectTaskSwitcherAcc are defined earlier, inside the app's main
 // DOMContentLoaded closure, because that's where `accounts` / `taskAccountFilter` actually live.
-let _tsOpen = false;
-let _tsToggling = false;
-
-function positionTaskSwitcher() {
-  const tab = document.getElementById('taskSwitcherTab');
-  const panel = document.getElementById('taskSwitcherPanel');
-  if (!tab || !panel) return;
-  const r = tab.getBoundingClientRect();
-  const panelHeight = panel.offsetHeight || 240;
-  let top = r.top + r.height / 2 - panelHeight / 2;
-  top = Math.max(10, Math.min(top, window.innerHeight - panelHeight - 10));
-  panel.style.top = top + 'px';
-}
-
-window.toggleTaskSwitcher = function() {
-  if (_tsToggling) return;
-  _tsToggling = true;
-  _tsOpen = !_tsOpen;
-  const panel = document.getElementById('taskSwitcherPanel');
-  const tab   = document.getElementById('taskSwitcherTab');
-  if (_tsOpen) {
-    if (typeof _taOpen !== 'undefined' && _taOpen && typeof window.toggleTaskAddPanel === 'function') {
-      window.toggleTaskAddPanel();
-    }
-    if (typeof window.renderTaskSwitcherList === 'function') window.renderTaskSwitcherList();
-    positionTaskSwitcher();
-    panel.classList.add('ts-open');
-    tab.classList.add('ts-panel-open');
-  } else {
-    panel.classList.remove('ts-open');
-    tab.classList.remove('ts-panel-open');
-  }
-  setTimeout(() => { _tsToggling = false; }, 50);
-};
-
-function setTaskSwitcherVisibility(visible) {
-  const panel = document.getElementById('taskSwitcherPanel');
-  const tab   = document.getElementById('taskSwitcherTab');
-  if (!panel || !tab) return;
-  if (visible) {
-    tab.classList.remove('ts-hidden');
-    panel.classList.remove('ts-hidden');
-  } else {
-    tab.classList.add('ts-hidden');
-    panel.classList.add('ts-hidden');
-    panel.classList.remove('ts-open');
-    tab.classList.remove('ts-panel-open');
-    _tsOpen = false;
-  }
-}
+// The Task Switcher's own toggle/visibility/position logic now lives in the unified
+// Tool Kits panel logic above (toggleToolKitsDock / setToolKitsDockVisibility / toolKitsShowTab).
 
 // Hover-to-open on desktop, tap on mobile — shared geometry-based tracker.
 // Rather than relying on mouseenter/mouseleave pairs on two separate elements
@@ -11321,8 +11145,7 @@ function setupDockHover(tabId, panelId, hiddenClass, getOpen, toggleFn) {
   document.addEventListener('mousemove', onMove, { passive: true });
 }
 
-setupDockHover('taskSwitcherTab', 'taskSwitcherPanel', 'ts-hidden', () => _tsOpen, () => window.toggleTaskSwitcher());
-setupDockHover('setsDockTab', 'setsDockPanel', 'sets-dock-hidden', () => _setsDockOpen, () => window.toggleSetsDock());
+setupDockHover('toolKitsDockTab', 'toolKitsDockPanel', 'tkit-dock-hidden', () => _toolKitsOpen, () => window.toggleToolKitsDock());
 setupDockHover('accDockTab', 'accDockPanel', 'acc-dock-hidden', () => _accDockOpen, () => window.toggleAccDock());
 
 // ── PAYOUT SETTINGS DOCK PANEL LOGIC ──────────────────────────────────────
@@ -11336,14 +11159,8 @@ window.togglePayDock = function() {
   const panel = document.getElementById('payDockPanel');
   const tab   = document.getElementById('payDockTab');
   if (_payDockOpen) {
-    if (typeof _taOpen !== 'undefined' && _taOpen && typeof window.toggleTaskAddPanel === 'function') {
-      window.toggleTaskAddPanel();
-    }
     if (typeof _accDockOpen !== 'undefined' && _accDockOpen && typeof window.toggleAccDock === 'function') {
       window.toggleAccDock();
-    }
-    if (typeof _setsDockOpen !== 'undefined' && _setsDockOpen && typeof window.toggleSetsDock === 'function') {
-      window.toggleSetsDock();
     }
     if (typeof _ipDockOpen !== 'undefined' && _ipDockOpen && typeof window.toggleIpDock === 'function') {
       window.toggleIpDock();
@@ -11434,10 +11251,9 @@ window.toggleTaskKitsDock = function() {
     if (typeof _payDockOpen !== 'undefined' && _payDockOpen && typeof window.togglePayDock === 'function') {
       window.togglePayDock();
     }
-    if (typeof _setsDockOpen !== 'undefined' && _setsDockOpen && typeof window.toggleSetsDock === 'function') {
-      window.toggleSetsDock();
+    if (typeof _toolKitsOpen !== 'undefined' && _toolKitsOpen && typeof window.toggleToolKitsDock === 'function') {
+      window.toggleToolKitsDock();
     }
-    panel.classList.add('tk-dock-open');
     tab.classList.add('tk-dock-panel-open');
   } else {
     panel.classList.remove('tk-dock-open');
@@ -11464,55 +11280,24 @@ window.setTaskKitsDockVisibility = function(visible) {
 </script>
 
 <script>
-// ── ADD/BULK TASK PANEL LOGIC ────────────────────────────────────────────
-let _taOpen = false;
-let _taToggling = false;
-
-window.toggleTaskAddPanel = function() {
-  if (_taToggling) return;
-  _taToggling = true;
-  _taOpen = !_taOpen;
-  const panel = document.getElementById('taPanel');
-  const tab   = document.getElementById('taTab');
-  if (_taOpen) {
-    if (typeof _accDockOpen !== 'undefined' && _accDockOpen && typeof window.toggleAccDock === 'function') {
-      window.toggleAccDock();
-    }
-    if (typeof _payDockOpen !== 'undefined' && _payDockOpen && typeof window.togglePayDock === 'function') {
-      window.togglePayDock();
-    }
-    if (typeof _tsOpen !== 'undefined' && _tsOpen && typeof window.toggleTaskSwitcher === 'function') {
-      window.toggleTaskSwitcher();
-    }
-    if (typeof _setsDockOpen !== 'undefined' && _setsDockOpen && typeof window.toggleSetsDock === 'function') {
-      window.toggleSetsDock();
-    }
-    panel.classList.add('ta-open');
-    tab.classList.add('ta-panel-open');
-  } else {
-    panel.classList.remove('ta-open');
-    tab.classList.remove('ta-panel-open');
-  }
-  setTimeout(() => { _taToggling = false; }, 50);
+// ── ADD TASK SECTION LOGIC (merged inside the Task Kits dock panel) ──────
+// Top-level switch between the Filters section and the Add Task section.
+window.tkShowSection = function(which) {
+  const sections = {
+    filters: document.getElementById('tkSectionFilters'),
+    add:     document.getElementById('tkSectionAddTask'),
+  };
+  const buttons = {
+    filters: document.getElementById('tkSecBtnFilters'),
+    add:     document.getElementById('tkSecBtnAdd'),
+  };
+  Object.keys(sections).forEach(key => {
+    if (sections[key]) sections[key].classList.toggle('active', key === which);
+    if (buttons[key]) buttons[key].classList.toggle('active', key === which);
+  });
 };
 
-function setTaPanelVisibility(visible) {
-  const panel = document.getElementById('taPanel');
-  const tab   = document.getElementById('taTab');
-  if (!panel || !tab) return;
-  if (visible) {
-    panel.classList.remove('ta-hidden');
-    tab.classList.remove('ta-hidden');
-    tab.classList.toggle('ta-panel-open', _taOpen);
-  } else {
-    panel.classList.add('ta-hidden');
-    tab.classList.add('ta-hidden');
-    _taOpen = false;
-    panel.classList.remove('ta-open');
-    tab.classList.remove('ta-panel-open');
-  }
-}
-
+// Inner switch between Add New / Bulk Add / Defaults, within the Add Task section.
 window.taShowTab = function(which) {
   const sections = {
     add:      document.getElementById('taSectionAdd'),
@@ -11546,28 +11331,20 @@ function _pathContains(e, el) {
 }
 
 document.addEventListener('click', function(e) {
-  const taPanel = document.getElementById('taPanel');
-  const taTab   = document.getElementById('taTab');
   const accDockPanel = document.getElementById('accDockPanel');
   const accDockTab   = document.getElementById('accDockTab');
   const payDockPanel = document.getElementById('payDockPanel');
   const payDockTab   = document.getElementById('payDockTab');
   const ipDockPanel = document.getElementById('ipDockPanel');
   const ipDockTab   = document.getElementById('ipDockTab');
-  const tsPanel = document.getElementById('taskSwitcherPanel');
-  const tsTab   = document.getElementById('taskSwitcherTab');
-  const setsPanel = document.getElementById('setsDockPanel');
-  const setsTab   = document.getElementById('setsDockTab');
+  const toolKitsPanel = document.getElementById('toolKitsDockPanel');
+  const toolKitsTab   = document.getElementById('toolKitsDockTab');
   const tkPanel = document.getElementById('taskKitsDockPanel');
   const tkTab   = document.getElementById('taskKitsDockTab');
 
-  if (typeof _setsDockOpen !== 'undefined' && _setsDockOpen && setsPanel && setsTab &&
-      !_pathContains(e, setsPanel) && !_pathContains(e, setsTab)) {
-    window.toggleSetsDock();
-  }
-  if (typeof _taOpen !== 'undefined' && _taOpen && taPanel && taTab &&
-      !_pathContains(e, taPanel) && !_pathContains(e, taTab)) {
-    window.toggleTaskAddPanel();
+  if (typeof _toolKitsOpen !== 'undefined' && _toolKitsOpen && toolKitsPanel && toolKitsTab &&
+      !_pathContains(e, toolKitsPanel) && !_pathContains(e, toolKitsTab)) {
+    window.toggleToolKitsDock();
   }
   if (typeof _accDockOpen !== 'undefined' && _accDockOpen && accDockPanel && accDockTab &&
       !_pathContains(e, accDockPanel) && !_pathContains(e, accDockTab)) {
@@ -11582,10 +11359,6 @@ document.addEventListener('click', function(e) {
       !_pathContains(e, document.getElementById('ipAssignModal')) &&
       !_pathContains(e, document.getElementById('addIpOptionModal'))) {
     window.toggleIpDock();
-  }
-  if (typeof _tsOpen !== 'undefined' && _tsOpen && tsPanel && tsTab &&
-      !_pathContains(e, tsPanel) && !_pathContains(e, tsTab)) {
-    window.toggleTaskSwitcher();
   }
   if (typeof _taskKitsDockOpen !== 'undefined' && _taskKitsDockOpen && tkPanel && tkTab &&
       !_pathContains(e, tkPanel) && !_pathContains(e, tkTab)) {
