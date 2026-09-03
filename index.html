@@ -1684,6 +1684,21 @@ select option { background: var(--surface3); color: var(--ink); }
 }
 .sr-wv-panel-item:hover { background:#12224a; }
 
+/* Topic chip "+N" expand panel — collapses bulk-pasted chapter topics so
+   the card's height stays fixed no matter how many topics a task has. */
+.sr-topic-wrap { position:relative; display:inline-flex; align-items:center; gap:4px; }
+.sr-topic-panel {
+  display:none; position:absolute; top:calc(100% + 6px); left:0; z-index:60;
+  background:#0a0a0a; border:1px solid #2b6fe0; border-radius:8px; padding:6px;
+  min-width:210px; max-height:260px; overflow-y:auto; box-shadow:0 8px 24px rgba(0,0,0,0.5);
+}
+.sr-topic-panel.open { display:flex; flex-direction:column; gap:3px; }
+.sr-topic-panel-item {
+  display:block; width:100%; text-align:left; background:none; border:none; color:#fff;
+  font-family:var(--mono); font-size:11px; padding:6px 8px; cursor:pointer; border-radius:5px; white-space:nowrap;
+}
+.sr-topic-panel-item:hover { background:#12224a; }
+
 /* Keyword Collections search modal list */
 .kc-search-item {
   display:flex; flex-direction:column; gap:2px; text-align:left; width:100%;
@@ -5567,18 +5582,40 @@ function renderTaskCard(task, dualAccId) {
 
   // Link chips — shared by archived and active cards. Purple accent chips
   // that copy the underlying value/URL to the clipboard on click.
-  const linkChips = (task.links||[]).map((l,i)=>{
+  // Keyword/video/thumb chips render individually, one per link entry, same
+  // as before. Topic (🏷) chips are handled separately below: with 2+ of
+  // them (e.g. a bulk chapter-paste), they collapse into "first chip + +N"
+  // that expands a panel — same pattern as the Website Version "+N" chip —
+  // so the card's height no longer grows with how many topics a task has.
+  const topicLinks = (task.links||[]).filter(l => l.topicName);
+  const nonTopicChips = (task.links||[]).map((l,i)=>{
     const isLegacy = !l.searchKeyword && !l.topicName && !l.videoLink && !l.thumbLink && (l.label || l.url);
     if (isLegacy) {
       return `<button class="sr-link-chip" onclick="copyLink('${task.id}',${i})" title="${htmlEscape(l.url)}">📋 ${htmlEscape(l.label||l.url)}</button>`;
     }
     return [
       l.searchKeyword ? `<button class="sr-link-chip" onclick="copyToClipboard('${jsEscape(l.searchKeyword)}')" title="Click to copy keyword">🔍 ${htmlEscape(l.searchKeyword)}</button>` : '',
-      l.topicName ? `<button class="sr-link-chip" onclick="copyToClipboard('${jsEscape(l.topicName)}')" title="Click to copy topic name only (not the timestamp)">🏷 ${htmlEscape(l.topicMss||"0'00")} · ${htmlEscape(l.topicName)}</button>` : '',
       l.videoLink ? `<button class="sr-link-chip" onclick="copyToClipboard('${jsEscape(l.videoLink)}')" title="${htmlEscape(l.videoLink)}">📋 🎬</button>` : '',
       l.thumbLink ? `<button class="sr-link-chip" onclick="copyToClipboard('${jsEscape(l.thumbLink)}')" title="${htmlEscape(l.thumbLink)}">📋 🖼</button>` : '',
     ].filter(Boolean).join('');
   }).join('');
+  let topicChipsHtml = '';
+  if (topicLinks.length === 1) {
+    const l = topicLinks[0];
+    topicChipsHtml = `<button class="sr-link-chip" onclick="copyToClipboard('${jsEscape(l.topicName)}')" title="Click to copy topic name only (not the timestamp)">🏷 ${htmlEscape(l.topicMss||"0'00")} · ${htmlEscape(l.topicName)}</button>`;
+  } else if (topicLinks.length > 1) {
+    const first = topicLinks[0];
+    const panelItems = topicLinks.map(l =>
+      `<button class="sr-topic-panel-item" onclick="copyToClipboard('${jsEscape(l.topicName)}')" title="Click to copy topic name only (not the timestamp)">🏷 ${htmlEscape(l.topicMss||"0'00")} · ${htmlEscape(l.topicName)}</button>`
+    ).join('');
+    topicChipsHtml = `
+      <div class="sr-topic-wrap">
+        <button class="sr-link-chip" onclick="copyToClipboard('${jsEscape(first.topicName)}')" title="Click to copy topic name only (not the timestamp)">🏷 ${htmlEscape(first.topicMss||"0'00")} · ${htmlEscape(first.topicName)}</button>
+        <button class="sr-link-chip" onclick="toggleTopicPanel(event,'${task.id}')" title="All topics">+${topicLinks.length - 1}</button>
+        <div class="sr-topic-panel" id="topicPanel-${task.id}">${panelItems}</div>
+      </div>`;
+  }
+  const linkChips = nonTopicChips + topicChipsHtml;
 
   // Archived tasks: compact row, but still surface the thumbnail slot and
   // link chips so a worker can load/copy without restoring the task first.
@@ -8043,6 +8080,29 @@ window.closeWvPanel = function() {
   const panel = document.getElementById('wvPanel-' + _openWvPanelTaskId);
   if (panel) panel.classList.remove('open');
   _openWvPanelTaskId = null;
+};
+
+// Same single-panel-at-a-time pattern as the Website Version "+N" chip above,
+// but for the "+N" topic-chip panel (bulk-pasted chapter topics).
+let _openTopicPanelTaskId = null;
+window.toggleTopicPanel = function(evt, taskId) {
+  evt.stopPropagation();
+  const alreadyOpen = _openTopicPanelTaskId === taskId;
+  if (_openTopicPanelTaskId) {
+    const prev = document.getElementById('topicPanel-' + _openTopicPanelTaskId);
+    if (prev) prev.classList.remove('open');
+  }
+  _openTopicPanelTaskId = alreadyOpen ? null : taskId;
+  if (_openTopicPanelTaskId) {
+    const panel = document.getElementById('topicPanel-' + _openTopicPanelTaskId);
+    if (panel) panel.classList.add('open');
+  }
+};
+window.closeTopicPanel = function() {
+  if (!_openTopicPanelTaskId) return;
+  const panel = document.getElementById('topicPanel-' + _openTopicPanelTaskId);
+  if (panel) panel.classList.remove('open');
+  _openTopicPanelTaskId = null;
 };
 
 // ─────────────────────────────────────────
@@ -11480,6 +11540,12 @@ document.addEventListener('click', function(e) {
     const wvPanel = document.getElementById('wvPanel-' + _openWvPanelTaskId);
     if (wvPanel && !_pathContains(e, wvPanel)) {
       window.closeWvPanel();
+    }
+  }
+  if (typeof _openTopicPanelTaskId !== 'undefined' && _openTopicPanelTaskId) {
+    const topicPanel = document.getElementById('topicPanel-' + _openTopicPanelTaskId);
+    if (topicPanel && !_pathContains(e, topicPanel)) {
+      window.closeTopicPanel();
     }
   }
 });
