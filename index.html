@@ -7919,6 +7919,7 @@ window.saveAccount = function() {
     renderAccDetail(selectedAccId);
   }
   renderDashboard();
+  markUnsaved(true);
   toast(id ? 'Account updated' : 'Account added');
 };
 
@@ -9211,6 +9212,17 @@ function applyAdminUIState() {
     const el = document.getElementById(id);
     if (el) el.style.display = window.isAdmin ? '' : 'none';
   });
+
+  // Non-admins only ever see the Task Manager tab — hide every other
+  // nav button and force them onto 'tasks' if they're anywhere else.
+  ['navDash','navAccounts','navEarnings','navTaskshot'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = window.isAdmin ? '' : 'none';
+  });
+  if (!window.isAdmin && currentPageId !== 'tasks' && typeof showPage === 'function') {
+    showPage('tasks');
+  }
+  if (typeof positionNavIndicator === 'function') positionNavIndicator();
 
   // Task list itself re-renders with archived tasks removed and action
   // chips stripped for non-admins — see computeTaskList/renderTaskCard.
