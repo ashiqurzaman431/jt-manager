@@ -4125,12 +4125,32 @@ let taskAccountFilterExcept = false;
 let activeTagFilters = new Set(); // values: 'fresh' | 'today' | 'quicky'
 let taskTodayOnly = false;
 let taskAssignedOnly = false;
+// Task-card step-button interaction mode:
+//  'classic' — current behaviour: each tap advances one step
+//              (Search → Visited → Complete), hold 2s jumps straight to Complete.
+//  'click'   — new behaviour: a single tap immediately marks the task Complete,
+//              skipping the Search/Visited steps entirely.
+// Kept as a plain in-memory session setting (like the other filter toggles
+// above) rather than persisted, so it mirrors how the rest of this panel works.
+let taskClickMode = 'classic';
 const TASKS_PER_PAGE = 21;
 let taskPage = 0; // legacy — no longer drives rendering, kept only so old reset call sites stay harmless
 let taskLoadedCount = TASKS_PER_PAGE; // how many tasks are currently rendered (grows via "Load More")
 function resetTaskLoadMore() {
   // no-op — filter/tab changes no longer collapse the loaded task list or force a scroll
 }
+
+// Switches the task-card step button between Classic Mode (step-by-step:
+// Search → Visited → Complete, hold 2s to skip to Complete) and Click Mode
+// (a single tap goes straight to Complete). See taskCardStepClick.
+window.setTaskClickMode = function(mode) {
+  taskClickMode = (mode === 'click') ? 'click' : 'classic';
+  const classicBtn = document.getElementById('tkClickModeClassic');
+  const clickBtn   = document.getElementById('tkClickModeClick');
+  if (classicBtn) classicBtn.classList.toggle('active', taskClickMode === 'classic');
+  if (clickBtn)   clickBtn.classList.toggle('active', taskClickMode === 'click');
+  renderTasks();
+};
 // taskSecondSort removed — merged into taskSort
 
 // ── Dual Account Mode (Task Manager) ──
@@ -5012,6 +5032,21 @@ function taskWordSearchScore(t, words) {
   return { count, score };
 }
 
+// Orders a list of tasks so the one most recently assigned (to `accId`,
+// among its still-"assigned"/in-progress assignments) comes first — used by
+// the pinned "Currently In Progress" banners so the newest hand-off to this
+// account always sits on top, oldest in-progress task at the bottom.
+function sortTasksByLatestAssignedForAcc(list, accId) {
+  const latestFor = (t) => {
+    let latest = '';
+    (t.assignments||[]).forEach(a => {
+      if (a.accountId === accId && a.status === 'assigned' && (a.assignedAt||'') > latest) latest = a.assignedAt || '';
+    });
+    return latest;
+  };
+  return [...list].sort((a, b) => latestFor(b).localeCompare(latestFor(a)));
+}
+
 function computeTaskList(accId, setId, exceptMode, hideCompletedForAcc) {
   const todayStr = todayISO();
   const todayDayKey = todayStr; // same value — todayISO() already uses the 5pm cutoff
@@ -5259,6 +5294,10 @@ function renderTasks() {
   if (hideArchCb) hideArchCb.checked = hideArchived;
   const hideErrCb = document.getElementById('hideErrorTaskCb');
   if (hideErrCb) hideErrCb.checked = hideErrorTask;
+  const clickModeClassicBtn = document.getElementById('tkClickModeClassic');
+  const clickModeClickBtn   = document.getElementById('tkClickModeClick');
+  if (clickModeClassicBtn) clickModeClassicBtn.classList.toggle('active', taskClickMode === 'classic');
+  if (clickModeClickBtn)   clickModeClickBtn.classList.toggle('active', taskClickMode === 'click');
   renderTaskAccountFilterBar();
   // Sync account dropdown value after population
   const accSel = document.getElementById('taskAccountFilterBar');
@@ -5315,10 +5354,10 @@ function renderTasks() {
   // pinned on top even if every other task is filtered out of `list`.
   let pinnedHtml = '';
   if (taskAccountFilter !== 'all') {
-    const inProgressForAcc = tasks.filter(t =>
+    const inProgressForAcc = sortTasksByLatestAssignedForAcc(tasks.filter(t =>
       !t.archived &&
       (t.assignments||[]).some(a => a.accountId === taskAccountFilter && a.status === 'assigned')
-    );
+    ), taskAccountFilter);
     if (inProgressForAcc.length) {
       const accName = (accounts.find(a => a.id === taskAccountFilter)||{}).name || 'Selected Account';
       pinnedHtml = `
@@ -5437,10 +5476,10 @@ function renderDualTasks() {
     // this list is recomputed on every render.
     let pinnedHtml = '';
     if (col.accId !== 'all') {
-      const inProgressForAcc = tasks.filter(t =>
+      const inProgressForAcc = sortTasksByLatestAssignedForAcc(tasks.filter(t =>
         !t.archived &&
         (t.assignments||[]).some(a => a.accountId === col.accId && a.status === 'assigned')
-      );
+      ), col.accId);
       if (inProgressForAcc.length) {
         const accName = (accounts.find(a => a.id === col.accId)||{}).name || 'Selected Account';
         pinnedHtml = `
@@ -5737,11 +5776,13 @@ function renderTaskCard(task, dualAccId) {
           : (a._acTimerStart || (a.assignedAt ? new Date(a.assignedAt).getTime() : Date.now()));
         const elapsed = taskCardFmtElapsed(Date.now() - startEpoch);
         const step = acGetStep(a.id); // 0=assigned/search, 1=searched/visit, 2=visited/complete
-        const stepInfo = step === 0
-          ? { icon: '🔍', label: 'Search',   hint: 'Tap when search is done' }
-          : step === 1
-            ? { icon: '👁', label: 'Visited',  hint: 'Tap when you visited' }
-            : { icon: '✅', label: 'Complete', hint: 'Tap to mark completed' };
+        const stepInfo = taskClickMode === 'click'
+          ? { icon: '✅', label: 'Complete', hint: 'Tap to mark completed' }
+          : step === 0
+            ? { icon: '🔍', label: 'Search',   hint: 'Tap when search is done' }
+            : step === 1
+              ? { icon: '👁', label: 'Visited',  hint: 'Tap when you visited' }
+              : { icon: '✅', label: 'Complete', hint: 'Tap to mark completed' };
         // Only play the step-morph animation when the step actually changed
         // since the last time this assignment was rendered — not on every
         // unrelated re-render (pagination, filters, other cards updating).
@@ -5751,7 +5792,7 @@ function renderTaskCard(task, dualAccId) {
         const morphPos = _morphClickPos[a.id];
         const morphStyle = (stepChanged && morphPos) ? ` style="--morph-x:${morphPos.x};--morph-y:${morphPos.y};"` : '';
         return `
-          <div class="task-card-timer-wrap task-card-timer-clickable step-${step}${stepChanged ? ' step-morphed' : ''}"${morphStyle} onpointerdown="taskCardTimerDown('${task.id}','${a.id}',event)" onpointerup="taskCardTimerUp('${task.id}','${a.id}',event)" onpointerleave="taskCardTimerCancel('${task.id}','${a.id}',event)" onpointercancel="taskCardTimerCancel('${task.id}','${a.id}',event)" title="${stepInfo.hint} · hold 2s to complete">
+          <div class="task-card-timer-wrap task-card-timer-clickable step-${step}${stepChanged ? ' step-morphed' : ''}"${morphStyle} onpointerdown="taskCardTimerDown('${task.id}','${a.id}',event)" onpointerup="taskCardTimerUp('${task.id}','${a.id}',event)" onpointerleave="taskCardTimerCancel('${task.id}','${a.id}',event)" onpointercancel="taskCardTimerCancel('${task.id}','${a.id}',event)" title="${stepInfo.hint}${taskClickMode === 'click' ? '' : ' · hold 2s to complete'}">
             <span class="task-card-timer-label">◷ ${acc ? htmlEscape(acc.name) : 'In Progress'}</span>
             <span class="task-card-timer" data-start="${startEpoch}">${timerCharsHtml(elapsed)}</span>
             <span class="task-card-timer-action">${stepInfo.icon} ${stepInfo.label}</span>
@@ -10200,6 +10241,14 @@ window.taskCardStepClick = function(taskId, asgnId, evt) {
       y: r.height ? ((evt.clientY - r.top)  / r.height * 100).toFixed(1) + '%' : '50%'
     };
   }
+  if (taskClickMode === 'click') {
+    // Click Mode: a single tap marks the task completed directly, skipping
+    // the Search/Visited steps — same end action the 2s-hold already does,
+    // just without needing to hold.
+    window.acStepComplete(taskId, asgnId);
+    renderTasks();
+    return;
+  }
   const step = acGetStep(asgnId);
   if (step === 0) window.acStepSearch(taskId, asgnId);
   else if (step === 1) window.acStepVisit(taskId, asgnId);
@@ -10902,6 +10951,13 @@ document.addEventListener('paste', function(e) {
         <input type="checkbox" id="hideErrorTaskCb" onchange="setHideErrorTask(this.checked)" style="accent-color:var(--jt);width:13px;height:13px;">
         ⚠ Hide errors
       </label>
+    </div>
+    <div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--ink3);margin-bottom:5px;" title="Controls what a single tap on a task card's step button (Search/Visited/Complete) does">👆 Task Click Mode</div>
+      <div style="display:flex;gap:6px;">
+        <button class="ta-switch-btn" id="tkClickModeClassic" style="flex:1;" onclick="setTaskClickMode('classic')" title="Each tap advances one step: Search → Visited → Complete. Hold 2s to jump straight to Complete.">Classic Mode</button>
+        <button class="ta-switch-btn" id="tkClickModeClick" style="flex:1;" onclick="setTaskClickMode('click')" title="A single tap marks the task Complete right away, skipping Search/Visited.">Click Mode</button>
+      </div>
     </div>
     <div>
       <div style="font-family:var(--mono);font-size:10px;color:var(--ink3);margin-bottom:5px;">Range</div>
