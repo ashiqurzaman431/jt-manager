@@ -2792,8 +2792,8 @@ TaskRec01: task assigned, timer started.</div>
     <div class="stat-chips" id="ehSummaryChips" style="margin-bottom:18px;">
       <div class="stat-chip"><div class="stat-chip-label">Total Paid Out</div><div class="stat-chip-val blue" style="font-weight:700;">$ 0.00</div></div>
       <div class="stat-chip"><div class="stat-chip-label">Total Earned</div><div class="stat-chip-val green" style="font-weight:700;">$ 0.00</div></div>
-      <div class="stat-chip"><div class="stat-chip-label">Unpaid Balance</div><div class="stat-chip-val gray" style="font-weight:700;">$ 0.00</div></div>
-      <div class="stat-chip"><div class="stat-chip-label">Payouts Count</div><div class="stat-chip-val purple" style="font-weight:700;">0</div></div>
+      <div class="stat-chip" title="Sum of reward for completed-but-not-yet-rewarded tasks, across all accounts"><div class="stat-chip-label">Unpaid Balance</div><div class="stat-chip-val gray" style="font-weight:700;">$ 0.00</div></div>
+      <div class="stat-chip" title="Sum of rewarded balance sitting in accounts that hasn't been paid out yet"><div class="stat-chip-label">Accounts Balance</div><div class="stat-chip-val purple" style="font-weight:700;">$ 0.00</div></div>
     </div>
 
     <!-- Task Earnings section (FIX 11: show accrued task earnings, not just payouts) -->
@@ -2804,8 +2804,8 @@ TaskRec01: task assigned, timer started.</div>
       <div class="stat-chips" id="ehTaskChips" style="margin-bottom:10px;">
       <div class="stat-chip"><div class="stat-chip-label">Rewarded Tasks</div><div class="stat-chip-val blue" style="font-weight:700;">0</div></div>
       <div class="stat-chip"><div class="stat-chip-label">USD Earned</div><div class="stat-chip-val green" style="font-weight:700;">$ 0.00</div></div>
-      <div class="stat-chip"><div class="stat-chip-label">Points Earned</div><div class="stat-chip-val purple" style="font-weight:700;">0 PTS</div></div>
-      <div class="stat-chip"><div class="stat-chip-label">Periods Active</div><div class="stat-chip-val gray" style="font-weight:700;">0</div></div>
+      <div class="stat-chip" title="Earnings in the current period — length follows the range picker above"><div class="stat-chip-label">This Week Earning</div><div class="stat-chip-val purple" style="font-weight:700;">$ 0.00</div></div>
+      <div class="stat-chip" title="Account paid out the most in the current period"><div class="stat-chip-label">Highest Earner</div><div class="stat-chip-val gray" style="font-weight:700;">—</div></div>
     </div>
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
         <div id="ehTaskTable"><div class="empty-state" style="margin:0;border:none;border-radius:0;"><div class="es-icon">📋</div>No rewarded tasks in this range</div></div>
@@ -2992,6 +2992,33 @@ TaskRec01: task assigned, timer started.</div>
     <div class="modal-actions">
       <button class="btn-primary" onclick="savePayout()">Record Payout</button>
       <button class="btn-secondary" onclick="closeModal('payoutModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Adjust Balance (grace / correction amount) -->
+<div class="modal-overlay" id="balAdjModal">
+  <div class="modal">
+    <div class="modal-title">
+      <span>Adjust Balance</span>
+      <button class="modal-close" onclick="closeModal('balAdjModal')">✕</button>
+    </div>
+    <input type="hidden" id="balAdjModalAccId" value="">
+    <div class="modal-fields">
+      <div class="field"><label>Account</label><input type="text" id="balAdjModalAccName" readonly style="opacity:0.7;cursor:default;"></div>
+      <div class="field"><label>Current Balance (adjustment included)</label><input type="text" id="balAdjModalCurrent" readonly style="opacity:0.7;cursor:default;"></div>
+      <div class="field">
+        <label>Grace / Correction Amount (USDT)</label>
+        <input type="number" id="balAdjModalAmount" placeholder="e.g. 0.50 or -0.20" step="any">
+      </div>
+      <div style="font-family:var(--mono);font-size:10.5px;color:var(--ink3);margin-top:-4px;line-height:1.5;">
+        Added on top of rewarded − withdrawn. Use it to correct the balance for tasks completed outside the app and never logged, or any other manual mismatch. Positive adds, negative subtracts, 0 clears it.
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-primary" onclick="saveBalanceAdjustment()">Save Adjustment</button>
+      <button class="btn-secondary" onclick="zeroOutBalance()" title="Sets this account's balance to exactly $0.00 right now">Set Balance to $0</button>
+      <button class="btn-secondary" onclick="closeModal('balAdjModal')">Cancel</button>
     </div>
   </div>
 </div>
@@ -4619,7 +4646,10 @@ function calcPointsBalance(accId) {
   });
   const acc = accounts.find(a => a.id === accId);
   const withdrawn = (acc && acc.payoutHistory) ? acc.payoutHistory.reduce((s,p) => s + parseFloat(p.pointsAmount||0), 0) : 0;
-  return points - withdrawn;
+  // Manual grace/correction amount (set via "Adjust Balance"), converted to
+  // points at the same fixed 1000 pts = $1 rate used when tasks are rewarded.
+  const adjPoints = Math.round((acc && parseFloat(acc.balanceAdjustment||0) || 0) * 1000);
+  return points - withdrawn + adjPoints;
 }
 
 // USD balance (rewarded USD - withdrawn)
@@ -4634,7 +4664,11 @@ function calcBalance(accId) {
   });
   const acc = accounts.find(a => a.id === accId);
   const withdrawn = (acc && acc.payoutHistory) ? acc.payoutHistory.reduce((s,p) => s + parseFloat(p.amount||0), 0) : 0;
-  return earned - withdrawn;
+  // Manual grace/correction amount — lets you nudge an account's balance up
+  // or down (e.g. for tasks completed outside the app and never logged), or
+  // zero it out entirely via "Set Balance to $0". See openBalAdjModal.
+  const adjustment = parseFloat(acc && acc.balanceAdjustment || 0) || 0;
+  return earned - withdrawn + adjustment;
 }
 
 function fmtPoints(v) { return Math.round(parseFloat(v)||0) + ' PTS'; }
@@ -7568,6 +7602,7 @@ function renderAccDetail(accId) {
         </div>
         ${sessRenderSection(accId)}
         <button class="btn-edit-acc" onclick="openEditAccountModal('${accId}')">✎ Edit Account</button>
+        <button class="btn-edit-acc" onclick="openBalAdjModal('${accId}')" title="Add a grace/correction amount, or zero the balance out">⚖ Adjust Balance</button>
         ${acc.status==='payout_ready'
           ? `<button class="btn-add-payout-acc" onclick="openPayoutModal('${accId}')">💸 Add Payout</button>`
           : `<div class="btn-add-payout-acc" style="opacity:0.38;cursor:not-allowed;user-select:none;filter:grayscale(0.5);" title="Account must be Payout Ready">🔒 Not Payout Ready</div>`
@@ -7982,6 +8017,51 @@ window.deleteAccount = function(accId) {
     markUnsaved(true);
     toast('Account deleted');
   });
+};
+
+// Manual grace/correction amount on an account's balance — for tasks
+// completed outside the app and never logged through it, or any other
+// mismatch between the recorded reward history and reality. Applied inside
+// calcBalance/calcPointsBalance on top of the normal rewarded-minus-withdrawn
+// total, so it survives future rewards/payouts rather than being a one-off.
+window.openBalAdjModal = function(accId) {
+  const acc = accounts.find(a => a.id === accId); if (!acc) return;
+  document.getElementById('balAdjModalAccId').value = accId;
+  document.getElementById('balAdjModalAccName').value = acc.name || '';
+  document.getElementById('balAdjModalCurrent').value = fmtUSDT(calcBalance(accId));
+  const adj = parseFloat(acc.balanceAdjustment || 0) || 0;
+  document.getElementById('balAdjModalAmount').value = adj ? adj : '';
+  openModal('balAdjModal');
+};
+window.saveBalanceAdjustment = function() {
+  const accId = document.getElementById('balAdjModalAccId').value;
+  const acc = accounts.find(a => a.id === accId); if (!acc) return;
+  const raw = document.getElementById('balAdjModalAmount').value;
+  const val = parseFloat(raw);
+  acc.balanceAdjustment = (raw === '' || isNaN(val)) ? 0 : val;
+  closeModal('balAdjModal');
+  renderAccDetail(accId);
+  renderAccList();
+  renderDashboard();
+  markUnsaved(true);
+  toast('Balance adjustment saved');
+};
+window.zeroOutBalance = function() {
+  const accId = document.getElementById('balAdjModalAccId').value;
+  const acc = accounts.find(a => a.id === accId); if (!acc) return;
+  // Back out whatever adjustment is already applied to get the raw
+  // (rewarded − withdrawn) total, then set the adjustment to exactly cancel
+  // it out — balance reads $0.00 immediately, and moves normally from that
+  // new zero baseline as future tasks get rewarded or paid out.
+  const currentAdj = parseFloat(acc.balanceAdjustment || 0) || 0;
+  const rawBalance = calcBalance(accId) - currentAdj;
+  acc.balanceAdjustment = -rawBalance;
+  closeModal('balAdjModal');
+  renderAccDetail(accId);
+  renderAccList();
+  renderDashboard();
+  markUnsaved(true);
+  toast(acc.name + ' balance set to $0.00');
 };
 
 
@@ -9906,6 +9986,23 @@ function bucketLabel(key, range) {
   return key;
 }
 
+// Collapses a bucket's raw per-record entries (one per payout, or one per
+// rewarded task) down to one line per account — summing their amounts —
+// sorted A→Z by account name. Without this, an account with several payouts
+// (or rewarded tasks) landing in the same bucket — which is common once the
+// bucket spans a whole year, as it does for "Yearly" — would otherwise show
+// up multiple times in that bucket with different amounts instead of once.
+function aggregateEntriesByAccount(entries, amountKey) {
+  const map = {};
+  const order = [];
+  entries.forEach(e => {
+    const key = e.accId || e.accName;
+    if (!map[key]) { map[key] = { accName: e.accName, total: 0 }; order.push(key); }
+    map[key].total += parseFloat(e[amountKey] || 0);
+  });
+  return order.map(k => map[k]).sort((a, b) => a.accName.localeCompare(b.accName));
+}
+
 window.renderEarningsHistory = function() {
   const { payouts, range, fromDate: rangeFrom, toDate: rangeTo } = getEhPayouts();
   const accFilterId = (document.getElementById('ehAccountSelect') || {}).value || 'all';
@@ -9946,13 +10043,35 @@ window.renderEarningsHistory = function() {
   const taskTotalPoints = rewardedAsgns.reduce((s,a) => s + a.pointsEarned, 0);
   const taskMaxBucket = taskKeys.length ? Math.max(...taskKeys.map(k=>taskBuckets[k].total)) : 0;
 
+  // ── Payout Withdrawals (computed here so the Task chips below can borrow
+  // the most-recent payout bucket for the "Highest Earner" figure) ─────────
+  const buckets = {};
+  payouts.forEach(p => {
+    const k = bucketKey(p.dateObj, range);
+    if (!buckets[k]) buckets[k] = { total:0, count:0, entries:[] };
+    buckets[k].total += parseFloat(p.amount||0);
+    buckets[k].count++;
+    buckets[k].entries.push(p);
+  });
+  const keys = Object.keys(buckets).sort((a,b) => b.localeCompare(a));
+  const totalAll = payouts.reduce((s,p) => s + parseFloat(p.amount||0), 0);
+  const maxBucket = keys.length ? Math.max(...keys.map(k=>buckets[k].total)) : 0;
+
   const taskChipsEl = document.getElementById('ehTaskChips');
   if (taskChipsEl) {
+    // "This Week Earning" — earnings in the current/most-recent period bucket;
+    // how long that period actually is follows the range picker above (a day,
+    // a week, a month or a year), not a literal calendar week.
+    const thisPeriodEarning = taskKeys.length ? taskBuckets[taskKeys[0]].total : 0;
+    // "Highest Earner" — whichever account was paid out the most within that
+    // same current period.
+    const topEarnerList = keys.length ? aggregateEntriesByAccount(buckets[keys[0]].entries, 'amount') : [];
+    const topEarner = topEarnerList.length ? topEarnerList.reduce((max, e) => e.total > max.total ? e : max, topEarnerList[0]) : null;
     taskChipsEl.innerHTML = `
       <div class="stat-chip"><div class="stat-chip-label">Rewarded Tasks</div><div class="stat-chip-val blue" style="font-weight:700;">${rewardedAsgns.length}</div></div>
       <div class="stat-chip"><div class="stat-chip-label">USD Earned</div><div class="stat-chip-val green" style="font-weight:700;">${fmtUSDT(taskTotalUsd)}</div></div>
-      <div class="stat-chip"><div class="stat-chip-label">Points Earned</div><div class="stat-chip-val purple" style="font-weight:700;">${fmtPoints(taskTotalPoints)}</div></div>
-      <div class="stat-chip"><div class="stat-chip-label">Periods Active</div><div class="stat-chip-val gray" style="font-weight:700;">${taskKeys.length}</div></div>
+      <div class="stat-chip" title="Earnings in the current period (${keys.length||taskKeys.length ? bucketLabel((taskKeys[0]||keys[0]), range) : '—'})"><div class="stat-chip-label">This Week Earning</div><div class="stat-chip-val purple" style="font-weight:700;">${fmtUSDT(thisPeriodEarning)}</div></div>
+      <div class="stat-chip" title="${topEarner ? escapeHtml(topEarner.accName) : 'No payouts in the current period'}"><div class="stat-chip-label">Highest Earner</div><div class="stat-chip-val gray" style="font-weight:700;font-size:12.1px;">${topEarner ? `${escapeHtml(topEarner.accName)}<br><span style="color:var(--green);font-size:14.3px;">${fmtUSDT(topEarner.total)}</span>` : '—'}</div></div>
     `;
   }
 
@@ -9986,29 +10105,33 @@ window.renderEarningsHistory = function() {
     }
   }
 
-  // ── Payout Withdrawals ────────────────────────────────────────────────────
-  const buckets = {};
-  payouts.forEach(p => {
-    const k = bucketKey(p.dateObj, range);
-    if (!buckets[k]) buckets[k] = { total:0, count:0, entries:[] };
-    buckets[k].total += parseFloat(p.amount||0);
-    buckets[k].count++;
-    buckets[k].entries.push(p);
-  });
+  // ── Payout Withdrawals bucket display (bucket math itself is computed
+  // earlier, above the Task chips, so it can feed "Highest Earner") ────────
 
-  const keys = Object.keys(buckets).sort((a,b) => b.localeCompare(a));
-  const totalAll = payouts.reduce((s,p) => s + parseFloat(p.amount||0), 0);
-  const maxBucket = keys.length ? Math.max(...keys.map(k=>buckets[k].total)) : 0;
-
-  // Summary chips (top-level overview combining both)
+  // Summary chips (top-level overview)
   const chipsEl = document.getElementById('ehSummaryChips');
   if (chipsEl) {
-    const pendingUsd = taskTotalUsd - totalAll;
+    // These two are current, live snapshots — not scoped to the selected
+    // date range — same as "USD Balance" on the Account Detail page.
+    const accsToConsider = accFilterId === 'all' ? accounts : accounts.filter(a => a.id === accFilterId);
+    // "Accounts Balance": rewarded money already credited to accounts but not
+    // yet paid out (i.e. what each account's own USD Balance shows), summed.
+    const accountsBalanceUsd = accsToConsider.reduce((s, a) => s + calcBalance(a.id), 0);
+    // "Unpaid Balance": tasks that are done (status "completed") but haven't
+    // been marked "rewarded" yet — the reward they're due once that happens.
+    let unpaidBalanceUsd = 0;
+    tasks.forEach(task => {
+      (task.assignments || []).forEach(asgn => {
+        if (asgn.status !== 'completed') return;
+        if (accFilterId !== 'all' && asgn.accountId !== accFilterId) return;
+        unpaidBalanceUsd += parseFloat(asgn.reward || task.defaultReward || 0);
+      });
+    });
     chipsEl.innerHTML = `
       <div class="stat-chip"><div class="stat-chip-label">Total Paid Out</div><div class="stat-chip-val blue" style="font-weight:700;">${fmtUSDT(totalAll)}</div></div>
       <div class="stat-chip"><div class="stat-chip-label">Total Earned</div><div class="stat-chip-val green" style="font-weight:700;">${fmtUSDT(taskTotalUsd)}</div></div>
-      <div class="stat-chip"><div class="stat-chip-label">Unpaid Balance</div><div class="stat-chip-val ${pendingUsd>0?'amber':'gray'}" style="font-weight:700;">${fmtUSDT(Math.max(0,pendingUsd))}</div></div>
-      <div class="stat-chip"><div class="stat-chip-label">Payouts Count</div><div class="stat-chip-val purple" style="font-weight:700;">${payouts.length}</div></div>
+      <div class="stat-chip" title="Completed tasks not yet marked rewarded"><div class="stat-chip-label">Unpaid Balance</div><div class="stat-chip-val ${unpaidBalanceUsd>0?'amber':'gray'}" style="font-weight:700;">${fmtUSDT(unpaidBalanceUsd)}</div></div>
+      <div class="stat-chip" title="Rewarded but not yet paid out"><div class="stat-chip-label">Accounts Balance</div><div class="stat-chip-val purple" style="font-weight:700;">${fmtUSDT(accountsBalanceUsd)}</div></div>
     `;
   }
 
@@ -10023,7 +10146,12 @@ window.renderEarningsHistory = function() {
   tableEl.innerHTML = keys.map(k => {
     const b = buckets[k];
     const barPct = maxBucket > 0 ? (b.total/maxBucket*100).toFixed(1) : 0;
-    const accs = [...new Set(b.entries.map(e => e.accName))].join(', ');
+    // One line per account (summed), not one per raw payout record — a bucket
+    // covering a wide span (e.g. a whole year under "Yearly") can otherwise
+    // hold several payouts for the same account, which used to show that
+    // account repeated with different partial amounts instead of once.
+    const perAccount = aggregateEntriesByAccount(b.entries, 'amount');
+    const accs = perAccount.map(e => e.accName).join(', ');
     return `
       <div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:6px;">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
@@ -10037,12 +10165,13 @@ window.renderEarningsHistory = function() {
           <div style="width:${barPct}%;height:100%;background:var(--jt-grad);border-radius:99px;transition:width 0.3s;"></div>
         </div>
         <div style="display:flex;flex-wrap:wrap;gap:6px;">
-          ${b.entries.map(e => `<span style="font-family:var(--mono);font-size:9.9px;padding:2px 8px;border-radius:99px;background:var(--green-light);color:var(--green);border:1px solid var(--green-border);">${e.accName}: ${fmtUSDT(e.amount)}${e.note?` · ${e.note}`:''}</span>`).join('')}
+          ${perAccount.map(e => `<span style="font-family:var(--mono);font-size:9.9px;padding:2px 8px;border-radius:99px;background:var(--green-light);color:var(--green);border:1px solid var(--green-border);">${e.accName}: ${fmtUSDT(e.total)}</span>`).join('')}
         </div>
       </div>
     `;
   }).join('');
 };
+
 
 // ─────────────────────────────────────────
 // GLOBAL SETTINGS
