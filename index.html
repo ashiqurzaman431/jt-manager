@@ -8062,6 +8062,9 @@ window.saveBalanceAdjustment = function() {
   const val = parseFloat(raw);
   acc.balanceAdjustment = (raw === '' || isNaN(val)) ? 0 : val;
   closeModal('balAdjModal');
+  // Balance + grace may have just crossed (or dropped below) the payout
+  // threshold — re-check Payout Ready status now, not just after rewards/payouts.
+  checkPayoutReadyAll();
   renderAccDetail(accId);
   renderAccList();
   renderDashboard();
@@ -8079,6 +8082,9 @@ window.zeroOutBalance = function() {
   const rawBalance = calcBalance(accId) - currentAdj;
   acc.balanceAdjustment = -rawBalance;
   closeModal('balAdjModal');
+  // Balance is now exactly $0 — re-check so status reverts off Payout Ready
+  // if it was on it (matches the same revert-on-drop behavior payouts get).
+  checkPayoutReadyAll();
   renderAccDetail(accId);
   renderAccList();
   renderDashboard();
@@ -10137,27 +10143,26 @@ window.renderEarningsHistory = function() {
     // These two are current, live snapshots — not scoped to the selected
     // date range — same as "USD Balance" on the Account Detail page.
     const accsToConsider = accFilterId === 'all' ? accounts : accounts.filter(a => a.id === accFilterId);
-    // "Accounts Balance": rewarded money already credited to accounts but not
-    // yet paid out (i.e. what each account's own USD Balance shows), summed.
+    // "Accounts Balance" = total rewarded amount of all accounts, net of what
+    // they've already been paid out (each account's own "USD Balance"),
+    // summed. Independent figure — does not feed into Unpaid Balance below.
     const accountsBalanceUsd = accsToConsider.reduce((s, a) => s + calcBalance(a.id), 0);
-    // "Unpaid Balance" = Sum of completed-task rewards − Sum of account
-    // balances (across the same accounts). In-progress ("assigned") tasks
-    // are deliberately excluded — only work that's actually done
-    // (status "completed", just not marked rewarded yet) counts here.
-    let completedRewardUsd = 0;
+    // "Unpaid Balance" = total reward for every "assigned" or "completed"
+    // task, across the same accounts — a plain, direct sum. No subtraction,
+    // no dependency on Accounts Balance; these two chips are independent.
+    let unpaidBalanceUsd = 0;
     tasks.forEach(task => {
       (task.assignments || []).forEach(asgn => {
-        if (asgn.status !== 'completed') return;
+        if (asgn.status !== 'assigned' && asgn.status !== 'completed') return;
         if (accFilterId !== 'all' && asgn.accountId !== accFilterId) return;
-        completedRewardUsd += parseFloat(asgn.reward || task.defaultReward || 0);
+        unpaidBalanceUsd += parseFloat(asgn.reward || task.defaultReward || 0);
       });
     });
-    const unpaidBalanceUsd = completedRewardUsd - accountsBalanceUsd;
     chipsEl.innerHTML = `
       <div class="stat-chip"><div class="stat-chip-label">Total Paid Out</div><div class="stat-chip-val blue" style="font-weight:700;">${fmtUSDT(totalAll)}</div></div>
       <div class="stat-chip"><div class="stat-chip-label">Total Earned</div><div class="stat-chip-val green" style="font-weight:700;">${fmtUSDT(taskTotalUsd)}</div></div>
-      <div class="stat-chip" title="Sum of completed-task rewards minus sum of account balances"><div class="stat-chip-label">Unpaid Balance</div><div class="stat-chip-val ${unpaidBalanceUsd>0?'amber':'gray'}" style="font-weight:700;">${fmtUSDT(unpaidBalanceUsd)}</div></div>
-      <div class="stat-chip" title="Rewarded but not yet paid out"><div class="stat-chip-label">Accounts Balance</div><div class="stat-chip-val purple" style="font-weight:700;">${fmtUSDT(accountsBalanceUsd)}</div></div>
+      <div class="stat-chip" title="Total reward for every assigned or completed task, across all accounts"><div class="stat-chip-label">Unpaid Balance</div><div class="stat-chip-val ${unpaidBalanceUsd>0?'amber':'gray'}" style="font-weight:700;">${fmtUSDT(unpaidBalanceUsd)}</div></div>
+      <div class="stat-chip" title="Total rewarded amount of all accounts, net of what's been paid out"><div class="stat-chip-label">Accounts Balance</div><div class="stat-chip-val purple" style="font-weight:700;">${fmtUSDT(accountsBalanceUsd)}</div></div>
     `;
   }
 
