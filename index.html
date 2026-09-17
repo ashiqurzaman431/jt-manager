@@ -10107,6 +10107,15 @@ window.renderEarningsHistory = function() {
     backfillWrap.style.display = needsBackfill ? 'flex' : 'none';
   }
 
+  // For actual payouts we always use the exact rate stamped at the moment
+  // they were recorded. Everything else in this tab (earned/unpaid/balance
+  // figures) isn't a real transaction — nothing was ever converted for it —
+  // so those get an *approximate* BDT figure using the most recent rate
+  // we know of, clearly marked with "≈" to distinguish it from the exact
+  // per-payout amounts.
+  const approxBdtRate = parseFloat(globalSettings.lastKnownBdtRate) || 121;
+  const approxBdt = (usd) => `<div style="font-family:var(--mono);font-size:10px;color:var(--ink3);margin-top:2px;">≈ ${fmtBDT(usd * approxBdtRate)}</div>`;
+
   // ── Task Earnings (rewarded assignments) ──────────────────────────────────
   // Use the same date range objects as payout filtering (fixes all range modes)
   const rewardedAsgns = [];
@@ -10168,13 +10177,13 @@ window.renderEarningsHistory = function() {
     const thisPeriodEarning = taskKeys.length ? taskBuckets[taskKeys[0]].total : 0;
     // "Highest Earner" — whichever account was paid out the most within that
     // same current period.
-    const topEarnerList = keys.length ? aggregateEntriesByAccount(buckets[keys[0]].entries, 'amount') : [];
+    const topEarnerList = keys.length ? aggregateEntriesByAccount(buckets[keys[0]].entries, 'amount', 'bdtAmount') : [];
     const topEarner = topEarnerList.length ? topEarnerList.reduce((max, e) => e.total > max.total ? e : max, topEarnerList[0]) : null;
     taskChipsEl.innerHTML = `
       <div class="stat-chip"><div class="stat-chip-label">Rewarded Tasks</div><div class="stat-chip-val blue" style="font-weight:700;">${rewardedAsgns.length}</div></div>
-      <div class="stat-chip"><div class="stat-chip-label">USD Earned</div><div class="stat-chip-val green" style="font-weight:700;">${fmtUSDT(taskTotalUsd)}</div></div>
-      <div class="stat-chip" title="Earnings in the current period (${keys.length||taskKeys.length ? bucketLabel((taskKeys[0]||keys[0]), range) : '—'})"><div class="stat-chip-label">Range Earning</div><div class="stat-chip-val purple" style="font-weight:700;">${fmtUSDT(thisPeriodEarning)}</div></div>
-      <div class="stat-chip" title="${topEarner ? escapeHtml(topEarner.accName) : 'No payouts in the current period'}"><div class="stat-chip-label">Highest Earner</div><div class="stat-chip-val gray" style="font-weight:700;font-size:12.1px;">${topEarner ? `${escapeHtml(topEarner.accName)}<br><span style="color:var(--green);font-size:14.3px;">${fmtUSDT(topEarner.total)}</span>` : '—'}</div></div>
+      <div class="stat-chip"><div class="stat-chip-label">USD Earned</div><div class="stat-chip-val green" style="font-weight:700;">${fmtUSDT(taskTotalUsd)}</div>${taskTotalUsd ? approxBdt(taskTotalUsd) : ''}</div>
+      <div class="stat-chip" title="Earnings in the current period (${keys.length||taskKeys.length ? bucketLabel((taskKeys[0]||keys[0]), range) : '—'})"><div class="stat-chip-label">Range Earning</div><div class="stat-chip-val purple" style="font-weight:700;">${fmtUSDT(thisPeriodEarning)}</div>${thisPeriodEarning ? approxBdt(thisPeriodEarning) : ''}</div>
+      <div class="stat-chip" title="${topEarner ? escapeHtml(topEarner.accName) : 'No payouts in the current period'}"><div class="stat-chip-label">Highest Earner</div><div class="stat-chip-val gray" style="font-weight:700;font-size:12.1px;">${topEarner ? `${escapeHtml(topEarner.accName)}<br><span style="color:var(--green);font-size:14.3px;">${fmtUSDT(topEarner.total)}</span>${topEarner.secondaryTotal ? `<br><span style="font-size:10px;color:var(--ink3);">${fmtBDT(topEarner.secondaryTotal)}</span>` : ''}` : '—'}</div></div>
     `;
   }
 
@@ -10193,7 +10202,10 @@ window.renderEarningsHistory = function() {
                 <div style="font-family:var(--mono);font-size:13.2px;font-weight:700;color:var(--ink);">${bucketLabel(k, range)}</div>
                 <div style="font-family:var(--mono);font-size:9.9px;color:var(--ink3);margin-top:2px;">${b.count} task${b.count>1?'s':''} rewarded · ${fmtPoints(b.points)}</div>
               </div>
-              <div style="font-family:var(--mono);font-size:16.5px;font-weight:700;color:var(--jt);">${fmtUSDT(b.total)}</div>
+              <div style="text-align:right;">
+                <div style="font-family:var(--mono);font-size:16.5px;font-weight:700;color:var(--jt);">${fmtUSDT(b.total)}</div>
+                ${b.total ? `<div style="font-family:var(--mono);font-size:10px;color:var(--ink3);">≈ ${fmtBDT(b.total*approxBdtRate)}</div>` : ''}
+              </div>
             </div>
             <div style="background:var(--border);border-radius:99px;height:6px;overflow:hidden;">
               <div style="width:${barPct}%;height:100%;background:linear-gradient(90deg,#1a7a3c,#2aad5c);border-radius:99px;transition:width 0.3s;"></div>
@@ -10234,9 +10246,9 @@ window.renderEarningsHistory = function() {
     });
     chipsEl.innerHTML = `
       <div class="stat-chip"><div class="stat-chip-label">Total Paid Out</div><div class="stat-chip-val blue" style="font-weight:700;">${fmtUSDT(totalAll)}</div>${totalAllBdt ? `<div style="font-family:var(--mono);font-size:10px;color:var(--ink3);margin-top:2px;">${fmtBDT(totalAllBdt)}</div>` : ''}</div>
-      <div class="stat-chip"><div class="stat-chip-label">Total Earned</div><div class="stat-chip-val green" style="font-weight:700;">${fmtUSDT(taskTotalUsd)}</div></div>
-      <div class="stat-chip" title="Total reward for every assigned or completed task, across all accounts"><div class="stat-chip-label">Unpaid Balance</div><div class="stat-chip-val ${unpaidBalanceUsd>0?'amber':'gray'}" style="font-weight:700;">${fmtUSDT(unpaidBalanceUsd)}</div></div>
-      <div class="stat-chip" title="Total rewarded amount of all accounts, net of what's been paid out"><div class="stat-chip-label">Accounts Balance</div><div class="stat-chip-val purple" style="font-weight:700;">${fmtUSDT(accountsBalanceUsd)}</div></div>
+      <div class="stat-chip"><div class="stat-chip-label">Total Earned</div><div class="stat-chip-val green" style="font-weight:700;">${fmtUSDT(taskTotalUsd)}</div>${taskTotalUsd ? approxBdt(taskTotalUsd) : ''}</div>
+      <div class="stat-chip" title="Total reward for every assigned or completed task, across all accounts. BDT is an estimate at the last known rate (${approxBdtRate}/$) — nothing has actually been converted yet."><div class="stat-chip-label">Unpaid Balance</div><div class="stat-chip-val ${unpaidBalanceUsd>0?'amber':'gray'}" style="font-weight:700;">${fmtUSDT(unpaidBalanceUsd)}</div>${unpaidBalanceUsd ? approxBdt(unpaidBalanceUsd) : ''}</div>
+      <div class="stat-chip" title="Total rewarded amount of all accounts, net of what's been paid out. BDT is an estimate at the last known rate (${approxBdtRate}/$)."><div class="stat-chip-label">Accounts Balance</div><div class="stat-chip-val purple" style="font-weight:700;">${fmtUSDT(accountsBalanceUsd)}</div>${accountsBalanceUsd ? approxBdt(accountsBalanceUsd) : ''}</div>
     `;
   }
 
