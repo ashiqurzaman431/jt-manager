@@ -1275,7 +1275,7 @@ body {
 .acc-status-pill.payout_ready { background: rgba(154,158,166,0.12); color:#9a9ea6; border:1px solid rgba(154,158,166,0.28); }
 .acc-status-pill.dead { background: rgba(201,106,106,0.10); color:#c96a6a; border:1px solid rgba(201,106,106,0.28); }
 
-.dash-meta-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px; }
+.dash-meta-grid { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:8px; margin-bottom:12px; }
 .dash-meta-item { background:var(--surface3); border-radius:var(--radius-sm); padding:8px 10px; }
 .dash-meta-label { font-family:var(--mono); font-size:9.9px; color:var(--ink3); text-transform:uppercase; margin-bottom:2px; }
 .dash-meta-val { font-family:var(--mono); font-size:13.2px; font-weight:500; color:var(--ink); }
@@ -1298,7 +1298,7 @@ body {
 
 /* ── EARNINGS SECTION ── */
 .earnings-row {
-  display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:8px;
+  display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin-top:8px;
 }
 .earnings-card {
   background:var(--surface); border:1px solid var(--border);
@@ -1334,8 +1334,8 @@ body {
 .panel-body { display:none; flex-direction:column; gap:12px; padding:16px; border-top:1px solid var(--border); background:var(--surface); }
 .panel-body.open { display:flex; }
 
-.form-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-.form-row-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; }
+.form-row { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:10px; }
+.form-row-3 { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1fr); gap:10px; }
 .field { display:flex; flex-direction:column; gap:5px; }
 .field label { font-family:var(--mono); font-size:11px; color:var(--ink3); text-transform:uppercase; }
 .field input, .field select, .field textarea, .field option {
@@ -1395,7 +1395,7 @@ select option { background: var(--surface3); color: var(--ink); }
 }
 
 /* ── TASK CARDS ── */
-.tasks-list { display:grid; grid-template-columns:1fr 1fr; gap:10px; align-items:start; }
+.tasks-list { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:10px; align-items:start; }
 @media (max-width:820px) {
   .tasks-list { grid-template-columns:1fr; }
 }
@@ -1445,7 +1445,7 @@ select option { background: var(--surface3); color: var(--ink); }
   -webkit-overflow-scrolling: touch;
   padding-right: 2px;
 }
-#tasksList.tasks-list-dual { grid-template-columns: 1fr 1fr; }
+#tasksList.tasks-list-dual { grid-template-columns: minmax(0,1fr) minmax(0,1fr); }
 @media (max-width:820px) {
   #tasksList.tasks-list-dual { grid-template-columns: 1fr; }
 }
@@ -1768,6 +1768,7 @@ select option { background: var(--surface3); color: var(--ink); }
 .acc-list-panel {
   background:var(--surface); border:1px solid var(--border);
   border-radius:var(--radius); box-shadow:var(--shadow); overflow:hidden;
+  min-width:0;
 }
 .acc-list-header {
   padding:13px 16px; border-bottom:1px solid var(--border);
@@ -1791,15 +1792,16 @@ select option { background: var(--surface3); color: var(--ink); }
   min-width:0;
 }
 .acc-detail-inner {
-  display:grid; grid-template-columns:1fr 1fr; gap:0;
+  display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:0;
 }
 @media (max-width:900px) {
-  .acc-detail-inner { grid-template-columns:1fr; }
+  .acc-detail-inner { grid-template-columns:minmax(0,1fr); }
 }
 
 /* Col 1: Account Info */
 .acc-info-col {
   padding:18px; border-right:1px solid var(--border);
+  min-width:0;
 }
 .acc-info-title { font-family:var(--mono); font-size:12.1px; font-weight:600; color:var(--ink3); text-transform:uppercase; margin-bottom:14px; }
 .acc-info-fields { display:flex; flex-direction:column; gap:10px; margin-bottom:16px; }
@@ -1808,12 +1810,12 @@ select option { background: var(--surface3); color: var(--ink); }
 .info-val { font-family:var(--mono); font-size:13.2px; color:var(--ink); word-break:break-all; }
 .info-val.wallet { font-size:11px; }
 
-.acc-stats-mini { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:14px; }
+.acc-stats-mini { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:8px; margin-bottom:14px; }
 .acc-stat-mini { background:var(--surface3); border-radius:var(--radius-sm); padding:8px 10px; }
 .acc-stat-mini-label { font-family:var(--mono); font-size:9.9px; color:var(--ink3); text-transform:uppercase; }
 .acc-stat-mini-val { font-family:var(--mono); font-size:14.3px; font-weight:700; color:var(--jt); }
 
-.acc-task-stats { display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:8px; margin:6px 0 10px; }
+.acc-task-stats { display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:8px; margin:6px 0 10px; }
 .acc-task-stat { background:var(--surface3); border-radius:var(--radius-sm); padding:8px 10px; text-align:center; }
 .acc-task-stat-label { font-family:var(--mono); font-size:9px; color:var(--ink3); text-transform:uppercase; letter-spacing:0.3px; }
 .acc-task-stat-val { font-family:var(--mono); font-size:16px; font-weight:700; color:var(--ink); margin-top:2px; }
@@ -1894,7 +1896,7 @@ select option { background: var(--surface3); color: var(--ink); }
 .btn-ip-reuse:hover { background:var(--jt); color:#fff; }
 
 /* Col 2/3: Switchable */
-.acc-right-col { padding:18px; }
+.acc-right-col { padding:18px; min-width:0; }
 .acc-right-tabs { display:flex; gap:4px; margin-bottom:14px; background:var(--surface3); border-radius:var(--radius-sm); padding:3px; }
 .acc-right-tab {
   flex:1; padding:7px; border-radius:6px; border:none; background:transparent;
@@ -1917,14 +1919,15 @@ select option { background: var(--surface3); color: var(--ink); }
 .acc-active-task-times span { color:var(--ink2); }
 
 /* Compact 3-column active task grid */
-.acc-task-grid { display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; }
-@media (max-width:720px) { .acc-task-grid { grid-template-columns:repeat(2, 1fr); } }
+.acc-task-grid { display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:8px; }
+@media (max-width:720px) { .acc-task-grid { grid-template-columns:repeat(2, minmax(0,1fr)); } }
 .acc-task-card {
   background:var(--surface2); border:1px solid var(--border);
   border-radius:var(--radius-sm); padding:9px 8px 9px 10px; margin-bottom:0;
   display:flex; align-items:center; gap:6px; cursor:pointer;
   transition:border-color 0.12s, background 0.12s;
   user-select:none;
+  min-width:0;
 }
 .acc-task-card:hover { border-color:var(--border2); }
 .acc-task-card.selected { border-color:var(--jt); background:var(--jt-light); }
@@ -1951,6 +1954,21 @@ select option { background: var(--surface3); color: var(--ink); }
 .acc-task-card-status-dot.completed { background:#9a9ea6; }
 .acc-task-card-status-dot.rewarded { background:#8fbf9f; }
 .acc-task-status-btns { display:flex; gap:4px; margin-top:6px; flex-wrap:wrap; }
+/* Bulk action bar (Select All / N selected / status buttons) above the
+   account's task grid — wraps its label row and its button row onto
+   separate lines on narrow screens so buttons never get clipped off-edge. */
+.bulk-action-bar {
+  display:flex; align-items:center; gap:8px; margin-bottom:10px;
+  background:var(--jt-light); border:1px solid var(--jt-border);
+  border-radius:var(--radius-sm); padding:8px 12px; flex-wrap:wrap; min-width:0;
+}
+.bulk-action-bar-label { display:flex; align-items:center; gap:6px; font-family:var(--mono); font-size:12.1px; color:var(--jt); cursor:pointer; font-weight:600; flex-shrink:0; }
+.bulk-action-bar-count { font-family:var(--mono); font-size:11px; color:var(--ink3); flex:1; min-width:70px; }
+.bulk-action-bar-btns { display:flex; gap:6px; flex-wrap:wrap; }
+@media (max-width:480px) {
+  .bulk-action-bar-count { flex-basis:100%; order:1; }
+  .bulk-action-bar-btns { flex-basis:100%; order:2; }
+}
 .btn-status-change {
   font-family:var(--mono); font-size:9.9px; padding:3px 8px; border-radius:99px;
   border:1px solid var(--border2); background:var(--surface2); color:var(--ink2); cursor:pointer;
@@ -2630,7 +2648,7 @@ select option { background: var(--surface3); color: var(--ink); }
           <div class="info-row"><div class="info-label">Status</div><div class="info-val"><span class="acc-status-pill silent">Silent</span></div></div>
           
         </div>
-        <div class="acc-stats-mini" style="grid-template-columns:1fr 1fr;gap:8px;">
+        <div class="acc-stats-mini" style="grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;">
           <div class="acc-stat-mini"><div class="acc-stat-mini-label">USD Balance</div><div class="acc-stat-mini-val" style="color:var(--green);font-weight:700;">$ 0.00</div></div>
           <div class="acc-stat-mini"><div class="acc-stat-mini-label">Points Balance</div><div class="acc-stat-mini-val" style="font-weight:700;">0 PTS</div></div>
           <div class="acc-stat-mini"><div class="acc-stat-mini-label">Expected USD</div><div class="acc-stat-mini-val" style="color:var(--amber);font-weight:700;">$ 0.06</div></div>
@@ -2653,15 +2671,17 @@ select option { background: var(--surface3); color: var(--ink); }
         </div>
         <div id="accRightContent">
           
-    <div id="bulkBar" style="display:flex;align-items:center;gap:8px;margin-bottom:10px;background:var(--jt-light);border:1px solid var(--jt-border);border-radius:var(--radius-sm);padding:8px 12px;flex-wrap:wrap;">
-      <label style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:12.1px;color:var(--jt);cursor:pointer;font-weight:600;">
+    <div id="bulkBar" class="bulk-action-bar">
+      <label class="bulk-action-bar-label">
         <input type="checkbox" id="bulkSelectAll" onchange="toggleSelectAll('ehsz5yr9cfhmpxno92l')" style="accent-color:var(--jt);width:14px;height:14px;">
         Select All
       </label>
-      <span style="font-family:var(--mono);font-size:11px;color:var(--ink3);flex:1;" id="bulkCountLabel">0 selected</span>
-      <button class="btn-status-change" onclick="bulkUpdateStatus('ehsz5yr9cfhmpxno92l','completed')" style="background:var(--jt-light);color:var(--jt);border-color:var(--jt-border);font-size:11px;padding:4px 10px;">→ Completed</button>
-      <button class="btn-status-change" onclick="bulkUpdateStatus('ehsz5yr9cfhmpxno92l','rewarded')" style="background:var(--green-light);color:var(--green);border-color:var(--green-border);font-size:11px;padding:4px 10px;">✓ Rewarded</button>
-      <button class="btn-remove-task" onclick="bulkRemove('ehsz5yr9cfhmpxno92l')" style="font-size:11px;padding:4px 10px;">✕ Remove</button>
+      <span class="bulk-action-bar-count" id="bulkCountLabel">0 selected</span>
+      <div class="bulk-action-bar-btns">
+        <button class="btn-status-change" onclick="bulkUpdateStatus('ehsz5yr9cfhmpxno92l','completed')" style="background:var(--jt-light);color:var(--jt);border-color:var(--jt-border);font-size:11px;padding:4px 10px;">→ Completed</button>
+        <button class="btn-status-change" onclick="bulkUpdateStatus('ehsz5yr9cfhmpxno92l','rewarded')" style="background:var(--green-light);color:var(--green);border-color:var(--green-border);font-size:11px;padding:4px 10px;">✓ Rewarded</button>
+        <button class="btn-remove-task" onclick="bulkRemove('ehsz5yr9cfhmpxno92l')" style="font-size:11px;padding:4px 10px;">✕ Remove</button>
+      </div>
     </div>
     
     <div class="acc-active-task" id="atask-nxl8ocebr2mpy89b7n" style="padding:7px 10px;">
@@ -7460,15 +7480,17 @@ function renderAccDetail(accId) {
   );
 
   const activeTasksHtml = filteredActive.length ? `
-    <div id="bulkBar" style="display:flex;align-items:center;gap:8px;margin-bottom:10px;background:var(--jt-light);border:1px solid var(--jt-border);border-radius:var(--radius-sm);padding:8px 12px;flex-wrap:wrap;">
-      <label style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:12.1px;color:var(--jt);cursor:pointer;font-weight:600;">
+    <div id="bulkBar" class="bulk-action-bar">
+      <label class="bulk-action-bar-label">
         <input type="checkbox" id="bulkSelectAll" onchange="toggleSelectAll('${accId}')" style="accent-color:var(--jt);width:14px;height:14px;">
         Select All
       </label>
-      <span style="font-family:var(--mono);font-size:11px;color:var(--ink3);flex:1;" id="bulkCountLabel">0 selected</span>
-      <button class="btn-status-change" onclick="bulkUpdateStatus('${accId}','completed')" style="background:var(--jt-light);color:var(--jt);border-color:var(--jt-border);font-size:11px;padding:4px 10px;">→ Completed</button>
-      <button class="btn-status-change" onclick="bulkUpdateStatus('${accId}','rewarded')" style="background:var(--green-light);color:var(--green);border-color:var(--green-border);font-size:11px;padding:4px 10px;">✓ Rewarded</button>
-      <button class="btn-remove-task" onclick="bulkRemove('${accId}')" style="font-size:11px;padding:4px 10px;">✕ Remove</button>
+      <span class="bulk-action-bar-count" id="bulkCountLabel">0 selected</span>
+      <div class="bulk-action-bar-btns">
+        <button class="btn-status-change" onclick="bulkUpdateStatus('${accId}','completed')" style="background:var(--jt-light);color:var(--jt);border-color:var(--jt-border);font-size:11px;padding:4px 10px;">→ Completed</button>
+        <button class="btn-status-change" onclick="bulkUpdateStatus('${accId}','rewarded')" style="background:var(--green-light);color:var(--green);border-color:var(--green-border);font-size:11px;padding:4px 10px;">✓ Rewarded</button>
+        <button class="btn-remove-task" onclick="bulkRemove('${accId}')" style="font-size:11px;padding:4px 10px;">✕ Remove</button>
+      </div>
     </div>
     <div class="acc-task-grid">
     ${filteredActive.map(({task, assignment}) => {
@@ -7587,7 +7609,7 @@ function renderAccDetail(accId) {
           ${acc.linkedSetId === 'all' ? `<div class="info-row"><div class="info-label">Linked Set</div><div class="info-val">All Tasks</div></div>` : (acc.linkedSetId && (typeof taskSets !== 'undefined') && taskSets.find(s=>s.id===acc.linkedSetId) ? `<div class="info-row"><div class="info-label">Linked Set</div><div class="info-val">${escapeHtml(taskSets.find(s=>s.id===acc.linkedSetId).name)}</div></div>` : '')}
           ${acc.notes ? `<div class="info-row"><div class="info-label">Notes</div><div class="info-val" style="font-size:12.1px;color:var(--ink3);">${acc.notes}</div></div>` : ''}
         </div>
-        <div class="acc-stats-mini" style="grid-template-columns:1fr 1fr;gap:8px;">
+        <div class="acc-stats-mini" style="grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;">
           <div class="acc-stat-mini"><div class="acc-stat-mini-label">USD Balance</div><div class="acc-stat-mini-val" style="color:var(--green);font-weight:700;">${fmtUSDT(balance)}</div></div>
           <div class="acc-stat-mini"><div class="acc-stat-mini-label">Points Balance</div><div class="acc-stat-mini-val" style="font-weight:700;">${fmtPoints(pointsBalance)}</div></div>
           <div class="acc-stat-mini"><div class="acc-stat-mini-label">Expected USD</div><div class="acc-stat-mini-val" style="color:var(--amber);font-weight:700;">${fmtUSDT(expectedUsd)}</div></div>
