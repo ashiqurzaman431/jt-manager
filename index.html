@@ -10117,12 +10117,18 @@ window.renderEarningsHistory = function() {
     // "Accounts Balance": rewarded money already credited to accounts but not
     // yet paid out (i.e. what each account's own USD Balance shows), summed.
     const accountsBalanceUsd = accsToConsider.reduce((s, a) => s + calcBalance(a.id), 0);
-    // "Unpaid Balance": tasks that are done (status "completed") but haven't
-    // been marked "rewarded" yet — the reward they're due once that happens.
+    // "Unpaid Balance" = Expected Balance − Accounts Balance, across the same
+    // accounts. Expected Balance (per account, same figure as "Expected USD"
+    // on the Account Detail page) = Accounts Balance (rewarded, not yet paid
+    // out) + reward still sitting in "assigned"/"completed" tasks that
+    // haven't been marked rewarded yet. Subtracting Accounts Balance out
+    // cancels the already-rewarded part, leaving just that not-yet-rewarded
+    // portion — computed directly below rather than literally building both
+    // sums and subtracting, since they reduce to the same thing.
     let unpaidBalanceUsd = 0;
     tasks.forEach(task => {
       (task.assignments || []).forEach(asgn => {
-        if (asgn.status !== 'completed') return;
+        if (asgn.status !== 'completed' && asgn.status !== 'assigned') return;
         if (accFilterId !== 'all' && asgn.accountId !== accFilterId) return;
         unpaidBalanceUsd += parseFloat(asgn.reward || task.defaultReward || 0);
       });
@@ -10130,7 +10136,7 @@ window.renderEarningsHistory = function() {
     chipsEl.innerHTML = `
       <div class="stat-chip"><div class="stat-chip-label">Total Paid Out</div><div class="stat-chip-val blue" style="font-weight:700;">${fmtUSDT(totalAll)}</div></div>
       <div class="stat-chip"><div class="stat-chip-label">Total Earned</div><div class="stat-chip-val green" style="font-weight:700;">${fmtUSDT(taskTotalUsd)}</div></div>
-      <div class="stat-chip" title="Completed tasks not yet marked rewarded"><div class="stat-chip-label">Unpaid Balance</div><div class="stat-chip-val ${unpaidBalanceUsd>0?'amber':'gray'}" style="font-weight:700;">${fmtUSDT(unpaidBalanceUsd)}</div></div>
+      <div class="stat-chip" title="Expected Balance minus Accounts Balance — reward still sitting in assigned/completed tasks not yet marked rewarded"><div class="stat-chip-label">Unpaid Balance</div><div class="stat-chip-val ${unpaidBalanceUsd>0?'amber':'gray'}" style="font-weight:700;">${fmtUSDT(unpaidBalanceUsd)}</div></div>
       <div class="stat-chip" title="Rewarded but not yet paid out"><div class="stat-chip-label">Accounts Balance</div><div class="stat-chip-val purple" style="font-weight:700;">${fmtUSDT(accountsBalanceUsd)}</div></div>
     `;
   }
