@@ -2808,6 +2808,12 @@ TaskRec01: task assigned, timer started.</div>
       </div>
     </div>
 
+    <!-- TEMPORARY: one-time BDT backfill for past payouts (121 tk/$ fixed rate) -->
+    <div id="bdtBackfillWrap" style="margin-bottom:14px;background:var(--amber-light,rgba(245,166,35,0.08));border:1px solid var(--amber-border,rgba(245,166,35,0.3));border-radius:var(--radius-sm);padding:10px 14px;display:none;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+      <div style="font-family:var(--mono);font-size:11px;color:var(--ink2);line-height:1.5;">⚠ One-time: stamp past payouts (recorded before live-rate lookup) with a fixed <strong>121 tk/$</strong> BDT amount. Click once after launch.</div>
+      <button class="btn-secondary" onclick="backfillPayoutBdtOnce()" style="flex-shrink:0;">Backfill BDT (121/$)</button>
+    </div>
+
     <!-- Summary chips -->
     <div class="stat-chips" id="ehSummaryChips" style="margin-bottom:18px;">
       <div class="stat-chip"><div class="stat-chip-label">Total Paid Out</div><div class="stat-chip-val blue" style="font-weight:700;">$ 0.00</div></div>
@@ -2824,7 +2830,7 @@ TaskRec01: task assigned, timer started.</div>
       <div class="stat-chips" id="ehTaskChips" style="margin-bottom:10px;">
       <div class="stat-chip"><div class="stat-chip-label">Rewarded Tasks</div><div class="stat-chip-val blue" style="font-weight:700;">0</div></div>
       <div class="stat-chip"><div class="stat-chip-label">USD Earned</div><div class="stat-chip-val green" style="font-weight:700;">$ 0.00</div></div>
-      <div class="stat-chip" title="Earnings in the current period — length follows the range picker above"><div class="stat-chip-label">Range Top Earning</div><div class="stat-chip-val purple" style="font-weight:700;">$ 0.00</div></div>
+      <div class="stat-chip" title="Earnings in the current period — length follows the range picker above"><div class="stat-chip-label">Range Earning</div><div class="stat-chip-val purple" style="font-weight:700;">$ 0.00</div></div>
       <div class="stat-chip" title="Account paid out the most in the current period"><div class="stat-chip-label">Highest Earner</div><div class="stat-chip-val gray" style="font-weight:700;">—</div></div>
     </div>
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
@@ -3008,9 +3014,10 @@ TaskRec01: task assigned, timer started.</div>
       <div class="field"><label>Points Withdrawn</label><input type="number" id="payoutModalPoints" placeholder="0 (current points)" step="1" min="0"></div>
       <div class="field"><label>Date</label><input type="date" id="payoutModalDate"></div>
       <div class="field"><label>Note (optional)</label><input type="text" id="payoutModalNote" placeholder="e.g. Weekly payout"></div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--ink3);margin-top:-4px;">🌐 The current USD→BDT rate is looked up automatically and stamped onto this payout — no need to enter it.</div>
     </div>
     <div class="modal-actions">
-      <button class="btn-primary" onclick="savePayout()">Record Payout</button>
+      <button class="btn-primary" id="payoutModalSaveBtn" onclick="savePayout()">Record Payout</button>
       <button class="btn-secondary" onclick="closeModal('payoutModal')">Cancel</button>
     </div>
   </div>
@@ -4117,7 +4124,7 @@ let kcOptions = { sectionName: [], sentence: ['First'], direction: ['First'], wo
 window.keywordCollections = keywordCollections;
 
 /*EMBEDDED_SETTINGS_START*/
-let globalSettings = { "defaultGoogleReward": 0.04, "defaultYoutubeReward": 0.02, "payoutThreshold": 500, "customDevices": [], "appVersion": "1.0" };
+let globalSettings = { "defaultGoogleReward": 0.04, "defaultYoutubeReward": 0.02, "payoutThreshold": 500, "lastKnownBdtRate": null, "bdtBackfillDone": false, "customDevices": [], "appVersion": "1.0" };
 /*EMBEDDED_SETTINGS_END*/
 
 /*EMBEDDED_LOG_START*/
@@ -4442,6 +4449,7 @@ function countryFlag(country) {
   return map[country.toLowerCase().trim()] || '';
 }
 function fmtUSDT(v) { return '$ ' + (parseFloat(v)||0).toFixed(2); }
+function fmtBDT(v) { return '৳ ' + (parseFloat(v)||0).toFixed(2); }
 function todayISO() {
   // "Today" resets at 17:00 (5 PM) local time each day.
   // Before 5 PM → use yesterday's date. At/after 5 PM → use today's date.
@@ -8097,6 +8105,25 @@ window.zeroOutBalance = function() {
 // ─────────────────────────────────────────
 // PAYOUT MODAL
 // ─────────────────────────────────────────
+// Looks up today's USD→BDT rate at the moment a payout is recorded, so each
+// payout is permanently stamped with the rate that actually applied to it —
+// no rate is "remembered" globally, it's just fetched fresh each time. Falls
+// back to the last rate we successfully fetched (or 121, the one-time
+// backfill rate) if the network call fails, so a flaky connection never
+// blocks recording a payout.
+async function fetchUsdToBdtRate() {
+  try {
+    const res = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
+    const data = await res.json();
+    const rate = data && data.rates && parseFloat(data.rates.BDT);
+    if (rate && isFinite(rate) && rate > 0) {
+      globalSettings.lastKnownBdtRate = rate;
+      return rate;
+    }
+  } catch (e) { /* network/API failure — fall through to fallback below */ }
+  return parseFloat(globalSettings.lastKnownBdtRate) || 121;
+}
+
 window.openPayoutModal = function(accId) {
   const acc = accounts.find(a => a.id===accId); if(!acc) return;
   if (acc.status !== 'payout_ready') {
@@ -8119,7 +8146,7 @@ window.openPayoutModal = function(accId) {
   document.getElementById('payoutModalNote').value = '';
   openModal('payoutModal');
 };
-window.savePayout = function() {
+window.savePayout = async function() {
   const accId = document.getElementById('payoutModalAccId').value;
   const amount = parseFloat(document.getElementById('payoutModalAmount').value)||0;
   const fee = parseFloat(document.getElementById('payoutModalFee').value)||0;
@@ -8128,21 +8155,55 @@ window.savePayout = function() {
   const note = document.getElementById('payoutModalNote').value.trim();
   if (!amount) { toast('Enter a payout amount'); return; }
   const acc = accounts.find(a => a.id===accId); if(!acc) return;
+
+  // Look up the live rate now, at the moment this payout is actually being
+  // recorded — this specific payout keeps this exact rate forever, even if
+  // today's rate changes tomorrow.
+  const saveBtn = document.getElementById('payoutModalSaveBtn');
+  const saveBtnLabel = saveBtn ? saveBtn.textContent : '';
+  if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = 'Fetching rate…'; }
+  const bdtRate = await fetchUsdToBdtRate();
+  if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = saveBtnLabel; }
+  const bdtAmount = Math.round(amount * bdtRate * 100) / 100;
+
   pushUndo('Add payout ' + acc.name);
   if (!acc.payoutHistory) acc.payoutHistory = [];
-  acc.payoutHistory.push({ id: uid(), amount, fee, pointsAmount, date, note, recordedAt: new Date().toISOString() });
+  acc.payoutHistory.push({ id: uid(), amount, fee, pointsAmount, date, note, bdtAmount, bdtRate, recordedAt: new Date().toISOString() });
   // Recalculate status — if balance dropped below threshold, revert to active
   checkPayoutReadyAll();
   closeModal('payoutModal');
   if (selectedAccId===accId) renderAccDetail(accId);
   renderAccList();
   renderDashboard();
-  toast('Payout recorded');
+  markUnsaved(true);
+  toast(`Payout recorded — ৳${bdtAmount.toFixed(2)} @ ${bdtRate.toFixed(2)}/$`);
 };
 
-// ─────────────────────────────────────────
-// TASK LINKS
-// ─────────────────────────────────────────
+// ── ONE-TIME: backfill BDT amount on past payouts (before live-rate lookup
+// existed) at a fixed 121 tk/$ rate. Self-disables via
+// globalSettings.bdtBackfillDone once run — see the temporary button in the
+// Earnings History page. Safe to click more than once: it only touches
+// payouts that don't already have a bdtAmount.
+window.backfillPayoutBdtOnce = function() {
+  const FIXED_RATE = 121;
+  let count = 0;
+  accounts.forEach(acc => {
+    (acc.payoutHistory || []).forEach(p => {
+      if (p.bdtAmount === undefined || p.bdtAmount === null) {
+        p.bdtAmount = Math.round(parseFloat(p.amount||0) * FIXED_RATE * 100) / 100;
+        p.bdtRate = FIXED_RATE;
+        p.bdtBackfilled = true;
+        count++;
+      }
+    });
+  });
+  globalSettings.bdtBackfillDone = true;
+  markUnsaved(true);
+  renderEarningsHistory();
+  toast(count ? `Backfilled BDT on ${count} past payout${count>1?'s':''} @ ${FIXED_RATE}/$` : 'Nothing to backfill — already done');
+};
+
+
 window.openLinksModal = function(taskId) {
   const t = tasks.find(t => t.id===taskId); if(!t) return;
   document.getElementById('linksModalTaskId').value = taskId;
@@ -9136,7 +9197,7 @@ window.showAccessDeniedModal = showAccessDeniedModal;
 function clearPersonalAppState() {
   accounts.length = 0;
   tasks.length = 0;
-  globalSettings = { defaultGoogleReward: 0.04, defaultYoutubeReward: 0.02, payoutThreshold: 500, customDevices: [], appVersion: '1.0' };
+  globalSettings = { defaultGoogleReward: 0.04, defaultYoutubeReward: 0.02, payoutThreshold: 500, lastKnownBdtRate: null, bdtBackfillDone: false, customDevices: [], appVersion: '1.0' };
   auditLog.length = 0;
   bugLog.length = 0;
   tsHistory = [];
@@ -9602,6 +9663,8 @@ function buildSaveSource(filename) {
     defaultGoogleReward: globalSettings.defaultGoogleReward || 0,
     defaultYoutubeReward: globalSettings.defaultYoutubeReward || 0,
     payoutThreshold: globalSettings.payoutThreshold || 500,
+    lastKnownBdtRate: globalSettings.lastKnownBdtRate || null,
+    bdtBackfillDone: globalSettings.bdtBackfillDone || false,
     customDevices: customDevices || []
   }, null, 2).replace(/</g,'\\u003c').replace(/>/g,'\\u003e');
   const logJson = JSON.stringify(auditLog, null, 2);
@@ -9622,7 +9685,7 @@ let tasks = [];
   src = src.replace(
     /\/\*EMBEDDED_SETTINGS_START\*\/[\s\S]*?\/\*EMBEDDED_SETTINGS_END\*\//,
     `/*EMBEDDED_SETTINGS_START*/
-let globalSettings = { "defaultGoogleReward": 0.04, "defaultYoutubeReward": 0.02, "payoutThreshold": 500, "customDevices": [], "appVersion": "1.0" };
+let globalSettings = { "defaultGoogleReward": 0.04, "defaultYoutubeReward": 0.02, "payoutThreshold": 500, "lastKnownBdtRate": null, "bdtBackfillDone": false, "customDevices": [], "appVersion": "1.0" };
 /*EMBEDDED_SETTINGS_END*/`
   );
   src = src.replace(
@@ -10020,13 +10083,14 @@ function bucketLabel(key, range) {
 // (or rewarded tasks) landing in the same bucket — which is common once the
 // bucket spans a whole year, as it does for "Yearly" — would otherwise show
 // up multiple times in that bucket with different amounts instead of once.
-function aggregateEntriesByAccount(entries, amountKey) {
+function aggregateEntriesByAccount(entries, amountKey, secondaryKey) {
   const map = {};
   const order = [];
   entries.forEach(e => {
     const key = e.accId || e.accName;
-    if (!map[key]) { map[key] = { accName: e.accName, total: 0 }; order.push(key); }
+    if (!map[key]) { map[key] = { accName: e.accName, total: 0, secondaryTotal: 0 }; order.push(key); }
     map[key].total += parseFloat(e[amountKey] || 0);
+    if (secondaryKey) map[key].secondaryTotal += parseFloat(e[secondaryKey] || 0);
   });
   return order.map(k => map[k]).sort((a, b) => a.accName.localeCompare(b.accName));
 }
@@ -10034,6 +10098,14 @@ function aggregateEntriesByAccount(entries, amountKey) {
 window.renderEarningsHistory = function() {
   const { payouts, range, fromDate: rangeFrom, toDate: rangeTo } = getEhPayouts();
   const accFilterId = (document.getElementById('ehAccountSelect') || {}).value || 'all';
+
+  // Show the one-time BDT backfill banner only while some past payout is
+  // still missing a bdtAmount (and the migration hasn't already been run).
+  const backfillWrap = document.getElementById('bdtBackfillWrap');
+  if (backfillWrap) {
+    const needsBackfill = !globalSettings.bdtBackfillDone && accounts.some(a => (a.payoutHistory||[]).some(p => p.bdtAmount === undefined || p.bdtAmount === null));
+    backfillWrap.style.display = needsBackfill ? 'flex' : 'none';
+  }
 
   // ── Task Earnings (rewarded assignments) ──────────────────────────────────
   // Use the same date range objects as payout filtering (fixes all range modes)
@@ -10076,13 +10148,15 @@ window.renderEarningsHistory = function() {
   const buckets = {};
   payouts.forEach(p => {
     const k = bucketKey(p.dateObj, range);
-    if (!buckets[k]) buckets[k] = { total:0, count:0, entries:[] };
+    if (!buckets[k]) buckets[k] = { total:0, bdtTotal:0, count:0, entries:[] };
     buckets[k].total += parseFloat(p.amount||0);
+    buckets[k].bdtTotal += parseFloat(p.bdtAmount||0);
     buckets[k].count++;
     buckets[k].entries.push(p);
   });
   const keys = Object.keys(buckets).sort((a,b) => b.localeCompare(a));
   const totalAll = payouts.reduce((s,p) => s + parseFloat(p.amount||0), 0);
+  const totalAllBdt = payouts.reduce((s,p) => s + parseFloat(p.bdtAmount||0), 0);
   const maxBucket = keys.length ? Math.max(...keys.map(k=>buckets[k].total)) : 0;
 
   const taskChipsEl = document.getElementById('ehTaskChips');
@@ -10159,7 +10233,7 @@ window.renderEarningsHistory = function() {
       });
     });
     chipsEl.innerHTML = `
-      <div class="stat-chip"><div class="stat-chip-label">Total Paid Out</div><div class="stat-chip-val blue" style="font-weight:700;">${fmtUSDT(totalAll)}</div></div>
+      <div class="stat-chip"><div class="stat-chip-label">Total Paid Out</div><div class="stat-chip-val blue" style="font-weight:700;">${fmtUSDT(totalAll)}</div>${totalAllBdt ? `<div style="font-family:var(--mono);font-size:10px;color:var(--ink3);margin-top:2px;">${fmtBDT(totalAllBdt)}</div>` : ''}</div>
       <div class="stat-chip"><div class="stat-chip-label">Total Earned</div><div class="stat-chip-val green" style="font-weight:700;">${fmtUSDT(taskTotalUsd)}</div></div>
       <div class="stat-chip" title="Total reward for every assigned or completed task, across all accounts"><div class="stat-chip-label">Unpaid Balance</div><div class="stat-chip-val ${unpaidBalanceUsd>0?'amber':'gray'}" style="font-weight:700;">${fmtUSDT(unpaidBalanceUsd)}</div></div>
       <div class="stat-chip" title="Total rewarded amount of all accounts, net of what's been paid out"><div class="stat-chip-label">Accounts Balance</div><div class="stat-chip-val purple" style="font-weight:700;">${fmtUSDT(accountsBalanceUsd)}</div></div>
@@ -10181,7 +10255,7 @@ window.renderEarningsHistory = function() {
     // covering a wide span (e.g. a whole year under "Yearly") can otherwise
     // hold several payouts for the same account, which used to show that
     // account repeated with different partial amounts instead of once.
-    const perAccount = aggregateEntriesByAccount(b.entries, 'amount');
+    const perAccount = aggregateEntriesByAccount(b.entries, 'amount', 'bdtAmount');
     const accs = perAccount.map(e => e.accName).join(', ');
     return `
       <div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:6px;">
@@ -10190,13 +10264,16 @@ window.renderEarningsHistory = function() {
             <div style="font-family:var(--mono);font-size:13.2px;font-weight:700;color:var(--ink);">${bucketLabel(k, range)}</div>
             <div style="font-family:var(--mono);font-size:9.9px;color:var(--ink3);margin-top:2px;">${b.count} payout${b.count>1?'s':''} · ${accs}</div>
           </div>
-          <div style="font-family:var(--mono);font-size:16.5px;font-weight:700;color:var(--green);">${fmtUSDT(b.total)}</div>
+          <div style="text-align:right;">
+            <div style="font-family:var(--mono);font-size:16.5px;font-weight:700;color:var(--green);">${fmtUSDT(b.total)}</div>
+            ${b.bdtTotal ? `<div style="font-family:var(--mono);font-size:10px;color:var(--ink3);">${fmtBDT(b.bdtTotal)}</div>` : ''}
+          </div>
         </div>
         <div style="background:var(--border);border-radius:99px;height:6px;overflow:hidden;">
           <div style="width:${barPct}%;height:100%;background:var(--jt-grad);border-radius:99px;transition:width 0.3s;"></div>
         </div>
         <div style="display:flex;flex-wrap:wrap;gap:6px;">
-          ${perAccount.map(e => `<span style="font-family:var(--mono);font-size:9.9px;padding:2px 8px;border-radius:99px;background:var(--green-light);color:var(--green);border:1px solid var(--green-border);">${e.accName}: ${fmtUSDT(e.total)}</span>`).join('')}
+          ${perAccount.map(e => `<span style="font-family:var(--mono);font-size:9.9px;padding:2px 8px;border-radius:99px;background:var(--green-light);color:var(--green);border:1px solid var(--green-border);">${e.accName}: ${fmtUSDT(e.total)}${e.secondaryTotal ? ` (${fmtBDT(e.secondaryTotal)})` : ''}</span>`).join('')}
         </div>
       </div>
     `;
