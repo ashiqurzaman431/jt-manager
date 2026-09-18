@@ -1712,10 +1712,15 @@ select option { background: var(--surface3); color: var(--ink); }
 /* Topic chip "+N" expand panel — collapses bulk-pasted chapter topics so
    the card's height stays fixed no matter how many topics a task has. */
 .sr-topic-wrap { position:relative; display:inline-flex; align-items:center; gap:4px; }
+/* Positioned via JS (fixed, viewport coords) and reparented onto <body> as a
+   single shared portal — the panel used to live inside .task-card, which
+   clips overflow:hidden, so anything past the 3rd-ish item was silently cut
+   off with no way to scroll to it. Living on <body> escapes that clip. */
 .sr-topic-panel {
-  display:none; position:absolute; top:calc(100% + 6px); left:0; z-index:60;
+  display:none; position:fixed; z-index:9999;
   background:#0a0a0a; border:1px solid #2b6fe0; border-radius:8px; padding:6px;
-  min-width:210px; max-height:260px; overflow-y:auto; box-shadow:0 8px 24px rgba(0,0,0,0.5);
+  min-width:210px; max-width:min(320px, calc(100vw - 20px));
+  max-height:min(260px, calc(100vh - 20px)); overflow-y:auto; box-shadow:0 8px 24px rgba(0,0,0,0.5);
 }
 .sr-topic-panel.open { display:flex; flex-direction:column; gap:3px; }
 .sr-topic-panel-item {
@@ -5725,7 +5730,7 @@ function renderTaskCard(task, dualAccId) {
   // them (e.g. a bulk chapter-paste), they collapse into "first chip + +N"
   // that expands a panel — same pattern as the Website Version "+N" chip —
   // so the card's height no longer grows with how many topics a task has.
-  const topicLinks = (task.links||[]).filter(l => l.topicName);
+  const topicItems = taskTopicLinksSorted(task); // [{l, idx}], last-used-first
   const nonTopicChips = (task.links||[]).map((l,i)=>{
     const isLegacy = !l.searchKeyword && !l.topicName && !l.videoLink && !l.thumbLink && (l.label || l.url);
     if (isLegacy) {
@@ -5738,19 +5743,15 @@ function renderTaskCard(task, dualAccId) {
     ].filter(Boolean).join('');
   }).join('');
   let topicChipsHtml = '';
-  if (topicLinks.length === 1) {
-    const l = topicLinks[0];
-    topicChipsHtml = `<button class="sr-link-chip" onclick="copyToClipboard('${jsEscape(l.topicName)}')" title="Click to copy topic name only (not the timestamp)">🏷 ${htmlEscape(l.topicMss||"0'00")} · ${htmlEscape(l.topicName)}</button>`;
-  } else if (topicLinks.length > 1) {
-    const first = topicLinks[0];
-    const panelItems = topicLinks.map(l =>
-      `<button class="sr-topic-panel-item" onclick="copyToClipboard('${jsEscape(l.topicName)}')" title="Click to copy topic name only (not the timestamp)">🏷 ${htmlEscape(l.topicMss||"0'00")} · ${htmlEscape(l.topicName)}</button>`
-    ).join('');
+  if (topicItems.length === 1) {
+    const { l, idx } = topicItems[0];
+    topicChipsHtml = `<button class="sr-link-chip" onclick="useTopicLink('${task.id}',${idx})" title="Click to copy topic name only (not the timestamp)">🏷 ${htmlEscape(l.topicMss||"0'00")} · ${htmlEscape(l.topicName)}</button>`;
+  } else if (topicItems.length > 1) {
+    const first = topicItems[0];
     topicChipsHtml = `
       <div class="sr-topic-wrap">
-        <button class="sr-link-chip" onclick="copyToClipboard('${jsEscape(first.topicName)}')" title="Click to copy topic name only (not the timestamp)">🏷 ${htmlEscape(first.topicMss||"0'00")} · ${htmlEscape(first.topicName)}</button>
-        <button class="sr-link-chip" onclick="toggleTopicPanel(event,'${task.id}')" title="All topics">+${topicLinks.length - 1}</button>
-        <div class="sr-topic-panel" id="topicPanel-${task.id}">${panelItems}</div>
+        <button class="sr-link-chip" onclick="useTopicLink('${task.id}',${first.idx})" title="Click to copy topic name only (not the timestamp)">🏷 ${htmlEscape(first.l.topicMss||"0'00")} · ${htmlEscape(first.l.topicName)}</button>
+        <button class="sr-link-chip" onclick="toggleTopicPanel(event,'${task.id}')" title="All topics">+${topicItems.length - 1}</button>
       </div>`;
   }
   const linkChips = nonTopicChips + topicChipsHtml;
@@ -8323,6 +8324,26 @@ function taskWvSorted(t) {
   return (t.websiteVersions || []).slice().sort(wvSortDesc);
 }
 
+// ─────────────────────────────────────────
+// TOPIC (chapter) LINKS — bulk-pasted YouTube chapters live in task.links
+// as entries with a topicName. Order shown on the task card: whichever
+// topic was most recently used (copied) comes first; everything else
+// keeps its original add order. Returns [{l, idx}] where idx is the
+// entry's real index in task.links, so callers can mutate/find it back.
+// ─────────────────────────────────────────
+function taskTopicLinksSorted(t) {
+  const items = (t.links || []).map((l, idx) => ({ l, idx })).filter(x => x.l.topicName);
+  if (items.length < 2) return items;
+  let usedPos = -1, usedAt = -1;
+  items.forEach((x, i) => {
+    if (x.l.topicUsedAt && x.l.topicUsedAt > usedAt) { usedAt = x.l.topicUsedAt; usedPos = i; }
+  });
+  if (usedPos <= 0) return items; // nothing used yet, or already first
+  const chosen = items[usedPos];
+  const rest = items.filter((_, i) => i !== usedPos);
+  return [chosen, ...rest];
+}
+
 function renderWvModalList(taskId) {
   const t = tasks.find(t => t.id === taskId); if (!t) return;
   const container = document.getElementById('wvModalList');
@@ -8398,26 +8419,70 @@ window.closeWvPanel = function() {
 };
 
 // Same single-panel-at-a-time pattern as the Website Version "+N" chip above,
-// but for the "+N" topic-chip panel (bulk-pasted chapter topics).
+// but for the "+N" topic-chip panel (bulk-pasted chapter topics). Unlike the
+// wv panel, this one is a single shared node reparented onto <body> and
+// position:fixed — task cards are overflow:hidden, so a panel nested inside
+// one gets hard-clipped past its edge with no way to scroll to the rest.
+function ensureTopicPanelPortal() {
+  let panel = document.getElementById('topicPanelPortal');
+  if (!panel) {
+    panel = document.createElement('div');
+    panel.id = 'topicPanelPortal';
+    panel.className = 'sr-topic-panel';
+    document.body.appendChild(panel);
+  }
+  return panel;
+}
 let _openTopicPanelTaskId = null;
 window.toggleTopicPanel = function(evt, taskId) {
   evt.stopPropagation();
   const alreadyOpen = _openTopicPanelTaskId === taskId;
-  if (_openTopicPanelTaskId) {
-    const prev = document.getElementById('topicPanel-' + _openTopicPanelTaskId);
-    if (prev) prev.classList.remove('open');
-  }
-  _openTopicPanelTaskId = alreadyOpen ? null : taskId;
-  if (_openTopicPanelTaskId) {
-    const panel = document.getElementById('topicPanel-' + _openTopicPanelTaskId);
-    if (panel) panel.classList.add('open');
-  }
+  window.closeTopicPanel();
+  if (alreadyOpen) return;
+  const t = tasks.find(x => x.id === taskId); if (!t) return;
+  const items = taskTopicLinksSorted(t);
+  if (!items.length) return;
+  const panel = ensureTopicPanelPortal();
+  panel.innerHTML = items.map(({ l, idx }) =>
+    `<button class="sr-topic-panel-item" onclick="useTopicLink('${taskId}',${idx})" title="Click to copy topic name only (not the timestamp)">🏷 ${htmlEscape(l.topicMss||"0'00")} · ${htmlEscape(l.topicName)}</button>`
+  ).join('');
+  const btn = evt.currentTarget;
+  const rect = btn.getBoundingClientRect();
+  panel.style.left = Math.min(rect.left, window.innerWidth - 20 - panel.offsetWidth || rect.left) + 'px';
+  panel.style.top = (rect.bottom + 6) + 'px';
+  panel.classList.add('open');
+  // Re-clamp horizontally now that the panel has real dimensions (max-width
+  // may have kicked in), so it never runs off the right edge of the screen.
+  requestAnimationFrame(() => {
+    const w = panel.offsetWidth;
+    if (rect.left + w > window.innerWidth - 10) {
+      panel.style.left = Math.max(10, window.innerWidth - 10 - w) + 'px';
+    }
+    // If it would run off the bottom, flip to open upward instead.
+    const h = panel.offsetHeight;
+    if (rect.bottom + 6 + h > window.innerHeight - 10) {
+      panel.style.top = Math.max(10, rect.top - 6 - h) + 'px';
+    }
+  });
+  _openTopicPanelTaskId = taskId;
 };
 window.closeTopicPanel = function() {
   if (!_openTopicPanelTaskId) return;
-  const panel = document.getElementById('topicPanel-' + _openTopicPanelTaskId);
+  const panel = document.getElementById('topicPanelPortal');
   if (panel) panel.classList.remove('open');
   _openTopicPanelTaskId = null;
+};
+// Copies a topic's name and marks it as the most recently used chapter for
+// this task, so it jumps to the front of the card (and the panel) next
+// render — everything else keeps its original add order.
+window.useTopicLink = function(taskId, idx) {
+  const t = tasks.find(x => x.id === taskId); if (!t || !t.links) return;
+  const l = t.links[idx]; if (!l || !l.topicName) return;
+  copyToClipboard(l.topicName);
+  l.topicUsedAt = Date.now();
+  if (typeof markUnsaved === 'function') markUnsaved(true);
+  window.closeTopicPanel();
+  renderTasks();
 };
 
 // ─────────────────────────────────────────
@@ -12029,7 +12094,7 @@ document.addEventListener('click', function(e) {
     }
   }
   if (typeof _openTopicPanelTaskId !== 'undefined' && _openTopicPanelTaskId) {
-    const topicPanel = document.getElementById('topicPanel-' + _openTopicPanelTaskId);
+    const topicPanel = document.getElementById('topicPanelPortal');
     if (topicPanel && !_pathContains(e, topicPanel)) {
       window.closeTopicPanel();
     }
