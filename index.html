@@ -5854,7 +5854,7 @@ function renderTaskCard(task, dualAccId) {
         const morphPos = _morphClickPos[a.id];
         const morphStyle = (stepChanged && morphPos) ? ` style="--morph-x:${morphPos.x};--morph-y:${morphPos.y};"` : '';
         return `
-          <div class="task-card-timer-wrap task-card-timer-clickable step-${step}${stepChanged ? ' step-morphed' : ''}"${morphStyle} onpointerdown="taskCardTimerDown('${task.id}','${a.id}',event)" onpointerup="taskCardTimerUp('${task.id}','${a.id}',event)" onpointerleave="taskCardTimerCancel('${task.id}','${a.id}',event)" onpointercancel="taskCardTimerCancel('${task.id}','${a.id}',event)" title="${stepInfo.hint}${taskClickMode === 'click' ? '' : ' · hold 2s to complete'}">
+          <div class="task-card-timer-wrap task-card-timer-clickable step-${step}${stepChanged ? ' step-morphed' : ''}"${morphStyle} onpointerdown="taskCardTimerDown('${task.id}','${a.id}',event)" onpointerup="taskCardTimerUp('${task.id}','${a.id}',event)" onpointerleave="taskCardTimerCancel('${task.id}','${a.id}',event)" onpointercancel="taskCardTimerCancel('${task.id}','${a.id}',event)" title="${stepInfo.hint} · hold 2s to remove">
             <span class="task-card-timer-label">◷ ${acc ? htmlEscape(acc.name) : 'In Progress'}</span>
             <span class="task-card-timer" data-start="${startEpoch}">${timerCharsHtml(elapsed)}</span>
             <span class="task-card-timer-action">${stepInfo.icon} ${stepInfo.label}</span>
@@ -10505,10 +10505,11 @@ window.taskCardStepClick = function(taskId, asgnId, evt) {
   renderTasks();
 };
 
-// ── Hold-to-complete ──────────────────────────────────────────────────────
-// Holding the timer pill for 2s jumps straight to "Completed" no matter which
-// step (search/visited/complete) it's currently on. A normal tap (release
-// before 2s) still runs the regular one-step-at-a-time taskCardStepClick.
+// ── Hold-to-remove ────────────────────────────────────────────────────────
+// Holding the timer pill for 2s removes the in-progress task from that
+// account entirely (unassigns it). A normal tap (release before 2s) still
+// runs the regular step-by-step taskCardStepClick (or, in Click Mode, marks
+// it completed in one tap).
 const TASK_CARD_HOLD_MS = 2000;
 const _taskCardHoldTimers = {};
 const _taskCardHoldFired = {};
@@ -10529,7 +10530,7 @@ window.taskCardTimerDown = function(taskId, asgnId, evt) {
   _taskCardHoldTimers[asgnId] = setTimeout(() => {
     _taskCardHoldFired[asgnId] = true;
     _taskCardHoldClearVisual(el);
-    window.acStepComplete(taskId, asgnId);
+    window.acStepRemove(taskId, asgnId);
     renderTasks();
   }, TASK_CARD_HOLD_MS);
 };
@@ -10539,9 +10540,10 @@ window.taskCardTimerUp = function(taskId, asgnId, evt) {
   if (_taskCardHoldTimers[asgnId]) { clearTimeout(_taskCardHoldTimers[asgnId]); delete _taskCardHoldTimers[asgnId]; }
   _taskCardHoldClearVisual(el);
   if (_taskCardHoldFired[asgnId]) {
-    // Hold already completed the task on its own — don't also treat the
+    // Hold already removed the task on its own — don't also treat the
     // release as a tap.
     _taskCardHoldFired[asgnId] = false;
+    toast('Task removed — tap ↩ Undo to restore');
     return;
   }
   window.taskCardStepClick(taskId, asgnId, evt);
@@ -10552,6 +10554,20 @@ window.taskCardTimerCancel = function(taskId, asgnId, evt) {
   if (_taskCardHoldTimers[asgnId]) { clearTimeout(_taskCardHoldTimers[asgnId]); delete _taskCardHoldTimers[asgnId]; }
   _taskCardHoldClearVisual(el);
   _taskCardHoldFired[asgnId] = false;
+};
+
+// Removes an in-progress ("assigned") task's assignment entirely — used by
+// the 2s-hold gesture on the task card's step button. Same restriction as
+// the Account Detail bulk "Remove" action: only "assigned" tasks qualify,
+// since a "completed"/"rewarded" task shouldn't just vanish from records.
+window.acStepRemove = function(taskId, asgnId) {
+  const task = tasks.find(t => t.id === taskId); if (!task) return;
+  const asgn = (task.assignments||[]).find(a => a.id === asgnId);
+  if (!asgn || asgn.status !== 'assigned') return;
+  pushUndo('Remove task ' + (task.title || task.id));
+  task.assignments = (task.assignments||[]).filter(a => a.id !== asgnId);
+  delete acFlowStep[asgnId];
+  markUnsaved(true);
 };
 
 window.acStepSearch = function(taskId, asgnId) {
