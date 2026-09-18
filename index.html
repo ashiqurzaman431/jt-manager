@@ -356,6 +356,18 @@ body {
   margin-bottom: 8px; overflow: hidden;
 }
 
+/* ── Task-assign morph: the card that just got assigned flies from its old
+   list position up into the pinned "Currently In Progress" banner. Applied
+   only in single-account view (see morphTaskCardToBanner). The element
+   itself is animated via an inline transform (computed per-instance from
+   its measured start/end rects) — this class only adds the glow/elevation
+   that reads as "this is the one that just moved". */
+.task-morph-flying {
+  position: relative;
+  z-index: 40;
+  box-shadow: 0 10px 34px rgba(203,161,90,0.35), 0 0 0 1.5px rgba(203,161,90,0.55) inset;
+}
+
 /* ── Task card tag badges ── */
 .task-tag-badge {
   display: inline-block;
@@ -5914,7 +5926,7 @@ function renderTaskCard(task, dualAccId) {
     </label>` : '';
 
   return `
-  <div class="task-card${hasError ? ' has-error' : ''}${taskArchiveMode ? ' task-archive-selectable' : ''} task-card-type-${isYT ? 'youtube' : 'google'}">
+  <div class="task-card${hasError ? ' has-error' : ''}${taskArchiveMode ? ' task-archive-selectable' : ''} task-card-type-${isYT ? 'youtube' : 'google'}" data-task-id="${task.id}">
     ${archiveSelectHtml}
     <div class="sr-rail" style="background:${typeColor};"></div>
     <div class="sr-body">
@@ -6991,9 +7003,68 @@ window.confirmIpAssign = function() {
 };
 
 // Shared: actually write the assignment record and refresh UI
+// ── Assign morph animation ──────────────────────────────────────────────
+// When a task is assigned (single-account view only — see morphEnabled
+// below), instead of the card just teleporting into the pinned "Currently
+// In Progress" banner on re-render, it visually flies/morphs from its old
+// spot up into its new one. Classic FLIP technique: measure the card's
+// rect BEFORE the data mutation + re-render, let the re-render happen
+// normally, then measure the (now relocated) card's rect AFTER, and
+// animate the delta away with a transform transition.
+function morphTaskCardToBanner(taskId, oldRect) {
+  const newEl = document.querySelector(
+    '#tasksList .pinned-inprogress-banner [data-task-id="' + taskId + '"]'
+  );
+  if (!newEl || !oldRect) return;
+  const newRect = newEl.getBoundingClientRect();
+  if (!newRect.width || !newRect.height) return;
+
+  const dx = oldRect.left - newRect.left;
+  const dy = oldRect.top - newRect.top;
+  const sx = oldRect.width / newRect.width;
+  const sy = oldRect.height / newRect.height;
+
+  newEl.classList.add('task-morph-flying');
+  newEl.style.transition = 'none';
+  newEl.style.transformOrigin = 'top left';
+  newEl.style.transform = `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})`;
+
+  // Force layout so the browser commits the "start" transform above before
+  // we switch to the animated end-state on the next frame.
+  void newEl.offsetWidth;
+
+  requestAnimationFrame(() => {
+    newEl.style.transition = 'transform 460ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 460ms ease';
+    newEl.style.transform = 'translate(0, 0) scale(1, 1)';
+  });
+
+  let cleaned = false;
+  const cleanup = () => {
+    if (cleaned) return;
+    cleaned = true;
+    newEl.style.transition = '';
+    newEl.style.transform = '';
+    newEl.style.transformOrigin = '';
+    newEl.classList.remove('task-morph-flying');
+    newEl.removeEventListener('transitionend', cleanup);
+  };
+  newEl.addEventListener('transitionend', cleanup);
+  setTimeout(cleanup, 700); // safety net in case transitionend never fires
+}
+
 function _doAssign(taskId, accId, customReward, title) {
   const t = tasks.find(t => t.id===taskId); if(!t) return;
   const accCheck = accounts.find(a => a.id === accId); if(!accCheck) return;
+
+  // Capture the card's current on-screen position BEFORE mutating/re-rendering,
+  // so it can morph into its new pinned-banner spot afterward. Single-account
+  // view only (per product decision) — dual-column mode skips this entirely.
+  const morphEnabled = !dualAccountMode && taskAccountFilter !== 'all';
+  let morphOldRect = null;
+  if (morphEnabled) {
+    const oldEl = document.querySelector('#tasksList [data-task-id="' + taskId + '"]');
+    if (oldEl) morphOldRect = oldEl.getBoundingClientRect();
+  }
 
   const ipMeta = stampAssignmentIp(accId);
   const asgn = {
@@ -7022,6 +7093,13 @@ function _doAssign(taskId, accId, customReward, title) {
   if (selectedAccId) renderAccDetail(selectedAccId);
   markUnsaved(true);
   toast('Task assigned → ' + accCheck.name);
+
+  if (morphOldRect) {
+    // renderTasks() just replaced #tasksList's innerHTML synchronously, so
+    // the new (relocated) card already exists in the DOM — animate it in
+    // on the next frame.
+    requestAnimationFrame(() => morphTaskCardToBanner(taskId, morphOldRect));
+  }
 }
 
 window.openAssignModal = function(taskId, forcedAccId) {
