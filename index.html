@@ -357,15 +357,23 @@ body {
 }
 
 /* ── Task-assign morph: the card that just got assigned flies from its old
-   list position up into the pinned "Currently In Progress" banner. Applied
-   only in single-account view (see morphTaskCardToBanner). The element
-   itself is animated via an inline transform (computed per-instance from
-   its measured start/end rects) — this class only adds the glow/elevation
-   that reads as "this is the one that just moved". */
+   list position (Place A — anywhere in the task list) up into the first
+   slot of the pinned "Currently In Progress" banner (Place B). Applied only
+   in single-account view (see morphTaskCardToBanner). The element itself is
+   animated frame-by-frame via an inline transform driven by rAF (so the
+   travel can stay in sync with a simultaneous container scroll) — these
+   classes only carry the glow/elevation that reads as "this is the one that
+   just moved", plus its fade-out once the card lands. */
 .task-morph-flying {
   position: relative;
   z-index: 40;
+  pointer-events: none;
   box-shadow: 0 10px 34px rgba(203,161,90,0.35), 0 0 0 1.5px rgba(203,161,90,0.55) inset;
+}
+.task-morph-landed { animation: taskMorphLand 650ms ease-out; }
+@keyframes taskMorphLand {
+  from { box-shadow: 0 10px 34px rgba(203,161,90,0.35), 0 0 0 1.5px rgba(203,161,90,0.55) inset; }
+  to   { box-shadow: 0 0 0 rgba(203,161,90,0), 0 0 0 0 rgba(203,161,90,0) inset; }
 }
 
 /* ── Task card tag badges ── */
@@ -7012,45 +7020,190 @@ window.confirmIpAssign = function() {
 // rect BEFORE the data mutation + re-render, let the re-render happen
 // normally, then measure the (now relocated) card's rect AFTER, and
 // animate the delta away with a transform transition.
-function morphTaskCardToBanner(taskId, oldRect) {
+// Longest the flight may take: a card sitting at the very bottom of the
+// currently-loaded task list. Everything closer to the banner is timed as a
+// straight proportion of this (no minimum floor — a card already next to the
+// banner barely moves, so it barely animates).
+const TASK_MORPH_MAX_MS = 1500;
+
+// The task list doesn't always live in the document scroller — find whichever
+// ancestor actually scrolls it, so both the measurements below and the
+// follow-along scroll act on the right element.
+function _taskScrollContainer() {
+  const listEl = document.getElementById('tasksList');
+  let el = listEl ? listEl.parentElement : null;
+  while (el && el !== document.body && el !== document.documentElement) {
+    const ov = getComputedStyle(el).overflowY;
+    if (/(auto|scroll|overlay)/.test(ov) && el.scrollHeight > el.clientHeight + 4) return el;
+    el = el.parentElement;
+  }
+  return document.scrollingElement || document.documentElement;
+}
+
+// Normalized view of a scroller: where its viewport sits, how far it's
+// scrolled, and how far it can scroll. Handles the page-level scroller and a
+// nested overflow box the same way.
+function _taskScrollInfo(sc) {
+  const isRoot = (sc === document.scrollingElement || sc === document.documentElement || sc === document.body);
+  if (isRoot) {
+    return {
+      isRoot: true,
+      top: window.scrollY || document.documentElement.scrollTop || 0,
+      viewTop: 0,
+      viewHeight: window.innerHeight,
+      max: Math.max(0, (document.documentElement.scrollHeight || 0) - window.innerHeight)
+    };
+  }
+  return {
+    isRoot: false,
+    top: sc.scrollTop,
+    viewTop: sc.getBoundingClientRect().top,
+    viewHeight: sc.clientHeight,
+    max: Math.max(0, sc.scrollHeight - sc.clientHeight)
+  };
+}
+
+function _setTaskScroll(sc, isRoot, v) {
+  if (isRoot) window.scrollTo(0, v);
+  else sc.scrollTop = v;
+}
+
+// ── Place A capture (runs BEFORE the assignment mutates + re-renders) ──
+// Records the card's geometry in *content* coordinates (viewport position +
+// current scroll offset) rather than raw viewport coordinates, so the numbers
+// stay valid even though the container scrolls mid-flight. Also records where
+// the bottom-most loaded card sits — that's the yardstick the 1.5s maximum is
+// measured against.
+function captureTaskMorphStart(taskId) {
+  const listEl = document.getElementById('tasksList');
+  if (!listEl) return null;
+  const oldEl = listEl.querySelector('[data-task-id="' + taskId + '"]');
+  if (!oldEl) return null;
+
+  const sc = _taskScrollContainer();
+  const info = _taskScrollInfo(sc);
+  const r = oldEl.getBoundingClientRect();
+  if (!r.width || !r.height) return null;
+
+  // Bottom-most card that is NOT already pinned in the banner — i.e. the
+  // furthest Place A that currently exists on screen.
+  let lastContentTop = null;
+  const listCards = Array.prototype.filter.call(
+    listEl.querySelectorAll('[data-task-id]'),
+    c => !c.closest('.pinned-inprogress-banner')
+  );
+  const lastEl = listCards[listCards.length - 1];
+  if (lastEl) {
+    const lr = lastEl.getBoundingClientRect();
+    if (lr.height) lastContentTop = lr.top - info.viewTop + info.top;
+  }
+
+  return {
+    top: r.top - info.viewTop + info.top, // content-space Y of Place A
+    left: r.left,                          // no horizontal scrolling here
+    width: r.width,
+    height: r.height,
+    lastContentTop
+  };
+}
+
+// ── Place A → Place B flight ──
+// Classic FLIP, but driven by requestAnimationFrame instead of a CSS
+// transition for two reasons: the duration is computed per-assignment from
+// the travel distance, and the container may need to scroll at the same time
+// (only when Place B isn't already on screen). Driving transform and
+// scrollTop from one loop keeps them perfectly in step.
+function morphTaskCardToBanner(taskId, pre) {
+  if (!pre) return;
   const newEl = document.querySelector(
     '#tasksList .pinned-inprogress-banner [data-task-id="' + taskId + '"]'
   );
-  if (!newEl || !oldRect) return;
-  const newRect = newEl.getBoundingClientRect();
-  if (!newRect.width || !newRect.height) return;
+  if (!newEl) return;
 
-  const dx = oldRect.left - newRect.left;
-  const dy = oldRect.top - newRect.top;
-  const sx = oldRect.width / newRect.width;
-  const sy = oldRect.height / newRect.height;
+  const sc = _taskScrollContainer();
+  const info = _taskScrollInfo(sc);
+  const nr = newEl.getBoundingClientRect();
+  if (!nr.width || !nr.height) return;
 
+  const endTop = nr.top - info.viewTop + info.top; // content-space Y of Place B
+  const dx = pre.left - nr.left;
+  const dy = pre.top - endTop;                      // positive: A was below B
+  const sx = pre.width / nr.width;
+  const sy = pre.height / nr.height;
+
+  // Proportional duration. The yardstick is the distance from the bottom-most
+  // loaded card up to Place B; that trip is the full 1.5s, everything else
+  // scales down linearly from there.
+  const dist = Math.abs(dy);
+  const maxDist = (pre.lastContentTop != null)
+    ? Math.max(1, pre.lastContentTop - endTop)
+    : Math.max(1, dist);
+  const dur = Math.round(TASK_MORPH_MAX_MS * Math.min(1, dist / maxDist));
+
+  // Card was effectively already in place — nothing worth animating.
+  if (dur < 16 && Math.abs(dx) < 2 && Math.abs(sx - 1) < 0.02) return;
+
+  // Follow-along scroll, but only if Place B isn't already visible. If the
+  // banner is on screen the page stays put and just the card flies.
+  const vTop = info.viewTop;
+  const vBottom = info.viewTop + info.viewHeight;
+  const BANNER_PAD = 90; // leaves the "Currently In Progress" label in frame
+  const startScroll = info.top;
+  let targetScroll = startScroll;
+  if (nr.top < vTop + 8 || nr.bottom > vBottom - 8) {
+    targetScroll = Math.max(0, Math.min(info.max, startScroll + (nr.top - vTop) - BANNER_PAD));
+  }
+
+  newEl.classList.remove('task-morph-landed');
   newEl.classList.add('task-morph-flying');
   newEl.style.transition = 'none';
   newEl.style.transformOrigin = 'top left';
+  newEl.style.willChange = 'transform';
   newEl.style.transform = `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})`;
+  void newEl.offsetWidth; // commit the start state before the loop takes over
 
-  // Force layout so the browser commits the "start" transform above before
-  // we switch to the animated end-state on the next frame.
-  void newEl.offsetWidth;
+  // If the user grabs the scrollbar/wheel mid-flight, stop steering the
+  // scroll and let the card finish travelling on its own.
+  let scrollLocked = (targetScroll !== startScroll);
+  const releaseScroll = () => { scrollLocked = false; };
+  if (scrollLocked) {
+    window.addEventListener('wheel', releaseScroll, { passive: true, once: true });
+    window.addEventListener('touchstart', releaseScroll, { passive: true, once: true });
+    window.addEventListener('keydown', releaseScroll, { once: true });
+  }
 
-  requestAnimationFrame(() => {
-    newEl.style.transition = 'transform 460ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 460ms ease';
-    newEl.style.transform = 'translate(0, 0) scale(1, 1)';
-  });
+  const easeInOutCubic = p => (p < 0.5 ? 4*p*p*p : 1 - Math.pow(-2*p + 2, 3) / 2);
+  const t0 = performance.now();
 
   let cleaned = false;
   const cleanup = () => {
     if (cleaned) return;
     cleaned = true;
+    scrollLocked = false;
+    window.removeEventListener('wheel', releaseScroll);
+    window.removeEventListener('touchstart', releaseScroll);
+    window.removeEventListener('keydown', releaseScroll);
     newEl.style.transition = '';
     newEl.style.transform = '';
     newEl.style.transformOrigin = '';
+    newEl.style.willChange = '';
     newEl.classList.remove('task-morph-flying');
-    newEl.removeEventListener('transitionend', cleanup);
+    newEl.classList.add('task-morph-landed');
+    setTimeout(() => newEl.classList.remove('task-morph-landed'), 700);
   };
-  newEl.addEventListener('transitionend', cleanup);
-  setTimeout(cleanup, 700); // safety net in case transitionend never fires
+
+  function frame(nowTs) {
+    if (!newEl.isConnected) { cleaned = true; return; } // re-rendered under us
+    const p = dur > 0 ? Math.min(1, (nowTs - t0) / dur) : 1;
+    const e = easeInOutCubic(p);
+    const inv = 1 - e;
+    newEl.style.transform =
+      `translate(${dx * inv}px, ${dy * inv}px) scale(${1 + (sx - 1) * inv}, ${1 + (sy - 1) * inv})`;
+    if (scrollLocked) _setTaskScroll(sc, info.isRoot, startScroll + (targetScroll - startScroll) * e);
+    if (p < 1) requestAnimationFrame(frame);
+    else cleanup();
+  }
+  requestAnimationFrame(frame);
 }
 
 function _doAssign(taskId, accId, customReward, title) {
@@ -7061,11 +7214,7 @@ function _doAssign(taskId, accId, customReward, title) {
   // so it can morph into its new pinned-banner spot afterward. Single-account
   // view only (per product decision) — dual-column mode skips this entirely.
   const morphEnabled = !dualAccountMode && taskAccountFilter !== 'all';
-  let morphOldRect = null;
-  if (morphEnabled) {
-    const oldEl = document.querySelector('#tasksList [data-task-id="' + taskId + '"]');
-    if (oldEl) morphOldRect = oldEl.getBoundingClientRect();
-  }
+  const morphStart = morphEnabled ? captureTaskMorphStart(taskId) : null;
 
   const ipMeta = stampAssignmentIp(accId);
   const asgn = {
@@ -7095,11 +7244,11 @@ function _doAssign(taskId, accId, customReward, title) {
   markUnsaved(true);
   toast('Task assigned → ' + accCheck.name);
 
-  if (morphOldRect) {
+  if (morphStart) {
     // renderTasks() just replaced #tasksList's innerHTML synchronously, so
     // the new (relocated) card already exists in the DOM — animate it in
-    // on the next frame.
-    requestAnimationFrame(() => morphTaskCardToBanner(taskId, morphOldRect));
+    // on the next frame, once layout has settled.
+    requestAnimationFrame(() => morphTaskCardToBanner(taskId, morphStart));
   }
 }
 
