@@ -12016,7 +12016,10 @@ function setupDockHover(tabId, panelId, hiddenClass, getOpen, toggleFn) {
   document.addEventListener('mousemove', onMove, { passive: true });
 }
 
-setupDockHover('toolKitsDockTab', 'toolKitsDockPanel', 'tkit-dock-hidden', () => _toolKitsOpen, () => window.toggleToolKitsDock());
+// Tool Kits (Task Manager tab) is deliberately NOT wired to setupDockHover —
+// it opens and closes only on an explicit click of its tab / collapse button,
+// so it never springs open just because the cursor drifted past the edge of
+// the screen while working in the task list.
 setupDockHover('accDockTab', 'accDockPanel', 'acc-dock-hidden', () => _accDockOpen, () => window.toggleAccDock());
 
 // ── PAYOUT SETTINGS DOCK PANEL LOGIC ──────────────────────────────────────
