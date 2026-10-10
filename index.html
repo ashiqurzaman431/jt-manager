@@ -2849,8 +2849,9 @@ TaskRec01: task assigned, timer started.</div>
 
     <!-- Task Earnings section (FIX 11: show accrued task earnings, not just payouts) -->
     <div style="margin-bottom:18px;">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <div onclick="toggleEhSection('task')" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;cursor:pointer;user-select:none;-webkit-user-select:none;">
         <div class="sec-title" style="margin-bottom:0;">Task Earnings (Rewarded)</div>
+        <div style="display:flex;align-items:center;gap:8px;"><span id="ehTaskHint" style="font-family:var(--mono);font-size:10px;color:var(--ink3);"></span><span class="chevron" id="ehTaskChev">▼</span></div>
       </div>
       <div class="stat-chips" id="ehTaskChips" style="margin-bottom:10px;">
       <div class="stat-chip"><div class="stat-chip-label">Rewarded Tasks</div><div class="stat-chip-val blue" style="font-weight:700;">0</div></div>
@@ -2865,7 +2866,10 @@ TaskRec01: task assigned, timer started.</div>
 
     <!-- Payout History section -->
     <div>
-      <div class="sec-title" style="margin-bottom:10px;">Payout Withdrawals</div>
+      <div onclick="toggleEhSection('payout')" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;cursor:pointer;user-select:none;-webkit-user-select:none;">
+        <div class="sec-title" style="margin-bottom:0;">Payout Withdrawals</div>
+        <div style="display:flex;align-items:center;gap:8px;"><span id="ehPayoutHint" style="font-family:var(--mono);font-size:10px;color:var(--ink3);"></span><span class="chevron" id="ehPayoutChev">▼</span></div>
+      </div>
       <!-- Earnings table -->
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
         <div id="ehTable"><div class="empty-state" style="margin:0;border:none;border-radius:0;"><div class="es-icon">📊</div>No payout records in this range</div></div>
@@ -4357,7 +4361,7 @@ function showPage(id) {
       renderAccDetail(selectedAccId);
     }
   }
-  if (id === 'earnings') { populateEhAccountSelect(); renderEarningsHistory(); }
+  if (id === 'earnings') { if (window.ehExpanded) { window.ehExpanded.task = false; window.ehExpanded.payout = false; } populateEhAccountSelect(); renderEarningsHistory(); }
   if (id === 'taskshot') { tsRenderSlots(); }
   // Accounts dock panel: only visible on Accounts tab
   if (typeof setAccDockVisibility === 'function') setAccDockVisibility(id === 'accounts');
@@ -10387,6 +10391,17 @@ function aggregateEntriesByAccount(entries, amountKey, secondaryKey) {
   return order.map(k => map[k]).sort((a, b) => a.accName.localeCompare(b.accName));
 }
 
+// Earnings list collapse state — in-memory only, reset to collapsed each time
+// the Earnings page is opened (see showPage). Not persisted anywhere.
+window.ehExpanded = window.ehExpanded || { task: false, payout: false };
+window.toggleEhSection = function(which) {
+  window.ehExpanded[which] = !window.ehExpanded[which];
+  renderEarningsHistory();
+};
+function ehNoDayNote(what, label) {
+  return `<div style="padding:14px 18px;font-family:var(--mono);font-size:11px;color:var(--ink3);">No ${what} for ${label} — expand to see earlier records</div>`;
+}
+
 window.renderEarningsHistory = function() {
   const { payouts, range, fromDate: rangeFrom, toDate: rangeTo } = getEhPayouts();
   const accFilterId = (document.getElementById('ehAccountSelect') || {}).value || 'all';
@@ -10460,6 +10475,23 @@ window.renderEarningsHistory = function() {
   const totalAllBdt = payouts.reduce((s,p) => s + parseFloat(p.bdtAmount||0), 0);
   const maxBucket = keys.length ? Math.max(...keys.map(k=>buckets[k].total)) : 0;
 
+  // ── Collapsible lists ─────────────────────────────────────────────────────
+  // "Selected day" = the day the range ends on (today, or the Custom "To"
+  // date). Collapsed lists show only the bucket (per the existing grouping
+  // for the chosen range) that contains that day. Expanded = full list.
+  const selKey = bucketKey(rangeTo, range);
+  const selLabel = bucketLabel(selKey, range);
+  const taskVisibleKeys = window.ehExpanded.task ? taskKeys : taskKeys.filter(k => k === selKey);
+  const visibleKeys = window.ehExpanded.payout ? keys : keys.filter(k => k === selKey);
+  [['task', taskKeys, taskBuckets, taskVisibleKeys], ['payout', keys, buckets, visibleKeys]].forEach(([w, all, bk, vis]) => {
+    const open = window.ehExpanded[w];
+    const hidden = all.filter(k => !vis.includes(k)).reduce((n, k) => n + bk[k].count, 0);
+    const chev = document.getElementById(w === 'task' ? 'ehTaskChev' : 'ehPayoutChev');
+    const hint = document.getElementById(w === 'task' ? 'ehTaskHint' : 'ehPayoutHint');
+    if (chev) chev.classList.toggle('open', open);
+    if (hint) hint.textContent = open ? '' : (hidden ? hidden + ' hidden' : '');
+  });
+
   const taskChipsEl = document.getElementById('ehTaskChips');
   if (taskChipsEl) {
     // "Range Earning" — earnings in the current/most-recent bucket. Named
@@ -10483,8 +10515,10 @@ window.renderEarningsHistory = function() {
   if (taskTableEl) {
     if (!taskKeys.length) {
       taskTableEl.innerHTML = '<div class="empty-state" style="margin:0;border:none;border-radius:0;"><div class="es-icon">📋</div>No rewarded tasks in this range</div>';
+    } else if (!taskVisibleKeys.length) {
+      taskTableEl.innerHTML = ehNoDayNote('rewarded tasks', selLabel);
     } else {
-      taskTableEl.innerHTML = taskKeys.map(k => {
+      taskTableEl.innerHTML = taskVisibleKeys.map(k => {
         const b = taskBuckets[k];
         const barPct = taskMaxBucket > 0 ? (b.total/taskMaxBucket*100).toFixed(1) : 0;
         return `
@@ -10552,7 +10586,12 @@ window.renderEarningsHistory = function() {
     return;
   }
 
-  tableEl.innerHTML = keys.map(k => {
+  if (!visibleKeys.length) {
+    tableEl.innerHTML = ehNoDayNote('payouts', selLabel);
+    return;
+  }
+
+  tableEl.innerHTML = visibleKeys.map(k => {
     const b = buckets[k];
     const barPct = maxBucket > 0 ? (b.total/maxBucket*100).toFixed(1) : 0;
     // One line per account (summed), not one per raw payout record — a bucket
