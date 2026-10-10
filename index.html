@@ -1320,6 +1320,8 @@ body {
 .earnings-row {
   display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin-top:8px;
 }
+.earnings-row.reward-row { grid-template-columns:repeat(4,minmax(0,1fr)); margin-bottom:6px; }
+.reward-row .earnings-val { font-size:20px; }
 .earnings-card {
   background:var(--surface); border:1px solid var(--border);
   border-radius:var(--radius); padding:18px 20px;
@@ -1532,6 +1534,9 @@ select option { background: var(--surface3); color: var(--ink); }
 .sr-type-badge { font-family:var(--mono); font-size:10.5px; font-weight:800; letter-spacing:1px; padding:3px 10px; border-radius:5px; color:#fff; flex-shrink:0; }
 .sr-date { font-family:var(--mono); font-size:10.5px; color:var(--ink3); font-weight:600; white-space:nowrap; }
 
+.task-card-remaining { display:block; width:max-content; margin-top:2px; font-size:10.5px; font-weight:800;
+  letter-spacing:0.3px; text-transform:none; font-variant-numeric:tabular-nums; }
+.task-card-remaining.expired { background:rgba(0,0,0,0.35); border-radius:4px; padding:0 5px; }
 .tt-d6 { background:#facc15; color:#1a1400; border-radius:2px; }
 .sr-title { font-family:var(--sans); font-size:22px; font-weight:800; letter-spacing:-0.01em; line-height:1.3; color:var(--ink); }
 
@@ -2226,6 +2231,7 @@ select option { background: var(--surface3); color: var(--ink); }
 
 @media (max-width:600px) {
   .earnings-row { grid-template-columns:1fr; }
+  .earnings-row.reward-row { grid-template-columns:repeat(2,minmax(0,1fr)); }
   .form-row, .form-row-3 { grid-template-columns:1fr; }
   .dash-cards { grid-template-columns:1fr; }
 }
@@ -2571,6 +2577,14 @@ select option { background: var(--surface3); color: var(--ink); }
     <div class="stat-chip"><div class="stat-chip-label">Dead</div><div class="stat-chip-val red">0</div></div>
   </div>
 
+    <div class="sec-title" title="All figures in Points, across all active accounts. Lifetime = Paid + Unpaid. Expected = Unpaid + assigned/completed tasks not yet rewarded.">Reward Points</div>
+    <div class="earnings-row reward-row" id="dashRewardRow">
+      <div class="earnings-card"><div class="earnings-label">Paid Points</div><div class="earnings-val" id="dashPaidPts">0 PTS</div><div class="earnings-sub">From payout records</div></div>
+      <div class="earnings-card"><div class="earnings-label">Unpaid Points</div><div class="earnings-val" id="dashUnpaidPts">0 PTS</div><div class="earnings-sub">Rewarded, not yet paid</div></div>
+      <div class="earnings-card"><div class="earnings-label">Expected Points</div><div class="earnings-val" id="dashExpectedPts" style="color:var(--amber);">0 PTS</div><div class="earnings-sub">Unpaid + assigned/completed</div></div>
+      <div class="earnings-card"><div class="earnings-label">Lifetime Points</div><div class="earnings-val" id="dashLifetimePts">0 PTS</div><div class="earnings-sub">Paid + Unpaid</div></div>
+    </div>
+
     <div class="sec-title">Accounts</div>
     <div class="dash-cards" id="dashCards"><div class="empty-state" style="grid-column:1/-1"><div class="es-icon">◈</div>No accounts yet — add one in Account Management</div></div>
 
@@ -2678,12 +2692,11 @@ select option { background: var(--surface3); color: var(--ink); }
           
         </div>
         <div class="acc-stats-mini" style="grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;">
-          <div class="acc-stat-mini"><div class="acc-stat-mini-label">USD Balance</div><div class="acc-stat-mini-val" style="color:var(--green);font-weight:700;">$ 0.00</div></div>
+          
           <div class="acc-stat-mini"><div class="acc-stat-mini-label">Points Balance</div><div class="acc-stat-mini-val" style="font-weight:700;">0 PTS</div></div>
-          <div class="acc-stat-mini"><div class="acc-stat-mini-label">Expected USD</div><div class="acc-stat-mini-val" style="color:var(--amber);font-weight:700;">$ 0.06</div></div>
           <div class="acc-stat-mini"><div class="acc-stat-mini-label">Expected Points</div><div class="acc-stat-mini-val" style="color:var(--amber);font-weight:700;">0 PTS</div></div>
         </div>
-        <div style="font-family:var(--mono);font-size:9.9px;color:var(--green);background:var(--green-light);border:1px solid var(--green-border);border-radius:6px;padding:6px 10px;margin-top:6px;">💸 If all rewarded: <strong>$ 0.06</strong> / <strong>0 PTS</strong></div>
+        <div style="font-family:var(--mono);font-size:9.9px;color:var(--green);background:var(--green-light);border:1px solid var(--green-border);border-radius:6px;padding:6px 10px;margin-top:6px;">💸 If all rewarded: <strong>0 PTS</strong></div>
         <div class="acc-task-stats">
           <div class="acc-task-stat"><div class="acc-task-stat-label">Running</div><div class="acc-task-stat-val amber">0</div></div>
           <div class="acc-task-stat"><div class="acc-task-stat-label">Due Rewarded</div><div class="acc-task-stat-val blue">0</div></div>
@@ -3050,7 +3063,7 @@ TaskRec01: task assigned, timer started.</div>
       <div class="field"><label>Fees / Charges (USDT)</label><input type="number" id="payoutModalFee" placeholder="0.00" step="any" min="0"></div>
       <div class="field"><label>Date</label><input type="date" id="payoutModalDate"></div>
       <div class="field"><label>Note (optional)</label><input type="text" id="payoutModalNote" placeholder="e.g. Weekly payout"></div>
-      <div style="font-family:var(--mono);font-size:10px;color:var(--ink3);margin-top:-4px;">🌐 The current USD→BDT rate is looked up automatically and stamped onto this payout — no need to enter it.</div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--ink3);margin-top:-4px;">🌐 The current USD→BDT rate is looked up automatically and stamped onto this payout — no need to enter it. If it can't be fetched, the payout is not saved. Editing the USD amount overrides points ÷ rate and is flagged on the record.</div>
     </div>
     <div class="modal-actions">
       <button class="btn-primary" id="payoutModalSaveBtn" onclick="savePayout()">Record Payout</button>
@@ -4223,6 +4236,43 @@ let taskAssignedOnly = false;
 // Kept as a plain in-memory session setting (like the other filter toggles
 // above) rather than persisted, so it mirrors how the rest of this panel works.
 let taskClickMode = 'classic';
+
+// ── Task timer limit (Change 05) ─────────────────────────────────────────────
+// Global 5 min (default) / 2 min countdown limit, counted from assignment start.
+// The choice is locked into each assignment (_acLimitMs) when it is created (or, for
+// older assignments, the first time its card renders), so flipping the toggle never
+// changes a timer that is already running. Remembered per device in localStorage.
+const TASK_TIMER_OPTIONS_MIN = [5, 2];
+const TASK_NEW_HOLD_MS = 30000; // newly assigned tasks stay at the bottom of the in-progress list this long
+let taskTimerMin = 5;
+try {
+  const saved = parseInt(localStorage.getItem('jt_task_timer_min'), 10);
+  if (TASK_TIMER_OPTIONS_MIN.includes(saved)) taskTimerMin = saved;
+} catch (e) { /* storage unavailable — keep the 5 min default */ }
+function taskTimerLimitMs(asgn) { return (asgn && asgn._acLimitMs > 0) ? asgn._acLimitMs : taskTimerMin * 60000; }
+function taskAsgnStartEpoch(asgn) {
+  return asgn._acTimerStart || (asgn.assignedAt ? new Date(asgn.assignedAt).getTime() : 0);
+}
+// Single formatter for the countdown chip (initial render AND the 1s ticker).
+function taskRemainingInfo(startEpoch, limitMs) {
+  const remMs = startEpoch + limitMs - Date.now();
+  if (remMs <= 0) return { text: '⏳ 0:00 · TIME UP', expired: true };
+  const sec = Math.ceil(remMs / 1000);
+  return { text: '⏳ ' + Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0') + ' left', expired: false };
+}
+function taskSyncTimerBtns() {
+  TASK_TIMER_OPTIONS_MIN.forEach(m => {
+    const b = document.getElementById('tkTimerMin' + m);
+    if (b) b.classList.toggle('active', taskTimerMin === m);
+  });
+}
+window.setTaskTimerDuration = function(min) {
+  if (!TASK_TIMER_OPTIONS_MIN.includes(min)) return;
+  taskTimerMin = min;
+  try { localStorage.setItem('jt_task_timer_min', String(min)); } catch (e) {}
+  taskSyncTimerBtns();
+  toast('⏱ Task timer: ' + min + ' min (applies to new assignments)');
+};
 const TASKS_PER_PAGE = 21;
 let taskPage = 0; // legacy — no longer drives rendering, kept only so old reset call sites stay harmless
 let taskLoadedCount = TASKS_PER_PAGE; // how many tasks are currently rendered (grows via "Load More")
@@ -4612,6 +4662,11 @@ function renderDashboard() {
     <div class="stat-chip"><div class="stat-chip-label">Dead</div><div class="stat-chip-val red">${counts.dead}</div></div>
   `;
 
+  const rw = calcDashboardRewardTotals();
+  const setPts = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = fmtPoints(v); };
+  setPts('dashPaidPts', rw.paid); setPts('dashUnpaidPts', rw.unpaid);
+  setPts('dashExpectedPts', rw.expected); setPts('dashLifetimePts', rw.lifetime);
+
   // Account cards — sorted: payout_ready first, then by balance desc, then by due rewards desc
   if (!accounts.some(a => !a.deleted)) {
     document.getElementById('dashCards').innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="es-icon">◈</div>No accounts yet — add one in Account Management</div>`;
@@ -4723,6 +4778,33 @@ function renderDashboard() {
   document.getElementById('earnTodayDate').textContent = fmtDate(todayStr+'T00:00:00');
   const wsEnd = new Date(ws); wsEnd.setDate(wsEnd.getDate()+6);
   document.getElementById('earnWeekRange').textContent = fmtDate(ws.toISOString()) + ' – ' + fmtDate(wsEnd.toISOString());
+}
+
+// Dashboard "Reward Points" totals (all non-deleted accounts, Points only). One pass over tasks.
+//  Paid     = points of every recorded payout (payoutPoints — legacy-safe, never uses the live rate)
+//  Unpaid   = rewarded points net of points withdrawn, plus manual adjustment — the same formula
+//             as calcPointsBalance(), summed over accounts
+//  Expected = Unpaid + assigned/completed (not yet rewarded) task rewards — as on Account Detail
+//  Lifetime = Paid + Unpaid
+function calcDashboardRewardTotals() {
+  const per = new Map();
+  accounts.forEach(a => { if (!a.deleted) per.set(a.id, { rewarded: 0, pending: 0 }); });
+  tasks.forEach(task => (task.assignments || []).forEach(asgn => {
+    const p = per.get(asgn.accountId);
+    if (!p) return;
+    if (asgn.status === 'rewarded') p.rewarded += parseFloat(asgn.pointsEarned || 0);
+    else if (asgn.status === 'completed' || asgn.status === 'assigned') p.pending += rewardToPoints(asgn.reward || task.defaultReward);
+  }));
+  let paid = 0, unpaid = 0, pending = 0;
+  accounts.forEach(a => {
+    const p = per.get(a.id);
+    if (!p) return;
+    const hist = a.payoutHistory || [];
+    paid += hist.reduce((s, x) => s + payoutPoints(x), 0);
+    unpaid += p.rewarded - hist.reduce((s, x) => s + parseFloat(x.pointsAmount || 0), 0) + rewardToPoints(a.balanceAdjustment);
+    pending += p.pending;
+  });
+  return { paid, unpaid, expected: unpaid + pending, lifetime: paid + unpaid };
 }
 
 // Returns Points earned from rewarded tasks, net of points withdrawn
@@ -5243,15 +5325,59 @@ function taskTitleCompare(a, b) {
 // the pinned "Currently In Progress" banners so the newest hand-off to this
 // account always sits on top, oldest in-progress task at the bottom.
 function sortTasksByLatestAssignedForAcc(list, accId) {
-  const latestFor = (t) => {
-    let latest = '';
-    (t.assignments||[]).forEach(a => {
-      if (a.accountId === accId && a.status === 'assigned' && (a.assignedAt||'') > latest) latest = a.assignedAt || '';
+  // Change 05 ordering for the pinned "Currently In Progress" banner:
+  //  1) Tasks whose newest assignment to this account is < 30s old are HELD at the bottom
+  //     (oldest-held first, so the newest hand-off is last). The hold is measured from the
+  //     persisted assignment timestamp (_acTimerStart / assignedAt), so refreshes or a
+  //     throttled background tab can't restart or stretch it.
+  //  2) All other tasks go by least time remaining first. remaining = start + limit - now, so
+  //     for a fixed `now` this is the same as ordering by deadline, and the relative order of
+  //     eligible tasks never changes as time passes — only a hold expiring changes it.
+  //     Overdue tasks (negative remaining) therefore lead.
+  //  3) Ties (same deadline): earlier assignment, then Change 04 title order, then id — stable.
+  const nowMs = Date.now();
+  const info = (t) => {
+    const mine = (t.assignments||[]).filter(a => a.accountId === accId && a.status === 'assigned');
+    let latestStart = 0, deadline = Infinity, firstStart = Infinity;
+    mine.forEach(a => {
+      const st = taskAsgnStartEpoch(a);
+      if (st > latestStart) latestStart = st;
+      if (st < firstStart) firstStart = st;
+      deadline = Math.min(deadline, st + taskTimerLimitMs(a));
     });
-    return latest;
+    return { latestStart, firstStart, deadline, heldUntil: latestStart + TASK_NEW_HOLD_MS };
   };
-  return [...list].sort((a, b) => latestFor(b).localeCompare(latestFor(a)));
+  const rows = list.map(t => ({ t, i: info(t) }));
+  const held = rows.filter(r => r.i.heldUntil > nowMs);
+  const free = rows.filter(r => r.i.heldUntil <= nowMs);
+  if (held.length) taskHoldScheduleRelease(Math.min(...held.map(r => r.i.heldUntil)) - nowMs);
+  const tie = (x, y) => (x.i.firstStart - y.i.firstStart) || taskTitleCompare(x.t, y.t) || String(x.t.id).localeCompare(String(y.t.id));
+  free.sort((x, y) => (x.i.deadline - y.i.deadline) || tie(x, y));
+  held.sort((x, y) => (x.i.latestStart - y.i.latestStart) || tie(x, y));
+  return free.concat(held).map(r => r.t);
 }
+
+// One-shot timer that re-renders once when the earliest hold ends (elapsed-time based: the
+// handler only triggers a render; ordering itself always recomputes from timestamps). Keeps
+// a single pending timeout — a later call only replaces it if it would fire sooner.
+let _taskHoldTimer = null, _taskHoldDue = Infinity;
+function taskHoldScheduleRelease(inMs) {
+  const due = Date.now() + Math.max(0, inMs) + 50;
+  // Keep the pending timeout if it will fire sooner; one already past due (delayed/throttled) is stale — replace it.
+  if (_taskHoldTimer && _taskHoldDue <= due && _taskHoldDue > Date.now()) return;
+  if (_taskHoldTimer) clearTimeout(_taskHoldTimer);
+  _taskHoldDue = due;
+  _taskHoldTimer = setTimeout(() => {
+    _taskHoldTimer = null; _taskHoldDue = Infinity;
+    renderTasks(); // re-invokes the helper, which re-arms for any task still held
+  }, Math.max(0, due - Date.now()));
+}
+document.addEventListener('visibilitychange', () => {
+  // Timeouts can be delayed in background tabs; on return, re-render if a hold ended meanwhile.
+  if (!document.hidden && _taskHoldTimer && Date.now() >= _taskHoldDue) {
+    clearTimeout(_taskHoldTimer); _taskHoldTimer = null; _taskHoldDue = Infinity; renderTasks();
+  }
+});
 
 function computeTaskList(accId, setId, exceptMode, hideCompletedForAcc) {
   const todayStr = todayISO();
@@ -5524,6 +5650,7 @@ function renderTasks() {
   const clickModeClickBtn   = document.getElementById('tkClickModeClick');
   if (clickModeClassicBtn) clickModeClassicBtn.classList.toggle('active', taskClickMode === 'classic');
   if (clickModeClickBtn)   clickModeClickBtn.classList.toggle('active', taskClickMode === 'click');
+  taskSyncTimerBtns();
   renderTaskAccountFilterBar();
   // Sync account dropdown value after population
   const accSel = document.getElementById('taskAccountFilterBar');
@@ -6014,7 +6141,7 @@ function renderTaskCard(task, dualAccId) {
         const morphStyle = (stepChanged && morphPos) ? ` style="--morph-x:${morphPos.x};--morph-y:${morphPos.y};"` : '';
         return `
           <div class="task-card-timer-wrap task-card-timer-clickable step-${step}${stepChanged ? ' step-morphed' : ''}"${morphStyle} onpointerdown="taskCardTimerDown('${task.id}','${a.id}',event)" onpointerup="taskCardTimerUp('${task.id}','${a.id}',event)" onpointerleave="taskCardTimerCancel('${task.id}','${a.id}',event)" onpointercancel="taskCardTimerCancel('${task.id}','${a.id}',event)" title="${stepInfo.hint} · hold 2s to remove">
-            <span class="task-card-timer-label">◷ ${acc ? htmlEscape(acc.name) : 'In Progress'}</span>
+            <span class="task-card-timer-label">◷ ${acc ? htmlEscape(acc.name) : 'In Progress'}${(() => { const ri = taskRemainingInfo(startEpoch, taskTimerLimitMs(a)); return `<span class="task-card-remaining${ri.expired ? ' expired' : ''}" data-start="${startEpoch}" data-limit="${taskTimerLimitMs(a)}">${ri.text}</span>`; })()}</span>
             <span class="task-card-timer" data-start="${startEpoch}">${timerCharsHtml(elapsed)}</span>
             <span class="task-card-timer-action">${stepInfo.icon} ${stepInfo.label}</span>
           </div>`;
@@ -6132,6 +6259,12 @@ setInterval(() => {
     const s = totalSec % 60;
     const next = (h > 0 ? h + ':' + String(m).padStart(2,'0') : String(m).padStart(2,'0')) + ':' + String(s).padStart(2,'0');
     updateTimerCharsMorph(el, next);
+  });
+  // Countdown chips (Change 05) — text/expired class only; nothing is completed, restarted or re-sorted here.
+  document.querySelectorAll('.task-card-remaining[data-start]').forEach(el => {
+    const ri = taskRemainingInfo(parseInt(el.dataset.start, 10), parseInt(el.dataset.limit, 10));
+    if (el.textContent !== ri.text) el.textContent = ri.text;
+    if (el.classList.contains('expired') !== ri.expired) el.classList.toggle('expired', ri.expired);
   });
 }, 1000);
 
@@ -6833,7 +6966,7 @@ window.assignToAllActive = function(taskId) {
       status: 'assigned',
       reward: t.defaultReward, assignedAt: now(),
       completedAt: null, rewardedAt: null,
-      _acTimerStart: Date.now(),
+      _acTimerStart: Date.now(), _acLimitMs: taskTimerMin * 60000,
       ip: ipMeta.ip, ipName: ipMeta.ipName,
       acDescription: 'TaskRec01: task assigned, timer started.' + (ipMeta.ipName ? ' · IP: ' + ipMeta.ipName : '')
     });
@@ -7364,6 +7497,7 @@ function _doAssign(taskId, accId, customReward, title) {
     completedAt: null,
     rewardedAt: null,
     _acTimerStart: Date.now(),
+    _acLimitMs: taskTimerMin * 60000,
     ip: ipMeta.ip,
     ipName: ipMeta.ipName,
     acDescription: 'TaskRec01: task assigned, timer started.' + (ipMeta.ipName ? ' · IP: ' + ipMeta.ipName : '')
@@ -8470,22 +8604,26 @@ window.zeroOutBalance = function() {
 // PAYOUT MODAL
 // ─────────────────────────────────────────
 // Looks up today's USD→BDT rate at the moment a payout is recorded, so each
-// payout is permanently stamped with the rate that actually applied to it —
-// no rate is "remembered" globally, it's just fetched fresh each time. Falls
-// back to the last rate we successfully fetched (or 121, the one-time
-// backfill rate) if the network call fails, so a flaky connection never
-// blocks recording a payout.
+// payout is permanently stamped with the rate that actually applied to it.
+// Returns the live rate, or null if it could not be fetched — callers must NOT
+// invent a substitute (no last-known / hardcoded fallback here). On success the
+// rate is also kept in globalSettings.lastKnownBdtRate, which is only used for
+// the clearly-labelled "≈" estimates on the Earnings page, never for a payout.
 async function fetchUsdToBdtRate() {
+  const ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+  const timer = ctrl ? setTimeout(() => ctrl.abort(), 10000) : null;
   try {
-    const res = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
+    const res = await fetch('https://api.exchangerate-api.com/v4/latest/USD', ctrl ? { signal: ctrl.signal } : undefined);
+    if (!res.ok) return null;
     const data = await res.json();
     const rate = data && data.rates && parseFloat(data.rates.BDT);
     if (rate && isFinite(rate) && rate > 0) {
       globalSettings.lastKnownBdtRate = rate;
       return rate;
     }
-  } catch (e) { /* network/API failure — fall through to fallback below */ }
-  return parseFloat(globalSettings.lastKnownBdtRate) || 121;
+  } catch (e) { /* network/API failure or timeout — caller blocks the payout */ }
+  finally { if (timer) clearTimeout(timer); }
+  return null;
 }
 
 window.openPayoutModal = function(accId) {
@@ -8519,29 +8657,48 @@ window.payoutPointsChanged = function() {
   amt.value = pts > 0 ? ptsToUsd(pts).toFixed(2) : '';
 };
 window.savePayout = async function() {
+  const saveBtn = document.getElementById('payoutModalSaveBtn');
+  if (saveBtn && saveBtn.disabled) return;   // already saving — never record the same payout twice
   const accId = document.getElementById('payoutModalAccId').value;
   const amount = parseFloat(document.getElementById('payoutModalAmount').value)||0;
   const fee = parseFloat(document.getElementById('payoutModalFee').value)||0;
-  const pointsAmount = parseFloat(document.getElementById('payoutModalPoints').value)||0;
+  let pointsAmount = parseFloat(document.getElementById('payoutModalPoints').value)||0;
   const date = document.getElementById('payoutModalDate').value;
   const note = document.getElementById('payoutModalNote').value.trim();
   if (!amount) { toast('Enter a payout amount'); return; }
   const acc = accounts.find(a => a.id===accId); if(!acc) return;
 
-  // Look up the live rate now, at the moment this payout is actually being
-  // recorded — this specific payout keeps this exact rate forever, even if
-  // today's rate changes tomorrow.
-  const saveBtn = document.getElementById('payoutModalSaveBtn');
+  // Conversion rate in force right now — read once and used for everything below, then
+  // stored on the record so this payout keeps it forever (later rate changes never touch it).
+  const ptsRate = getPtsPerUsd();
+  // Points paid is what leaves the Points balance. If only a USD amount was typed, derive the
+  // points from it at the current rate (flagged) so Paid/Unpaid stay consistent.
+  let pointsDerived = false;
+  if (!(pointsAmount > 0)) { pointsAmount = Math.round(amount * ptsRate); pointsDerived = true; }
+  // What the rate says this many points are worth; if the typed USD differs, it is an override.
+  const usdCalculated = Math.round(ptsToUsd(pointsAmount, ptsRate) * 100) / 100;
+  const usdOverride = Math.abs(amount - usdCalculated) > 0.005;
+
+  // Live USD→BDT rate, fetched at the moment of recording. No fallback: if it can't be
+  // fetched the payout is NOT saved, so no payout ever carries an invented BDT rate.
   const saveBtnLabel = saveBtn ? saveBtn.textContent : '';
   if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = 'Fetching rate…'; }
   const bdtRate = await fetchUsdToBdtRate();
   if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = saveBtnLabel; }
+  if (!bdtRate) {
+    toast('✗ Could not fetch the live USD→BDT rate — payout NOT saved. Check your connection and try again.');
+    return;
+  }
   const bdtAmount = Math.round(amount * bdtRate * 100) / 100;
 
   pushUndo('Add payout ' + acc.name);
   if (!acc.payoutHistory) acc.payoutHistory = [];
   // ptsPerUsd = conversion rate in force when this payout was recorded; stays with the record forever.
-  acc.payoutHistory.push({ id: uid(), amount, fee, pointsAmount, ptsPerUsd: getPtsPerUsd(), date, note, bdtAmount, bdtRate, recordedAt: new Date().toISOString() });
+  const rec = { id: uid(), amount, fee, pointsAmount, ptsPerUsd: ptsRate, date, note, bdtAmount, bdtRate, recordedAt: new Date().toISOString() };
+  rec.usdCalculated = usdCalculated;            // points ÷ rate at save time
+  if (usdOverride) rec.usdOverride = true;      // typed USD differs from points ÷ rate
+  if (pointsDerived) rec.pointsDerived = true;  // points were derived from the typed USD
+  acc.payoutHistory.push(rec);
   // Recalculate status — if balance dropped below threshold, revert to active
   checkPayoutReadyAll();
   closeModal('payoutModal');
@@ -8549,7 +8706,7 @@ window.savePayout = async function() {
   renderAccList();
   renderDashboard();
   markUnsaved(true);
-  toast(`Payout recorded — ৳${bdtAmount.toFixed(2)} @ ${bdtRate.toFixed(2)}/$`);
+  toast(`Payout recorded — ${fmtPoints(pointsAmount)} = $${amount.toFixed(2)}${usdOverride ? ' (USD overridden)' : ''} → ৳${bdtAmount.toFixed(2)} @ ${bdtRate.toFixed(2)}/$`);
 };
 
 // ── ONE-TIME: backfill BDT amount on past payouts (before live-rate lookup
@@ -10976,6 +11133,7 @@ function acEnsureTimerStarted(asgnId, asgn) {
       asgn._acTimerStart = startEpoch;
       markUnsaved(true);
     }
+    if (!(asgn._acLimitMs > 0)) { asgn._acLimitMs = taskTimerMin * 60000; markUnsaved(true); }
     const intervalId = setInterval(() => {
       acCheckBeep(asgnId);
     }, 1000);
@@ -11749,6 +11907,13 @@ document.addEventListener('paste', function(e) {
       </div>
     </div>
     <div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--ink3);margin-bottom:5px;" title="Countdown limit for newly assigned tasks (running timers keep the limit they started with). Default 5 min.">⏱ Task Timer</div>
+      <div style="display:flex;gap:6px;">
+        <button class="ta-switch-btn" id="tkTimerMin5" style="flex:1;" onclick="setTaskTimerDuration(5)">5 min</button>
+        <button class="ta-switch-btn" id="tkTimerMin2" style="flex:1;" onclick="setTaskTimerDuration(2)">2 min</button>
+      </div>
+    </div>
+    <div>
       <div style="font-family:var(--mono);font-size:10px;color:var(--ink3);margin-bottom:5px;">Range</div>
       <div style="display:flex;align-items:center;gap:5px;">
         <input type="number" id="taskRangeFrom" placeholder="From" oninput="applyTaskSearch()" class="search-input-bw">
@@ -12501,6 +12666,6 @@ if ('serviceWorker' in navigator) {
          font-size:18px;cursor:pointer;
          box-shadow:0 2px 12px rgba(0,0,0,0.22);
          align-items:center;justify-content:center;">↑</button>
-<script>// 44</script>
+<script>// 46</script>
 <protonpass-root-8df7 data-protonpass-role="root" data-protonpass-theme="dark"></protonpass-root-8df7>
 </body></html>
