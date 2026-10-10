@@ -1532,6 +1532,7 @@ select option { background: var(--surface3); color: var(--ink); }
 .sr-type-badge { font-family:var(--mono); font-size:10.5px; font-weight:800; letter-spacing:1px; padding:3px 10px; border-radius:5px; color:#fff; flex-shrink:0; }
 .sr-date { font-family:var(--mono); font-size:10.5px; color:var(--ink3); font-weight:600; white-space:nowrap; }
 
+.tt-d6 { background:#facc15; color:#1a1400; border-radius:2px; }
 .sr-title { font-family:var(--sans); font-size:22px; font-weight:800; letter-spacing:-0.01em; line-height:1.3; color:var(--ink); }
 
 /* Head row — badge+title+tags on one line (left), date+thumbnail stacked top-right */
@@ -5205,6 +5206,38 @@ function taskWordSearchScore(t, words) {
   return { count, score };
 }
 
+// ── Six-digit task identifiers (presentation + A→Z ordering only; stored titles untouched) ──
+// A valid identifier is exactly six digits at the very start of the title, not followed by
+// another digit (so "1234567 x" and "x 123456" are NOT identifiers). Kept as strings so
+// leading zeros survive. First five digits = primary prefix, sixth = secondary digit.
+function taskParseIdent(title) {
+  const m = /^(\d{5})(\d)(?!\d)/.exec(String(title == null ? '' : title));
+  return m ? { prefix: m[1], d6: m[2] } : null;
+}
+// HTML for a task title: escaped, with the sixth digit of a valid identifier highlighted.
+function taskTitleHtml(title) {
+  const t = String(title == null ? '' : title);
+  const id = taskParseIdent(t);
+  if (!id) return htmlEscape(t);
+  return htmlEscape(id.prefix) + '<span class="tt-d6">' + id.d6 + '</span>' + htmlEscape(t.slice(6));
+}
+// Ascending comparator used by the A → Z sort. Valid identifiers come first, ordered by
+// five-digit prefix (equal-length digit strings, so string compare == numeric compare and
+// leading zeros are safe), then by sixth digit, then by full title. Titles without a valid
+// identifier keep the previous natural-order localeCompare and follow the numbered ones.
+function taskTitleCompare(a, b) {
+  const ta = a.title || a.id || '', tb = b.title || b.id || '';
+  const ia = taskParseIdent(a.title), ib = taskParseIdent(b.title);
+  if (ia && ib) {
+    if (ia.prefix !== ib.prefix) return ia.prefix < ib.prefix ? -1 : 1;
+    if (ia.d6 !== ib.d6) return ia.d6 < ib.d6 ? -1 : 1;
+    return ta.localeCompare(tb, undefined, {numeric: true, sensitivity: 'base'});
+  }
+  if (ia) return -1;
+  if (ib) return 1;
+  return ta.localeCompare(tb, undefined, {numeric: true, sensitivity: 'base'});
+}
+
 // Orders a list of tasks so the one most recently assigned (to `accId`,
 // among its still-"assigned"/in-progress assignments) comes first — used by
 // the pinned "Currently In Progress" banners so the newest hand-off to this
@@ -5450,7 +5483,7 @@ function computeTaskList(accId, setId, exceptMode, hideCompletedForAcc) {
       return taskSortDir === 'desc' ? -cmp : cmp;
     }
     if (taskSort === 'alpha') {
-      const cmp = (a.title||a.id||'').localeCompare(b.title||b.id||'', undefined, {numeric: true, sensitivity: 'base'});
+      const cmp = taskTitleCompare(a, b);
       return taskSortDir === 'desc' ? -cmp : cmp;
     }
     if (taskSort === 'newest') {
@@ -5884,7 +5917,7 @@ function renderTaskCard(task, dualAccId) {
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px;">
             <span style="font-size:15px;flex-shrink:0;">📦</span>
             <div style="font-family:var(--mono);font-size:13px;color:var(--ink);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-              ${task.title || '(untitled)'}
+              ${task.title ? taskTitleHtml(task.title) : '(untitled)'}
             </div>
           </div>
           <span style="font-family:var(--mono);font-size:11px;color:var(--ink3);">
@@ -6048,7 +6081,7 @@ function renderTaskCard(task, dualAccId) {
         <div class="sr-head-left">
           <div class="sr-top-row">
             <span class="sr-type-badge" style="background:${typeColor};">${isYT?'YOUTUBE':'GOOGLE'}</span>
-            <div class="sr-title">${task.title}</div>
+            <div class="sr-title">${taskTitleHtml(task.title)}</div>
             ${tagBadges ? `<div class="sr-tags">${tagBadges}</div>` : ''}
           </div>
         </div>
@@ -12468,6 +12501,6 @@ if ('serviceWorker' in navigator) {
          font-size:18px;cursor:pointer;
          box-shadow:0 2px 12px rgba(0,0,0,0.22);
          align-items:center;justify-content:center;">↑</button>
-<script>// 43</script>
+<script>// 44</script>
 <protonpass-root-8df7 data-protonpass-role="root" data-protonpass-theme="dark"></protonpass-root-8df7>
 </body></html>
