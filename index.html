@@ -1685,6 +1685,8 @@ select option { background: var(--surface3); color: var(--ink); }
   border-radius:8px; border:1px solid #2b6fe0; background:#0a0a0a; color:#fff; cursor:pointer;
 }
 .search-clear-bw:hover { border-color:#4d94ff; }
+/* Clear Search sits beside the search field; on narrow screens show just the ✕ so the row stays on one line */
+@media (max-width:520px) { .task-search-clear .tsc-label { display:none; } .task-search-clear { padding:9px 11px; } }
 /* Black/blue dropdown design for Sort, Dir, Type selects */
 .select-bw-blue {
   font-family:var(--mono); font-size:11.5px; padding:9px 14px; min-height:38px;
@@ -2617,8 +2619,9 @@ select option { background: var(--surface3); color: var(--ink); }
     <!-- Search + Sort row (Range/Date/Clear/Type/Tags/checkboxes live in the Task Kits dock panel) -->
     <div id="taskFilterRow" style="display:flex !important;flex-direction:row !important;align-items:center;gap:6px;margin-bottom:12px;flex-wrap:nowrap !important;overflow-x:auto;-webkit-overflow-scrolling:touch;">
       <div style="display:flex;align-items:center;gap:5px;flex-shrink:0;">
-        <span style="font-family:var(--mono);font-size:10px;color:var(--ink3);white-space:nowrap;" title="Search by title, ID, or link. Separate multiple words with ; to rank tasks by how many words match.">Search</span>
+        <span style="font-family:var(--mono);font-size:10px;color:var(--ink3);white-space:nowrap;" title="Search by title, ID, or link. Several words (space-separated) are ranked by relevance: exact phrase first, then phrase with extra words, then all words, then matches missing one or two words. Separate words with ; for the older word-count ranking.">Search</span>
         <input type="text" id="taskTitleSearch" placeholder="Search…" oninput="applyTaskSearch()" class="search-input-bw" style="width:28vw;min-width:80px;max-width:160px;flex:none !important;">
+        <button onclick="clearTaskSearch()" class="search-clear-bw task-search-clear" title="Clear search" aria-label="Clear search" style="flex:none;white-space:nowrap;">✕<span class="tsc-label"> Clear Search</span></button>
       </div>
       <div id="taskSortBar" style="display:flex;align-items:center;gap:5px;flex-shrink:0;">
         <span style="font-family:var(--mono);font-size:10px;color:var(--ink3);white-space:nowrap;">Sort</span>
@@ -5137,12 +5140,61 @@ function requireAdminForTaskEdit() {
 // Ranked multi-word search: words are separated by ';' (e.g. "hostinger; coupon; discount").
 // A task needs at least one word to match to be included. Tasks that match more words rank
 // first; among equal match counts, matching the words listed earlier ranks higher.
-function taskSearchableText(t) {
+// The searchable fields — title plus each link's URL/keyword/topic/label. Shared by the
+// ';' word search, and the relevance-ranked phrase search below.
+function taskSearchFields(t) {
   const parts = [t.title || ''];
   (t.links || []).forEach(l => {
     parts.push(l.videoLink||'', l.thumbLink||'', l.url||'', l.searchKeyword||'', l.topicName||'', l.label||'');
   });
-  return parts.join(' ').toLowerCase();
+  return parts;
+}
+function taskSearchableText(t) {
+  return taskSearchFields(t).join(' ').toLowerCase();
+}
+
+// ── Relevance-ranked phrase search (space-separated multi-word queries) ─────────────────
+// Whole-word, case-insensitive matching. Rank (lower = more relevant); within a rank the
+// existing sort order is kept (see computeTaskList):
+//   1 exact phrase     — a field's words are exactly the query words
+//   2 phrase + extras  — the query words appear contiguously inside a longer field
+//   3 all words        — every query word is present, not contiguous (e.g. "youtube tutorial video")
+//   4 one word omitted — all but one query word present
+//   5 two omitted      — all but two query words present
+// Omission ranks need at least TASK_SEARCH_MIN_WORDS matching words, so a long query can't
+// degrade into matching a single common word.
+const TASK_SEARCH_MIN_WORDS = 2;
+function taskSearchTokens(str) {
+  return String(str || '').toLowerCase().split(/[^\p{L}\p{N}]+/u).filter(Boolean);
+}
+// Returns { tokens, unique } for a multi-word query, or null when the query is not a
+// multi-word one (empty / single word) so the original single-term search keeps running.
+function taskParsePhraseQuery(raw) {
+  const tokens = taskSearchTokens(raw);
+  const unique = [...new Set(tokens)];
+  return unique.length >= 2 ? { tokens, unique } : null;
+}
+function taskPhraseRank(t, q) {
+  const fieldTokens = taskSearchFields(t).map(taskSearchTokens);
+  const seen = new Set();
+  let exact = false, phrase = false;
+  fieldTokens.forEach(ft => {
+    ft.forEach(w => seen.add(w));
+    if (ft.length < q.tokens.length) return;
+    if (ft.length === q.tokens.length && ft.every((w, i) => w === q.tokens[i])) exact = true;
+    for (let i = 0; !phrase && i + q.tokens.length <= ft.length; i++) {
+      if (q.tokens.every((w, j) => ft[i + j] === w)) phrase = true;
+    }
+  });
+  if (exact) return 1;
+  if (phrase) return 2;
+  const matched = q.unique.filter(w => seen.has(w)).length;
+  const missing = q.unique.length - matched;
+  if (missing === 0) return 3;
+  if (matched < TASK_SEARCH_MIN_WORDS) return 0;
+  if (missing === 1) return 4;
+  if (missing === 2) return 5;
+  return 0;
 }
 function taskWordSearchScore(t, words) {
   const hay = taskSearchableText(t);
@@ -5181,15 +5233,25 @@ function computeTaskList(accId, setId, exceptMode, hideCompletedForAcc) {
     : [];
   const wordScores = {}; // taskId -> { count, score }, filled during the filter pass below
 
+  // Space-separated multi-word queries (no ';') are relevance-ranked — see taskPhraseRank.
+  // Empty and single-word queries keep the original title/ID/link search untouched.
+  const phraseQ = wordQueryWords.length ? null : taskParsePhraseQuery(titleQRawFull);
+  const phraseRank = {}; // taskId -> 1..5, filled during the filter pass below
+
   let list = tasks.filter(t => {
     if (wordQueryWords.length) {
       const info = taskWordSearchScore(t, wordQueryWords);
       if (info.count === 0) return false;
       wordScores[t.id] = info;
     }
+    if (phraseQ) {
+      const rk = taskPhraseRank(t, phraseQ);
+      if (!rk) return false;
+      phraseRank[t.id] = rk;
+    }
     // Search filters (title search + range search) — apply to ALL tasks
     // (including archived) FIRST so search works on archived tasks too.
-    const titleQRaw = wordQueryWords.length ? '' : titleQRawFull;
+    const titleQRaw = (wordQueryWords.length || phraseQ) ? '' : titleQRawFull;
     const titleQ = titleQRaw.toLowerCase();
     const rangeFrom = window._taskRangeFrom;
     const rangeTo = window._taskRangeTo;
@@ -5299,6 +5361,16 @@ function computeTaskList(accId, setId, exceptMode, hideCompletedForAcc) {
     return true;
   });
 
+  // Phrase-ranked search: group the already-sorted list by relevance rank. The group
+  // split is stable, so each rank keeps the normal sort order (admin dropdown sort or the
+  // fixed non-admin order) exactly as it would appear without a search.
+  const withRank = (arr) => {
+    if (!phraseQ) return arr;
+    const groups = [[], [], [], [], [], []];
+    arr.forEach(t => groups[phraseRank[t.id]].push(t));
+    return [].concat(groups[1], groups[2], groups[3], groups[4], groups[5]);
+  };
+
   // Ranked word search overrides the normal sort dropdown: most matched words
   // first, ties broken by whichever task matched the earlier-listed words.
   if (wordQueryWords.length) {
@@ -5322,7 +5394,7 @@ function computeTaskList(accId, setId, exceptMode, hideCompletedForAcc) {
   // group sorted A→Z descending by title. This replaces the normal
   // taskSort/taskSortDir-driven sort below entirely for them.
   if (!window.isAdmin) {
-    return [...list].sort((a, b) => {
+    return withRank([...list].sort((a, b) => {
       // Standing order: active/running tasks always sort before archived
       // ones — the fixed type/alpha order below only applies within
       // each of those two groups.
@@ -5333,7 +5405,7 @@ function computeTaskList(accId, setId, exceptMode, hideCompletedForAcc) {
       const bYT = b.type === 'youtube' ? 0 : 1;
       if (aYT !== bYT) return aYT - bYT;
       return (b.title||b.id||'').localeCompare(a.title||a.id||'', undefined, {numeric: true, sensitivity: 'base'});
-    });
+    }));
   }
 
   // Sort — always use running-tab sort (unified list)
@@ -5389,7 +5461,7 @@ function computeTaskList(accId, setId, exceptMode, hideCompletedForAcc) {
     return (b.createdAt||'').localeCompare(a.createdAt||'');
   });
 
-  return list;
+  return withRank(list);
 }
 
 function renderTasks() {
@@ -11659,7 +11731,6 @@ document.addEventListener('paste', function(e) {
         <input type="date" id="taskDateTo" oninput="applyTaskSearch()" class="search-input-bw" style="color-scheme:dark;">
       </div>
     </div>
-    <button onclick="clearTaskSearch()" class="search-clear-bw" title="Clear search">✕ Clear Search</button>
     <button class="btn-secondary" style="width:100%;font-size:11.5px;padding:7px 10px;" onclick="loadAllTaskThumbnails()" title="Load thumbnails for every visible task, top to bottom">⬇ Load All Thumbnails</button>
     <div id="archiveTasksControl">
       <button class="btn-secondary" style="width:100%;font-size:11.5px;padding:7px 10px;color:var(--red);border-color:var(--red-border);background:var(--red-light);" onclick="toggleTaskArchiveMode()" title="Archive every task, or pick specific ones to archive">
