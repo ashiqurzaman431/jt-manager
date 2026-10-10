@@ -2847,6 +2847,8 @@ TaskRec01: task assigned, timer started.</div>
       <div class="stat-chip" title="Sum of rewarded balance sitting in accounts that hasn't been paid out yet"><div class="stat-chip-label">Accounts Balance</div><div class="stat-chip-val purple" style="font-weight:700;">$ 0.00</div></div>
     </div>
 
+    <div id="ehRateNote" style="font-family:var(--mono);font-size:10.5px;color:var(--ink3);margin:-8px 0 18px;line-height:1.6;"></div>
+
     <!-- Task Earnings section (FIX 11: show accrued task earnings, not just payouts) -->
     <div style="margin-bottom:18px;">
       <div onclick="toggleEhSection('task')" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;cursor:pointer;user-select:none;-webkit-user-select:none;">
@@ -3038,9 +3040,10 @@ TaskRec01: task assigned, timer started.</div>
     <div class="modal-fields">
       <input type="hidden" id="payoutModalAccId" value="rm76fskvnolmpid4djn">
       <div class="field"><label>Account</label><input type="text" id="payoutModalAccName" readonly="" style="opacity:0.7;cursor:default;"></div>
-      <div class="field"><label>Amount (USDT)</label><input type="number" id="payoutModalAmount" placeholder="0.30 (current balance)" step="any" min="0"></div>
+      <div class="field"><label>Points Withdrawn</label><input type="number" id="payoutModalPoints" placeholder="0 (current points)" step="1" min="0" oninput="payoutPointsChanged()"></div>
+      <div class="field"><label>Amount (USDT)</label><input type="number" id="payoutModalAmount" placeholder="0.30 (current balance)" step="any" min="0" oninput="this.dataset.userEdited='true'"></div>
+      <div id="payoutModalRateNote" style="font-family:var(--mono);font-size:10px;color:var(--ink3);margin-top:-4px;line-height:1.5;"></div>
       <div class="field"><label>Fees / Charges (USDT)</label><input type="number" id="payoutModalFee" placeholder="0.00" step="any" min="0"></div>
-      <div class="field"><label>Points Withdrawn</label><input type="number" id="payoutModalPoints" placeholder="0 (current points)" step="1" min="0"></div>
       <div class="field"><label>Date</label><input type="date" id="payoutModalDate"></div>
       <div class="field"><label>Note (optional)</label><input type="text" id="payoutModalNote" placeholder="e.g. Weekly payout"></div>
       <div style="font-family:var(--mono);font-size:10px;color:var(--ink3);margin-top:-4px;">🌐 The current USD→BDT rate is looked up automatically and stamped onto this payout — no need to enter it.</div>
@@ -3064,8 +3067,8 @@ TaskRec01: task assigned, timer started.</div>
       <div class="field"><label>Account</label><input type="text" id="balAdjModalAccName" readonly style="opacity:0.7;cursor:default;"></div>
       <div class="field"><label>Current Balance (adjustment included)</label><input type="text" id="balAdjModalCurrent" readonly style="opacity:0.7;cursor:default;"></div>
       <div class="field">
-        <label>Grace / Correction Amount (USDT)</label>
-        <input type="number" id="balAdjModalAmount" placeholder="e.g. 0.50 or -0.20" step="any">
+        <label>Grace / Correction Amount (Points)</label>
+        <input type="number" id="balAdjModalAmount" placeholder="e.g. 500 or -200" step="any">
       </div>
       <div style="font-family:var(--mono);font-size:10.5px;color:var(--ink3);margin-top:-4px;line-height:1.5;">
         Added on top of rewarded − withdrawn. Use it to correct the balance for tasks completed outside the app and never logged, or any other manual mismatch. Positive adds, negative subtracts, 0 clears it.
@@ -3073,7 +3076,7 @@ TaskRec01: task assigned, timer started.</div>
     </div>
     <div class="modal-actions">
       <button class="btn-primary" onclick="saveBalanceAdjustment()">Save Adjustment</button>
-      <button class="btn-secondary" onclick="zeroOutBalance()" title="Sets this account's balance to exactly $0.00 right now">Set Balance to $0</button>
+      <button class="btn-secondary" onclick="zeroOutBalance()" title="Sets this account's balance to exactly 0 Points right now">Set Balance to 0</button>
       <button class="btn-secondary" onclick="closeModal('balAdjModal')">Cancel</button>
     </div>
   </div>
@@ -3096,8 +3099,8 @@ TaskRec01: task assigned, timer started.</div>
       <input type="text" id="assignModalTitle" placeholder="e.g. 4821" inputmode="numeric" pattern="[0-9]*" autocomplete="off">
     </div>
     <div class="field" style="margin-bottom:12px;">
-      <label>Custom Reward (leave blank for default)</label>
-      <input type="number" id="assignModalReward" placeholder="default reward" step="any" min="0">
+      <label>Custom Reward in Points (leave blank for default)</label>
+      <input type="number" id="assignModalReward" placeholder="default points" step="any" min="0">
     </div>
     <div class="modal-actions">
       <button class="btn-primary" id="assignModalConfirmBtn" onclick="confirmAssign()">Assign Task</button>
@@ -3299,8 +3302,8 @@ TaskRec01: task assigned, timer started.</div>
       <button class="modal-close" onclick="closeModal('rewardModal')">✕</button>
     </div>
     <div class="field" style="margin-bottom:12px;">
-      <label>New Default Reward (USDT)</label>
-      <input type="number" id="rewardModalVal" placeholder="0.00" step="any" min="0">
+      <label>New Default Reward (Points)</label>
+      <input type="number" id="rewardModalVal" placeholder="0" step="any" min="0">
       <input type="hidden" id="rewardModalTaskId">
     </div>
     <div class="modal-actions">
@@ -3560,8 +3563,8 @@ TaskRec01: task assigned, timer started.</div>
         </select>
       </div>
       <div class="field">
-        <label>Default Reward (USDT)</label>
-        <input type="number" id="editTaskModalReward" placeholder="0.00" step="any" min="0">
+        <label>Default Reward (Points)</label>
+        <input type="number" id="editTaskModalReward" placeholder="0" step="any" min="0">
       </div>
       <div class="field">
         <label>Beep Delay (minutes)</label>
@@ -4479,6 +4482,41 @@ function countryFlag(country) {
 }
 function fmtUSDT(v) { return '$ ' + (parseFloat(v)||0).toFixed(2); }
 function fmtBDT(v) { return '৳ ' + (parseFloat(v)||0).toFixed(2); }
+
+// ── POINTS-FIRST REWARD MODEL ─────────────────────────────────────────────
+// Points are the primary reward unit everywhere except Earnings, which is
+// where USD payout values are shown. Two separate scales, never mixed:
+//  • REWARD_STORAGE_PTS_PER_USD — FIXED. The scale the existing stored task
+//    data (task.defaultReward, asgn.reward, acc.balanceAdjustment, default
+//    reward settings) was written at. Never changes, so shared task data and
+//    old records are never rewritten and a task's Points never move when the
+//    user edits the conversion rate.
+//  • getPtsPerUsd() — the user-configurable Points-to-USD Conversion Rate
+//    (globalSettings.ptsPerUsd). Used ONLY to turn Points into USD (ptsToUsd).
+const REWARD_STORAGE_PTS_PER_USD = 1000;
+const DEFAULT_PTS_PER_USD = 1000;
+function isValidPtsPerUsd(v) { return typeof v === 'number' && isFinite(v) && v > 0; }
+function getPtsPerUsd() {
+  const r = parseFloat(globalSettings && globalSettings.ptsPerUsd);
+  return isValidPtsPerUsd(r) ? r : DEFAULT_PTS_PER_USD;
+}
+function ptsToUsd(points, rate) {                       // USD = points / R
+  const r = (rate === undefined) ? getPtsPerUsd() : rate;
+  return (parseFloat(points) || 0) / r;
+}
+function rewardToPoints(reward) { return Math.round((parseFloat(reward) || 0) * REWARD_STORAGE_PTS_PER_USD); }
+function pointsToReward(points) { return (parseFloat(points) || 0) / REWARD_STORAGE_PTS_PER_USD; }
+function fmtRate(r) { return (parseFloat(r) || 0).toLocaleString('en-US', { maximumFractionDigits: 6 }); }
+// Points represented by a recorded payout. Uses the points the payout was
+// recorded with; for old payouts that never stored points, falls back to
+// that payout's own stored rate, else the legacy fixed scale — never the
+// current configurable rate, so history is not reinterpreted.
+function payoutPoints(p) {
+  const pts = parseFloat(p && p.pointsAmount);
+  if (pts > 0) return pts;
+  const rate = parseFloat(p && p.ptsPerUsd);
+  return Math.round((parseFloat(p && p.amount) || 0) * (rate > 0 ? rate : REWARD_STORAGE_PTS_PER_USD));
+}
 function todayISO() {
   // "Today" resets at 17:00 (5 PM) local time each day.
   // Before 5 PM → use yesterday's date. At/after 5 PM → use today's date.
@@ -4579,7 +4617,7 @@ function renderDashboard() {
     // called multiple times per account (sort + card + 2x inline calcs),
     // rescanning the entire tasks list every time — this replaces all of
     // that with one O(tasks) pass regardless of account count.
-    // Points are fixed at 1000 PTS = $1.
+    // Points derive from the stored reward via rewardToPoints() (fixed storage scale).
     const _agg = new Map();
     accounts.forEach(a => { if (!a.deleted) _agg.set(a.id, {activeTasks:[], completedDue:0, pendingUsd:0, pendingPoints:0, rewardedUsd:0, rewardedPoints:0}); });
     tasks.forEach(task => {
@@ -4593,7 +4631,7 @@ function renderDashboard() {
         if (asgn.status === 'completed' || asgn.status === 'assigned') {
           const usd = parseFloat(asgn.reward || task.defaultReward || 0);
           agg.pendingUsd += usd;
-          agg.pendingPoints += Math.round(usd * 1000);
+          agg.pendingPoints += rewardToPoints(usd);
         } else if (asgn.status === 'rewarded') {
           agg.rewardedUsd += parseFloat(asgn.reward || task.defaultReward || 0);
           agg.rewardedPoints += parseFloat(asgn.pointsEarned || 0);
@@ -4606,7 +4644,7 @@ function renderDashboard() {
       const withdrawn = (a.payoutHistory||[]).reduce((s,p) => s + parseFloat(p.amount||0), 0);
       const pointsWithdrawn = (a.payoutHistory||[]).reduce((s,p) => s + parseFloat(p.pointsAmount||0), 0);
       agg.balance = agg.rewardedUsd - withdrawn;
-      agg.pointsBalance = agg.rewardedPoints - pointsWithdrawn;
+      agg.pointsBalance = agg.rewardedPoints - pointsWithdrawn + rewardToPoints(a.balanceAdjustment);  // same as calcPointsBalance
     });
 
     // Sorted by last payout amount, highest first. Accounts with no payout
@@ -4643,20 +4681,12 @@ function renderDashboard() {
             <div class="dash-meta-val jt">${fmtPoints(pointsBal)}</div>
           </div>
           <div class="dash-meta-item">
-            <div class="dash-meta-label">USD Balance</div>
-            <div class="dash-meta-val" style="color:var(--green);font-weight:700;">${balance > 0 ? fmtUSDT(balance) : '—'}</div>
-          </div>
-          <div class="dash-meta-item">
-            <div class="dash-meta-label">Expected USD</div>
-            <div class="dash-meta-val amber">${expectedUsd > 0 ? fmtUSDT(expectedUsd) : '—'}</div>
-          </div>
-          <div class="dash-meta-item">
             <div class="dash-meta-label">Expected Points</div>
             <div class="dash-meta-val" style="color:var(--amber);font-weight:700;">${expectedPoints > 0 ? fmtPoints(expectedPoints) : '—'}</div>
           </div>
         </div>
         <div class="dash-times">
-          Last Payout: <span>${lastPayout ? fmtDate(lastPayout.date + 'T00:00:00') + ' · ' + fmtUSDT(lastPayout.amount) : '—'}</span><br>
+          Last Payout: <span>${lastPayout ? fmtDate(lastPayout.date + 'T00:00:00') + ' · ' + fmtPoints(payoutPoints(lastPayout)) : '—'}</span><br>
           Last Task: <span>${lastTaskAssign || '—'}</span>
         </div>
         ${a.status==='payout_ready'
@@ -4673,7 +4703,7 @@ function renderDashboard() {
   const ws = weekStart();
   accounts.forEach(acc => {
     (acc.payoutHistory||[]).forEach(p => {
-      const amt = parseFloat(p.amount||0);
+      const amt = payoutPoints(p);
       totalPaidOut += amt;
       const pd = new Date((p.date||'')+'T00:00:00');
       if (!isNaN(pd)) {
@@ -4683,15 +4713,15 @@ function renderDashboard() {
     });
   });
   const hasAnyPayout = totalPaidOut > 0;
-  document.getElementById('earnTotal').textContent = hasAnyPayout ? fmtUSDT(totalPaidOut) : '—';
-  document.getElementById('earnWeek').textContent = weekPaidOut > 0 ? fmtUSDT(weekPaidOut) : '—';
-  document.getElementById('earnToday').textContent = dayPaidOut > 0 ? fmtUSDT(dayPaidOut) : '—';
+  document.getElementById('earnTotal').textContent = hasAnyPayout ? fmtPoints(totalPaidOut) : '—';
+  document.getElementById('earnWeek').textContent = weekPaidOut > 0 ? fmtPoints(weekPaidOut) : '—';
+  document.getElementById('earnToday').textContent = dayPaidOut > 0 ? fmtPoints(dayPaidOut) : '—';
   document.getElementById('earnTodayDate').textContent = fmtDate(todayStr+'T00:00:00');
   const wsEnd = new Date(ws); wsEnd.setDate(wsEnd.getDate()+6);
   document.getElementById('earnWeekRange').textContent = fmtDate(ws.toISOString()) + ' – ' + fmtDate(wsEnd.toISOString());
 }
 
-// Returns Points earned from rewarded tasks (fixed: 1000 PTS = $1)
+// Returns Points earned from rewarded tasks, net of points withdrawn
 function calcPointsBalance(accId) {
   let points = 0;
   tasks.forEach(task => {
@@ -4704,8 +4734,8 @@ function calcPointsBalance(accId) {
   const acc = accounts.find(a => a.id === accId);
   const withdrawn = (acc && acc.payoutHistory) ? acc.payoutHistory.reduce((s,p) => s + parseFloat(p.pointsAmount||0), 0) : 0;
   // Manual grace/correction amount (set via "Adjust Balance"), converted to
-  // points at the same fixed 1000 pts = $1 rate used when tasks are rewarded.
-  const adjPoints = Math.round((acc && parseFloat(acc.balanceAdjustment||0) || 0) * 1000);
+  // points at the same fixed storage scale used when tasks are rewarded.
+  const adjPoints = rewardToPoints(acc && acc.balanceAdjustment);
   return points - withdrawn + adjPoints;
 }
 
@@ -5814,8 +5844,7 @@ function renderTaskCard(task, dualAccId) {
   // Reward block — clicking anywhere on it opens the edit modal instantly
   const rewardBlock = !hasError ? `
     <div class="sr-reward-block" onclick="openRewardModal('${task.id}')" title="Click to edit reward">
-      <span class="sr-reward-usd">${fmtUSDT(task.defaultReward)}</span>
-      <span class="sr-reward-pts">/ ${pointsVal(task)} PTS</span>
+      <span class="sr-reward-usd">${fmtPoints(pointsVal(task))}</span>
       <span class="sr-reward-edit-hint">✎</span>
     </div>` : '';
 
@@ -5982,7 +6011,7 @@ function asgnDisplayTitle(task, asgn) {
 }
 
 function pointsVal(task) {
-  return Math.round(parseFloat(task.defaultReward||0) * 1000);
+  return rewardToPoints(task.defaultReward);
 }
 
 // Global ticker for in-progress task-card timers (Task Manager list). Queries
@@ -6278,7 +6307,7 @@ window.toggleThumbField = function() {
   const rewardInput = document.getElementById('newTaskReward');
   if (!rewardInput.value || rewardInput.dataset.autoFilled === 'true') {
     const def = type === 'youtube' ? globalSettings.defaultYoutubeReward : globalSettings.defaultGoogleReward;
-    rewardInput.value = def || '';
+    rewardInput.value = rewardToPoints(def) || '';
     rewardInput.dataset.autoFilled = 'true';
   }
 };
@@ -6383,7 +6412,7 @@ window.addTask = function() {
   if (!requireAdminForTaskEdit()) return;
   const title = document.getElementById('newTaskTitle').value.trim();
   const type = document.getElementById('newTaskType').value;
-  const reward = parseFloat(document.getElementById('newTaskReward').value) || 0;
+  const reward = pointsToReward(document.getElementById('newTaskReward').value);
   if (!title) { toast('Please enter a task title'); return; }
   // Duplicate check
   const dup = tasks.find(t => t.title === title && !t.archived);
@@ -6421,7 +6450,7 @@ window.resetTaskFormAfterAdd = function() {
   document.getElementById('thumbDropArea').childNodes[0].textContent = '📷 Click to attach image or paste (Ctrl+V)';
   const rewardInput = document.getElementById('newTaskReward');
   const currentType = document.getElementById('newTaskType').value;
-  rewardInput.value = (currentType === 'youtube' ? globalSettings.defaultYoutubeReward : globalSettings.defaultGoogleReward) || '';
+  rewardInput.value = rewardToPoints(currentType === 'youtube' ? globalSettings.defaultYoutubeReward : globalSettings.defaultGoogleReward) || '';
   rewardInput.dataset.autoFilled = 'true';
   toggleThumbField();
 };
@@ -6436,7 +6465,7 @@ window.clearTaskForm = function() {
   document.getElementById('thumbDropArea').childNodes[0].textContent = '📷 Click to attach image or paste (Ctrl+V)';
   const rewardInput = document.getElementById('newTaskReward');
   const currentType = document.getElementById('newTaskType').value;
-  rewardInput.value = (currentType === 'youtube' ? globalSettings.defaultYoutubeReward : globalSettings.defaultGoogleReward) || '';
+  rewardInput.value = rewardToPoints(currentType === 'youtube' ? globalSettings.defaultYoutubeReward : globalSettings.defaultGoogleReward) || '';
   rewardInput.dataset.autoFilled = 'true';
   toggleThumbField();
 };
@@ -6465,7 +6494,7 @@ window.bulkAddTasks = function() {
   const start  = parseInt(document.getElementById('bulkTaskStart').value, 10);
   const end    = parseInt(document.getElementById('bulkTaskEnd').value, 10);
   const type   = document.getElementById('bulkTaskType').value;
-  const reward = parseFloat(document.getElementById('bulkTaskReward').value) || 0;
+  const reward = pointsToReward(document.getElementById('bulkTaskReward').value);
   const el     = document.getElementById('bulkAddPreview');
 
   if (isNaN(start) || isNaN(end) || start > end) {
@@ -6514,7 +6543,7 @@ window.bulkTaskTypeChanged = function() {
   const type = document.getElementById('bulkTaskType').value;
   const rewardInput = document.getElementById('bulkTaskReward');
   if (!rewardInput.dataset.userEdited || rewardInput.dataset.userEdited === 'false') {
-    rewardInput.value = (type === 'youtube' ? globalSettings.defaultYoutubeReward : globalSettings.defaultGoogleReward) || '';
+    rewardInput.value = rewardToPoints(type === 'youtube' ? globalSettings.defaultYoutubeReward : globalSettings.defaultGoogleReward) || '';
   }
 };
 
@@ -6717,7 +6746,7 @@ window.openEditTaskModal = function(taskId) {
   document.getElementById('editTaskModalId').value = taskId;
   document.getElementById('editTaskModalTitle').value = t.title||'';
   document.getElementById('editTaskModalType').value = t.type||'google';
-  document.getElementById('editTaskModalReward').value = t.defaultReward||'';
+  document.getElementById('editTaskModalReward').value = rewardToPoints(t.defaultReward) || '';
   document.getElementById('editTaskModalBeepDelay').value = t.beepDelayMin || 2;
   openModal('editTaskModal');
 };
@@ -6733,7 +6762,7 @@ window.saveEditTask = function() {
   if (dup) { toast('A task with this title already exists'); return; }
   t.title = newTitle;
   t.type = document.getElementById('editTaskModalType').value;
-  t.defaultReward = parseFloat(document.getElementById('editTaskModalReward').value)||0;
+  t.defaultReward = pointsToReward(document.getElementById('editTaskModalReward').value);
   t.beepDelayMin = parseFloat(document.getElementById('editTaskModalBeepDelay').value) || 2;
   closeModal('editTaskModal');
   taskPage = 0;
@@ -6813,14 +6842,14 @@ window.saveReplicateTask = function() {
 window.openRewardModal = function(taskId) {
   if (!requireAdminForTaskEdit()) return;
   const t = tasks.find(t => t.id===taskId); if(!t) return;
-  document.getElementById('rewardModalVal').value = t.defaultReward||'';
+  document.getElementById('rewardModalVal').value = rewardToPoints(t.defaultReward) || '';
   document.getElementById('rewardModalTaskId').value = taskId;
   openModal('rewardModal');
 };
 window.saveTaskReward = function() {
   if (!requireAdminForTaskEdit()) return;
   const taskId = document.getElementById('rewardModalTaskId').value;
-  const val = parseFloat(document.getElementById('rewardModalVal').value)||0;
+  const val = pointsToReward(document.getElementById('rewardModalVal').value);
   const t = tasks.find(t => t.id===taskId); if(t) t.defaultReward=val;
   closeModal('rewardModal'); taskPage = 0; renderTasks(); toast('Reward updated');
 };
@@ -7225,7 +7254,7 @@ function _doAssign(taskId, accId, customReward, title) {
     id: uid(),
     accountId: accId,
     status: 'assigned',
-    reward: (customReward !== undefined && customReward !== '') ? parseFloat(customReward) : t.defaultReward,
+    reward: (customReward !== undefined && customReward !== '') ? pointsToReward(customReward) : t.defaultReward,
     assignedAt: now(),
     completedAt: null,
     rewardedAt: null,
@@ -7289,8 +7318,8 @@ window.openAssignModal = function(taskId, forcedAccId) {
   }
 
   // ── Normal modal flow ──
-  document.getElementById('assignModalTaskInfo').textContent = `Task: ${t.title} · Default: ${fmtUSDT(t.defaultReward)}`;
-  document.getElementById('assignModalReward').value = '';
+  document.getElementById('assignModalTaskInfo').textContent = `Task: ${t.title} · Default: ${fmtPoints(rewardToPoints(t.defaultReward))}`;
+  document.getElementById('assignModalReward').value = '';  // custom reward is entered in Points
   const titleField = document.getElementById('assignModalTitleField');
   const titleInput = document.getElementById('assignModalTitle');
   if (titleField) titleField.style.display = isGoogleTask ? '' : 'none';
@@ -7445,7 +7474,7 @@ function renderAccList() {
   let _balanceCache = null, _lastCompleteCache = null;
   if (accSort === 'balance') {
     _balanceCache = new Map();
-    filteredAccounts.forEach(a => _balanceCache.set(a.id, calcBalance(a.id)));
+    filteredAccounts.forEach(a => _balanceCache.set(a.id, calcPointsBalance(a.id)));
   } else if (accSort === 'last_complete') {
     _lastCompleteCache = new Map();
     filteredAccounts.forEach(a => _lastCompleteCache.set(a.id, ''));
@@ -7668,12 +7697,12 @@ function renderAccDetail(accId) {
   const activeTasks = getAccountActiveTasks(accId);
   const balance = calcBalance(accId);
   const pointsBalance = calcPointsBalance(accId);
-  const totalWithdrawn = (acc.payoutHistory||[]).reduce((s,p) => s + parseFloat(p.amount||0), 0);
+  const totalWithdrawn = (acc.payoutHistory||[]).reduce((s,p) => s + payoutPoints(p), 0);  // Points
   const tStats = getAccountTaskStats(accId);
 
   // Expected = current balance + all active (assigned + completed) tasks
   // This shows what the account will have if every active task gets rewarded
-  // Points are fixed at 1000 PTS = $1.
+  // Points derive from the stored reward via rewardToPoints() (fixed storage scale).
   let pendingPoints = 0;
   let pendingUsd = 0;
   tasks.forEach(task => {
@@ -7681,14 +7710,14 @@ function renderAccDetail(accId) {
       if (asgn.accountId === accId && (asgn.status === 'completed' || asgn.status === 'assigned')) {
         const usd = parseFloat(asgn.reward || task.defaultReward || 0);
         pendingUsd += usd;
-        pendingPoints += Math.round(usd * 1000);
+        pendingPoints += rewardToPoints(usd);
       }
     });
   });
   const expectedUsd = balance + pendingUsd;
   const expectedPoints = pointsBalance + pendingPoints;
-  const payoutIfRewarded = (expectedPoints > 0 || expectedUsd > 0)
-    ? `<div style="font-family:var(--mono);font-size:9.9px;color:var(--green);background:var(--green-light);border:1px solid var(--green-border);border-radius:6px;padding:6px 10px;margin-top:6px;">💸 If all rewarded: <strong>${fmtUSDT(expectedUsd)}</strong> / <strong>${fmtPoints(expectedPoints)}</strong></div>`
+  const payoutIfRewarded = (expectedPoints > 0)
+    ? `<div style="font-family:var(--mono);font-size:9.9px;color:var(--green);background:var(--green-light);border:1px solid var(--green-border);border-radius:6px;padding:6px 10px;margin-top:6px;">💸 If all rewarded: <strong>${fmtPoints(expectedPoints)}</strong></div>`
     : '';
 
   // Right column content — active tasks with bulk select
@@ -7811,13 +7840,13 @@ function renderAccDetail(accId) {
     return `
     <div class="total-withdrawn-bar">
       <span class="total-withdrawn-label">Total Withdrawn</span>
-      <span class="total-withdrawn-val">${fmtUSDT(totalWithdrawn)}</span>
+      <span class="total-withdrawn-val">${fmtPoints(totalWithdrawn)}</span>
     </div>
     ${histGroups.map(group => `
       <div class="history-date-header">${group.dateKey}</div>
       ${group.items.map(item => item.type==='task'
         ? `<div class="history-item task-hist">
-            <div class="history-item-head"><div class="history-item-title">${asgnDisplayTitle(item.task, item.asgn)}</div><div class="history-item-amount">${fmtUSDT(item.asgn.reward||item.task.defaultReward)}${item.asgn.pointsEarned ? ` · <span style="color:var(--jt)">${fmtPoints(item.asgn.pointsEarned)}</span>` : ''}</div></div>
+            <div class="history-item-head"><div class="history-item-title">${asgnDisplayTitle(item.task, item.asgn)}</div><div class="history-item-amount"><span style="color:var(--jt)">${fmtPoints(item.asgn.pointsEarned || rewardToPoints(item.asgn.reward||item.task.defaultReward))}</span></div></div>
             <div class="history-item-meta">Rewarded · ${fmtTime(item.asgn.rewardedAt)} · <span style="text-transform:uppercase;font-size:9.9px;">${item.task.type}</span>${item.asgn.ipName ? ` · 🌐 ${escapeHtml(item.asgn.ipName)}` : ''}${item.asgn.statusNote ? ` · 📝 ${item.asgn.statusNote}` : ''}</div>
           </div>`
         : `<div class="history-item payout-hist">
@@ -7826,9 +7855,9 @@ function renderAccDetail(accId) {
                 <span style="font-size:15px;">💸</span>
                 <span style="font-weight:700;color:var(--green);">${item.payout.note||'Payout Withdrawal'}</span>
               </div>
-              <div class="history-item-amount" style="color:var(--green);font-size:15.4px;">-${fmtUSDT(item.payout.amount)}</div>
+              <div class="history-item-amount" style="color:var(--green);font-size:15.4px;">-${fmtPoints(payoutPoints(item.payout))}</div>
             </div>
-            <div class="history-item-meta" style="color:var(--green);opacity:0.8;">Payout${item.payout.recordedAt ? ` · ${fmtTime(item.payout.recordedAt)}` : ''}${item.payout.pointsAmount ? ` · ${fmtPoints(item.payout.pointsAmount)}` : ''}${item.payout.fee ? ` · Fee: ${fmtUSDT(item.payout.fee)}` : ''}</div>
+            <div class="history-item-meta" style="color:var(--green);opacity:0.8;">Payout${item.payout.recordedAt ? ` · ${fmtTime(item.payout.recordedAt)}` : ''}${item.payout.fee ? ` · Fee: ${fmtUSDT(item.payout.fee)}` : ''}</div>
           </div>`
       ).join('')}
     `).join('')}
@@ -7850,9 +7879,7 @@ function renderAccDetail(accId) {
           ${acc.notes ? `<div class="info-row"><div class="info-label">Notes</div><div class="info-val" style="font-size:12.1px;color:var(--ink3);">${acc.notes}</div></div>` : ''}
         </div>
         <div class="acc-stats-mini" style="grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;">
-          <div class="acc-stat-mini"><div class="acc-stat-mini-label">USD Balance</div><div class="acc-stat-mini-val" style="color:var(--green);font-weight:700;">${fmtUSDT(balance)}</div></div>
           <div class="acc-stat-mini"><div class="acc-stat-mini-label">Points Balance</div><div class="acc-stat-mini-val" style="font-weight:700;">${fmtPoints(pointsBalance)}</div></div>
-          <div class="acc-stat-mini"><div class="acc-stat-mini-label">Expected USD</div><div class="acc-stat-mini-val" style="color:var(--amber);font-weight:700;">${fmtUSDT(expectedUsd)}</div></div>
           <div class="acc-stat-mini"><div class="acc-stat-mini-label">Expected Points</div><div class="acc-stat-mini-val" style="color:var(--amber);font-weight:700;">${fmtPoints(expectedPoints)}</div></div>
         </div>
         ${payoutIfRewarded}
@@ -8009,7 +8036,7 @@ window.confirmStatusNoteModal = function() {
   if (newStatus==='rewarded') {
     asgn.rewardedAt = now();
     const usd = parseFloat(asgn.reward || task.defaultReward || 0);
-    asgn.pointsEarned = Math.round(usd * 1000);
+    asgn.pointsEarned = rewardToPoints(usd);
     checkPayoutReadyAll();
   }
   if (selectedAccId) renderAccDetail(selectedAccId);
@@ -8026,12 +8053,12 @@ window.cancelStatusNoteModal = function() {
 window.openTaskDetailModal = function(taskId, asgnId) {
   const task = tasks.find(t => t.id===taskId); if(!task) return;
   const assignment = (task.assignments||[]).find(a => a.id===asgnId); if(!assignment) return;
-  const pointsForTask = Math.round(parseFloat(assignment.reward||task.defaultReward||0) * 1000);
+  const pointsForTask = rewardToPoints(assignment.reward||task.defaultReward);
   document.getElementById('tdmTitle').textContent = asgnDisplayTitle(task, assignment);
   document.getElementById('tdmBody').innerHTML = `
     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
       <span class="acc-active-task-status ${assignment.status}">${assignment.status}</span>
-      <span style="font-family:var(--mono);font-size:11px;color:var(--ink3);">${fmtUSDT(assignment.reward||task.defaultReward)} · ${pointsForTask} PTS</span>
+      <span style="font-family:var(--mono);font-size:11px;color:var(--ink3);">${fmtPoints(pointsForTask)}</span>
       ${assignment.ipName ? `<span style="font-family:var(--mono);font-size:10px;color:var(--ink3);background:var(--surface3);border:1px solid var(--border2);border-radius:99px;padding:2px 8px;">🌐 ${escapeHtml(assignment.ipName)}</span>` : ''}
     </div>
     <div class="acc-active-task-times">
@@ -8121,7 +8148,7 @@ window.bulkUpdateStatus = function(accId, newStatus) {
       if(!asgn.completedAt) asgn.completedAt=now();
       asgn.rewardedAt=now();
       const usd = parseFloat(asgn.reward || task.defaultReward || 0);
-      asgn.pointsEarned = Math.round(usd * 1000);
+      asgn.pointsEarned = rewardToPoints(usd);
     }
   });
   checkPayoutReadyAll();
@@ -8290,9 +8317,9 @@ window.openBalAdjModal = function(accId) {
   const acc = accounts.find(a => a.id === accId); if (!acc) return;
   document.getElementById('balAdjModalAccId').value = accId;
   document.getElementById('balAdjModalAccName').value = acc.name || '';
-  document.getElementById('balAdjModalCurrent').value = fmtUSDT(calcBalance(accId));
+  document.getElementById('balAdjModalCurrent').value = fmtPoints(calcPointsBalance(accId));
   const adj = parseFloat(acc.balanceAdjustment || 0) || 0;
-  document.getElementById('balAdjModalAmount').value = adj ? adj : '';
+  document.getElementById('balAdjModalAmount').value = adj ? rewardToPoints(adj) : '';
   openModal('balAdjModal');
 };
 window.saveBalanceAdjustment = function() {
@@ -8300,7 +8327,7 @@ window.saveBalanceAdjustment = function() {
   const acc = accounts.find(a => a.id === accId); if (!acc) return;
   const raw = document.getElementById('balAdjModalAmount').value;
   const val = parseFloat(raw);
-  acc.balanceAdjustment = (raw === '' || isNaN(val)) ? 0 : val;
+  acc.balanceAdjustment = (raw === '' || isNaN(val)) ? 0 : pointsToReward(val);  // entered in Points, stored at the fixed storage scale
   closeModal('balAdjModal');
   // Balance + grace may have just crossed (or dropped below) the payout
   // threshold — re-check Payout Ready status now, not just after rewards/payouts.
@@ -8319,8 +8346,8 @@ window.zeroOutBalance = function() {
   // it out — balance reads $0.00 immediately, and moves normally from that
   // new zero baseline as future tasks get rewarded or paid out.
   const currentAdj = parseFloat(acc.balanceAdjustment || 0) || 0;
-  const rawBalance = calcBalance(accId) - currentAdj;
-  acc.balanceAdjustment = -rawBalance;
+  const rawPoints = calcPointsBalance(accId) - rewardToPoints(currentAdj);
+  acc.balanceAdjustment = pointsToReward(-rawPoints);
   closeModal('balAdjModal');
   // Balance is now exactly $0 — re-check so status reverts off Payout Ready
   // if it was on it (matches the same revert-on-drop behavior payouts get).
@@ -8329,7 +8356,7 @@ window.zeroOutBalance = function() {
   renderAccList();
   renderDashboard();
   markUnsaved(true);
-  toast(acc.name + ' balance set to $0.00');
+  toast(acc.name + ' balance set to 0 PTS');
 };
 
 
@@ -8362,8 +8389,8 @@ window.openPayoutModal = function(accId) {
     toast('Payout only allowed when account is Payout Ready');
     return;
   }
-  const usdBal = calcBalance(accId);
   const pointsBal = calcPointsBalance(accId);
+  const usdBal = pointsBal > 0 ? ptsToUsd(pointsBal) : 0;   // Points → USD at the current conversion rate
   document.getElementById('payoutModalAccId').value = accId;
   document.getElementById('payoutModalAccName').value = acc.name;
   // Auto-fill balances so user doesn't have to look them up
@@ -8371,12 +8398,20 @@ window.openPayoutModal = function(accId) {
   const pointsInput = document.getElementById('payoutModalPoints');
   amtInput.value = usdBal > 0 ? usdBal.toFixed(2) : '';
   amtInput.placeholder = usdBal > 0 ? usdBal.toFixed(2) + ' (current balance)' : '0.00';
+  amtInput.dataset.userEdited = 'false';
+  document.getElementById('payoutModalRateNote').textContent = `USD = Points ÷ ${fmtRate(getPtsPerUsd())} (Points-to-USD Conversion Rate). This rate is saved with the payout.`;
   document.getElementById('payoutModalFee').value = '';
   pointsInput.value = pointsBal > 0 ? Math.round(pointsBal) : '';
   pointsInput.placeholder = pointsBal > 0 ? Math.round(pointsBal) + ' (current points)' : '0';
   document.getElementById('payoutModalDate').value = todayISO();
   document.getElementById('payoutModalNote').value = '';
   openModal('payoutModal');
+};
+window.payoutPointsChanged = function() {
+  const amt = document.getElementById('payoutModalAmount');
+  if (!amt || amt.dataset.userEdited === 'true') return;   // don't overwrite a USD amount the user typed
+  const pts = parseFloat(document.getElementById('payoutModalPoints').value) || 0;
+  amt.value = pts > 0 ? ptsToUsd(pts).toFixed(2) : '';
 };
 window.savePayout = async function() {
   const accId = document.getElementById('payoutModalAccId').value;
@@ -8400,7 +8435,8 @@ window.savePayout = async function() {
 
   pushUndo('Add payout ' + acc.name);
   if (!acc.payoutHistory) acc.payoutHistory = [];
-  acc.payoutHistory.push({ id: uid(), amount, fee, pointsAmount, date, note, bdtAmount, bdtRate, recordedAt: new Date().toISOString() });
+  // ptsPerUsd = conversion rate in force when this payout was recorded; stays with the record forever.
+  acc.payoutHistory.push({ id: uid(), amount, fee, pointsAmount, ptsPerUsd: getPtsPerUsd(), date, note, bdtAmount, bdtRate, recordedAt: new Date().toISOString() });
   // Recalculate status — if balance dropped below threshold, revert to active
   checkPayoutReadyAll();
   closeModal('payoutModal');
@@ -9961,6 +9997,7 @@ function buildSaveSource(filename) {
     payoutThreshold: globalSettings.payoutThreshold || 500,
     lastKnownBdtRate: globalSettings.lastKnownBdtRate || null,
     bdtBackfillDone: globalSettings.bdtBackfillDone || false,
+    ptsPerUsd: getPtsPerUsd(),
     customDevices: customDevices || []
   }, null, 2).replace(/</g,'\\u003c').replace(/>/g,'\\u003e');
   const logJson = JSON.stringify(auditLog, null, 2);
@@ -10398,6 +10435,13 @@ window.toggleEhSection = function(which) {
   window.ehExpanded[which] = !window.ehExpanded[which];
   renderEarningsHistory();
 };
+function ehPayoutMetaExtra(entries) {
+  const pts = entries.reduce((n, e) => n + payoutPoints(e), 0);
+  const rates = entries.map(e => parseFloat(e.ptsPerUsd)).filter(r => r > 0);
+  let rateTxt = '';
+  if (rates.length) { const u = [...new Set(rates)]; rateTxt = (u.length === 1 && rates.length === entries.length) ? ` · @ ${fmtRate(u[0])} pts/$` : ' · mixed rates'; }
+  return ` · ${fmtPoints(pts)}${rateTxt}`;
+}
 function ehNoDayNote(what, label) {
   return `<div style="padding:14px 18px;font-family:var(--mono);font-size:11px;color:var(--ink3);">No ${what} for ${label} — expand to see earlier records</div>`;
 }
@@ -10434,10 +10478,12 @@ window.renderEarningsHistory = function() {
       if (isNaN(d)) return;
       if (d < rangeFrom || d > rangeTo) return;
       const acc = accounts.find(a => a.id === asgn.accountId);
+      // Points are the source of truth; USD is Points ÷ current conversion rate.
+      const entryPts = parseFloat(asgn.pointsEarned) > 0 ? parseFloat(asgn.pointsEarned) : rewardToPoints(asgn.reward || task.defaultReward);
       rewardedAsgns.push({
         dateObj: d,
-        amount: parseFloat(asgn.reward || task.defaultReward || 0),
-        pointsEarned: asgn.pointsEarned || 0,
+        amount: ptsToUsd(entryPts),
+        pointsEarned: entryPts,
         accName: acc ? (acc.name + (acc.deleted ? ' (Deleted)' : '')) : 'Deleted Account',
         taskTitle: asgnDisplayTitle(task, asgn),
         type: task.type,
@@ -10491,6 +10537,9 @@ window.renderEarningsHistory = function() {
     if (chev) chev.classList.toggle('open', open);
     if (hint) hint.textContent = open ? '' : (hidden ? hidden + ' hidden' : '');
   });
+
+  const rateNoteEl = document.getElementById('ehRateNote');
+  if (rateNoteEl) rateNoteEl.textContent = `USD = Points ÷ ${fmtRate(getPtsPerUsd())} (current Points-to-USD Conversion Rate). Earned, Unpaid and Balance figures use the current rate; Paid Out and payout records keep the USD amount and rate saved when each payout was made.`;
 
   const taskChipsEl = document.getElementById('ehTaskChips');
   if (taskChipsEl) {
@@ -10558,18 +10607,19 @@ window.renderEarningsHistory = function() {
     // "Accounts Balance" = total rewarded amount of all accounts, net of what
     // they've already been paid out (each account's own "USD Balance"),
     // summed. Independent figure — does not feed into Unpaid Balance below.
-    const accountsBalanceUsd = accsToConsider.reduce((s, a) => s + calcBalance(a.id), 0);
+    const accountsBalanceUsd = ptsToUsd(accsToConsider.reduce((s, a) => s + calcPointsBalance(a.id), 0));
     // "Unpaid Balance" = total reward for every "assigned" or "completed"
     // task, across the same accounts — a plain, direct sum. No subtraction,
     // no dependency on Accounts Balance; these two chips are independent.
-    let unpaidBalanceUsd = 0;
+    let unpaidBalancePts = 0;
     tasks.forEach(task => {
       (task.assignments || []).forEach(asgn => {
         if (asgn.status !== 'assigned' && asgn.status !== 'completed') return;
         if (accFilterId !== 'all' && asgn.accountId !== accFilterId) return;
-        unpaidBalanceUsd += parseFloat(asgn.reward || task.defaultReward || 0);
+        unpaidBalancePts += rewardToPoints(asgn.reward || task.defaultReward);
       });
     });
+    const unpaidBalanceUsd = ptsToUsd(unpaidBalancePts);
     chipsEl.innerHTML = `
       <div class="stat-chip"><div class="stat-chip-label">Total Paid Out</div><div class="stat-chip-val blue" style="font-weight:700;">${fmtUSDT(totalAll)}</div>${totalAllBdt ? `<div style="font-family:var(--mono);font-size:10px;color:var(--ink3);margin-top:2px;">${fmtBDT(totalAllBdt)}</div>` : ''}</div>
       <div class="stat-chip"><div class="stat-chip-label">Total Earned</div><div class="stat-chip-val green" style="font-weight:700;">${fmtUSDT(taskTotalUsd)}</div>${taskTotalUsd ? approxBdt(taskTotalUsd) : ''}</div>
@@ -10605,7 +10655,7 @@ window.renderEarningsHistory = function() {
         <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
           <div>
             <div style="font-family:var(--mono);font-size:13.2px;font-weight:700;color:var(--ink);">${bucketLabel(k, range)}</div>
-            <div style="font-family:var(--mono);font-size:9.9px;color:var(--ink3);margin-top:2px;">${b.count} payout${b.count>1?'s':''} · ${accs}</div>
+            <div style="font-family:var(--mono);font-size:9.9px;color:var(--ink3);margin-top:2px;">${b.count} payout${b.count>1?'s':''} · ${accs}${ehPayoutMetaExtra(b.entries)}</div>
           </div>
           <div style="text-align:right;">
             <div style="font-family:var(--mono);font-size:16.5px;font-weight:700;color:var(--green);">${fmtUSDT(b.total)}</div>
@@ -10635,7 +10685,32 @@ if (globalSettings.customDevices && Array.isArray(globalSettings.customDevices))
 function populatePayoutThresholdField() {
   const threshInp = document.getElementById('globalPayoutThresholdInput');
   if (threshInp) threshInp.value = globalSettings.payoutThreshold || 500;
+  populateConversionRateField();
 }
+
+function populateConversionRateField() {
+  const inp = document.getElementById('globalPtsPerUsdInput');
+  const cur = document.getElementById('ptsPerUsdCurrent');
+  const r = getPtsPerUsd();
+  if (inp) inp.value = r;
+  if (cur) cur.textContent = `Current: ${fmtRate(r)} Points = $1.00`;
+}
+
+window.saveConversionRate = function() {
+  const inp = document.getElementById('globalPtsPerUsdInput');
+  const raw = inp ? String(inp.value).trim() : '';
+  const val = raw === '' ? NaN : Number(raw);
+  if (!isValidPtsPerUsd(val)) {
+    toast('Conversion rate must be a number greater than 0');
+    populateConversionRateField();   // put the last valid rate back
+    return;
+  }
+  globalSettings.ptsPerUsd = val;    // persisted with the rest of globalSettings (autosave via markUnsaved)
+  populateConversionRateField();
+  renderEarningsHistory();
+  markUnsaved(true);
+  toast(`Conversion rate saved: ${fmtRate(val)} Points = $1.00`);
+};
 
 window.saveGlobalSettings = function() {
   const threshInp = document.getElementById('globalPayoutThresholdInput');
@@ -10650,12 +10725,12 @@ window.saveGlobalSettings = function() {
 function populateDefaultRewardFields() {
   const g = document.getElementById('defaultGoogleRewardInput');
   const y = document.getElementById('defaultYoutubeRewardInput');
-  if (g) g.value = globalSettings.defaultGoogleReward || '';
-  if (y) y.value = globalSettings.defaultYoutubeReward || '';
+  if (g) g.value = rewardToPoints(globalSettings.defaultGoogleReward) || '';
+  if (y) y.value = rewardToPoints(globalSettings.defaultYoutubeReward) || '';
 }
 window.saveDefaultRewards = function() {
-  globalSettings.defaultGoogleReward = parseFloat(document.getElementById('defaultGoogleRewardInput').value) || 0;
-  globalSettings.defaultYoutubeReward = parseFloat(document.getElementById('defaultYoutubeRewardInput').value) || 0;
+  globalSettings.defaultGoogleReward = pointsToReward(document.getElementById('defaultGoogleRewardInput').value);
+  globalSettings.defaultYoutubeReward = pointsToReward(document.getElementById('defaultYoutubeRewardInput').value);
   toast('Default rewards saved');
 };
 
@@ -11459,7 +11534,7 @@ document.addEventListener('paste', function(e) {
   </div>
   <div id="payDockPanelBody">
     <div style="font-family:var(--mono);font-size:11.5px;color:var(--ink3);margin-bottom:14px;line-height:1.6;">
-      Rewards convert to Points at a fixed rate: <strong style="color:var(--jt);">1000 Points = $1.00</strong>.
+      Rewards are tracked in Points. Points convert to USD (shown in Earnings) at the <strong style="color:var(--jt);">Points-to-USD Conversion Rate</strong> below — default <strong style="color:var(--jt);">1,000 Points = $1.00</strong>.
       Points are calculated automatically the moment you mark a task <strong style="color:var(--jt);">Rewarded</strong>.
       An account becomes <strong style="color:var(--jt);">Payout Ready</strong> when its Points balance reaches the threshold below.
     </div>
@@ -11474,6 +11549,19 @@ document.addEventListener('paste', function(e) {
         Account auto-promotes to <strong style="color:var(--jt);">Payout Ready</strong> when Points balance ≥ this value, and reverts to <strong style="color:var(--green);">Active</strong> after payout.
       </div>
       <button class="btn-primary" style="width:100%;padding:9px 10px;white-space:nowrap;" onclick="saveGlobalSettings()">Save Settings</button>
+    </div>
+
+    <!-- Points-to-USD conversion rate -->
+    <div style="display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap;margin-bottom:12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;">
+      <div class="field" style="flex:1;min-width:140px;">
+        <label>Points-to-USD Conversion Rate (Points per $1)</label>
+        <input type="number" id="globalPtsPerUsdInput" min="0" step="any" placeholder="1000" style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:13px;padding:8px 9px;outline:none;width:100%;">
+      </div>
+      <div id="ptsPerUsdCurrent" style="font-family:var(--mono);font-size:10.5px;color:var(--ink3);padding-bottom:9px;line-height:1.5;width:100%;"></div>
+      <div style="font-family:var(--mono);font-size:10.5px;color:var(--ink3);line-height:1.5;width:100%;">
+        Applies to future conversions. Payouts already recorded keep the USD amount (and rate) saved when they were made.
+      </div>
+      <button class="btn-primary" style="width:100%;padding:9px 10px;white-space:nowrap;" onclick="saveConversionRate()">Save Rate</button>
     </div>
   </div>
 </div>
@@ -11598,8 +11686,8 @@ document.addEventListener('paste', function(e) {
             </select>
           </div>
           <div class="field">
-            <label>Default Reward (USDT)</label>
-            <input type="number" id="newTaskReward" placeholder="0.00" step="any" min="0" data-auto-filled="true">
+            <label>Default Reward (Points)</label>
+            <input type="number" id="newTaskReward" placeholder="0" step="any" min="0" data-auto-filled="true">
           </div>
         </div>
         <div class="field">
@@ -11640,8 +11728,8 @@ document.addEventListener('paste', function(e) {
             </select>
           </div>
           <div class="field">
-            <label>Default Reward (USDT)</label>
-            <input type="number" id="bulkTaskReward" placeholder="0.00" step="any" min="0" oninput="this.dataset.userEdited='true'">
+            <label>Default Reward (Points)</label>
+            <input type="number" id="bulkTaskReward" placeholder="0" step="any" min="0" oninput="this.dataset.userEdited='true'">
           </div>
         </div>
         <div class="form-row">
@@ -11673,12 +11761,12 @@ document.addEventListener('paste', function(e) {
           Set the default reward pre-filled when adding a new task. You can always override it per task.
         </div>
         <div class="field">
-          <label>Default Google Task Reward (USDT)</label>
-          <input type="number" id="defaultGoogleRewardInput" min="0" step="any" placeholder="0.00" style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:14.3px;padding:9px 10px;outline:none;width:100%;">
+          <label>Default Google Task Reward (Points)</label>
+          <input type="number" id="defaultGoogleRewardInput" min="0" step="any" placeholder="0" style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:14.3px;padding:9px 10px;outline:none;width:100%;">
         </div>
         <div class="field">
-          <label>Default YouTube Task Reward (USDT)</label>
-          <input type="number" id="defaultYoutubeRewardInput" min="0" step="any" placeholder="0.00" style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:14.3px;padding:9px 10px;outline:none;width:100%;">
+          <label>Default YouTube Task Reward (Points)</label>
+          <input type="number" id="defaultYoutubeRewardInput" min="0" step="any" placeholder="0" style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--ink);font-family:var(--mono);font-size:14.3px;padding:9px 10px;outline:none;width:100%;">
         </div>
         <button class="btn-primary" onclick="saveDefaultRewards()">Save Defaults</button>
       </div>
