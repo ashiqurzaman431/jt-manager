@@ -2578,7 +2578,7 @@ select option { background: var(--surface3); color: var(--ink); }
     <div class="stat-chip"><div class="stat-chip-label">Dead</div><div class="stat-chip-val red">0</div></div>
   </div>
 
-    <div class="sec-title" title="YouTube tasks only, over accounts with status Active. Opportunity = one YouTube task x one active account.">YouTube Task Progress</div>
+    <div class="sec-title" title="Today's YouTube tasks only (day runs 5 PM to 5 PM; resets at 5 PM), over accounts with status Active. Opportunity = one YouTube task x one active account.">YouTube Task Progress</div>
     <div class="earnings-row pct-row" id="dashPctRow">
       <div class="earnings-card"><div class="earnings-label">Completion Percentage</div><div class="earnings-val" id="dashCompletionPct">0%</div><div class="earnings-sub" id="dashCompletionSub">No eligible opportunities</div></div>
       <div class="earnings-card"><div class="earnings-label">Drop Percentage</div><div class="earnings-val" id="dashDropPct" style="color:var(--amber);">0%</div><div class="earnings-sub" id="dashDropSub">No eligible opportunities</div></div>
@@ -4786,6 +4786,8 @@ function renderDashboard() {
 //    Accounts that are no longer active are ignored, like everywhere else.
 //  • Archived tasks with NO archiveOpps (archived before this tracking existed) are excluded from
 //    both numerators and denominators — their history can't be reconstructed without guessing.
+//  • Daily reset: only tasks created in the CURRENT app day (5 PM → 5 PM, same key as the "Today"
+//    tag: getTaskDayKey(createdAt) === todayISO()) count, so both percentages start over at 5 PM.
 function isYtOppAccount(a) { return !!a && !a.deleted && a.status === 'active'; }
 function ytTaskDoneByAccount(task, accId) {
   return (task.assignments || []).some(x => x.accountId === accId && (x.status === 'completed' || x.status === 'rewarded'));
@@ -4805,8 +4807,10 @@ function snapshotYtOpportunities(task, markDropped) {
 function calcYoutubeOpportunityStats() {
   const active = new Set(accounts.filter(isYtOppAccount).map(a => a.id));
   let total = 0, completed = 0, dropped = 0, untracked = 0;
+  const dayKey = todayISO();
   tasks.forEach(t => {
     if (t.type !== 'youtube') return;
+    if (getTaskDayKey(t.createdAt) !== dayKey) return;   // not part of today's batch
     if (!t.archived) {
       active.forEach(id => { total++; if (ytTaskDoneByAccount(t, id)) completed++; });
     } else if (t.archiveOpps) {
@@ -4821,7 +4825,22 @@ function calcYoutubeOpportunityStats() {
            completionPct: total ? completed / total * 100 : 0, dropPct: total ? dropped / total * 100 : 0 };
 }
 function fmtPct(v) { return (Math.round(v * 10) / 10) + '%'; }
+// Re-render when the app day rolls over (5 PM), even if the Dashboard is already open: one timeout
+// aimed at the next cutoff, plus a check when the tab becomes visible again (timers can be delayed
+// in background tabs; the figures themselves are always recomputed from timestamps).
+let _ytDayTimer = null, _ytDayKeySeen = null;
+function scheduleYtDayRollover() {
+  _ytDayKeySeen = todayISO();
+  if (_ytDayTimer) clearTimeout(_ytDayTimer);
+  const next = new Date(); next.setHours(17, 0, 0, 0);
+  if (next.getTime() <= Date.now()) next.setDate(next.getDate() + 1);
+  _ytDayTimer = setTimeout(() => { renderYoutubeProgress(); }, next.getTime() - Date.now() + 1000);
+}
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && _ytDayKeySeen && todayISO() !== _ytDayKeySeen) renderYoutubeProgress();
+});
 function renderYoutubeProgress() {
+  scheduleYtDayRollover();
   const st = calcYoutubeOpportunityStats();
   const set = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
   set('dashCompletionPct', fmtPct(st.completionPct));
@@ -12753,6 +12772,6 @@ if ('serviceWorker' in navigator) {
          font-size:18px;cursor:pointer;
          box-shadow:0 2px 12px rgba(0,0,0,0.22);
          align-items:center;justify-content:center;">↑</button>
-<script>// 47</script>
+<script>// 48</script>
 <protonpass-root-8df7 data-protonpass-role="root" data-protonpass-theme="dark"></protonpass-root-8df7>
 </body></html>
