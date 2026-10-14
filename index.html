@@ -1320,8 +1320,7 @@ body {
 .earnings-row {
   display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin-top:8px;
 }
-.earnings-row.reward-row { grid-template-columns:repeat(4,minmax(0,1fr)); margin-bottom:6px; }
-.reward-row .earnings-val { font-size:20px; }
+.earnings-row.pct-row { grid-template-columns:repeat(2,minmax(0,1fr)); margin-bottom:6px; }
 .earnings-card {
   background:var(--surface); border:1px solid var(--border);
   border-radius:var(--radius); padding:18px 20px;
@@ -1762,6 +1761,8 @@ select option { background: var(--surface3); color: var(--ink); }
 .sr-alert-badge { font-size:9.5px; font-weight:700; padding:2px 8px; border-radius:99px; background:var(--red-light); color:var(--red); border:1px solid var(--red-border); }
 .sr-alert-note { font-size:10px; color:var(--amber); margin-top:5px; line-height:1.4; }
 
+.sr-timer-pick { display:inline-flex; gap:4px; margin-left:4px; }
+.sr-timer-pick .ta-switch-btn { padding:3px 8px; font-size:10.5px; flex:none; }
 .sr-actions { display:flex; gap:7px; flex-wrap:wrap; align-items:center; }
 .sr-btn {
   font-family:var(--mono); font-size:11px; font-weight:700; padding:7px 13px; border-radius:7px; cursor:pointer;
@@ -2231,7 +2232,7 @@ select option { background: var(--surface3); color: var(--ink); }
 
 @media (max-width:600px) {
   .earnings-row { grid-template-columns:1fr; }
-  .earnings-row.reward-row { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .earnings-row.pct-row { grid-template-columns:repeat(2,minmax(0,1fr)); }
   .form-row, .form-row-3 { grid-template-columns:1fr; }
   .dash-cards { grid-template-columns:1fr; }
 }
@@ -2577,12 +2578,10 @@ select option { background: var(--surface3); color: var(--ink); }
     <div class="stat-chip"><div class="stat-chip-label">Dead</div><div class="stat-chip-val red">0</div></div>
   </div>
 
-    <div class="sec-title" title="All figures in Points, across all active accounts. Lifetime = Paid + Unpaid. Expected = Unpaid + assigned/completed tasks not yet rewarded.">Reward Points</div>
-    <div class="earnings-row reward-row" id="dashRewardRow">
-      <div class="earnings-card"><div class="earnings-label">Paid Points</div><div class="earnings-val" id="dashPaidPts">0 PTS</div><div class="earnings-sub">From payout records</div></div>
-      <div class="earnings-card"><div class="earnings-label">Unpaid Points</div><div class="earnings-val" id="dashUnpaidPts">0 PTS</div><div class="earnings-sub">Rewarded, not yet paid</div></div>
-      <div class="earnings-card"><div class="earnings-label">Expected Points</div><div class="earnings-val" id="dashExpectedPts" style="color:var(--amber);">0 PTS</div><div class="earnings-sub">Unpaid + assigned/completed</div></div>
-      <div class="earnings-card"><div class="earnings-label">Lifetime Points</div><div class="earnings-val" id="dashLifetimePts">0 PTS</div><div class="earnings-sub">Paid + Unpaid</div></div>
+    <div class="sec-title" title="YouTube tasks only, over accounts with status Active. Opportunity = one YouTube task x one active account.">YouTube Task Progress</div>
+    <div class="earnings-row pct-row" id="dashPctRow">
+      <div class="earnings-card"><div class="earnings-label">Completion Percentage</div><div class="earnings-val" id="dashCompletionPct">0%</div><div class="earnings-sub" id="dashCompletionSub">No eligible opportunities</div></div>
+      <div class="earnings-card"><div class="earnings-label">Drop Percentage</div><div class="earnings-val" id="dashDropPct" style="color:var(--amber);">0%</div><div class="earnings-sub" id="dashDropSub">No eligible opportunities</div></div>
     </div>
 
     <div class="sec-title">Accounts</div>
@@ -4237,19 +4236,16 @@ let taskAssignedOnly = false;
 // above) rather than persisted, so it mirrors how the rest of this panel works.
 let taskClickMode = 'classic';
 
-// ── Task timer limit (Change 05) ─────────────────────────────────────────────
-// Global 5 min (default) / 2 min countdown limit, counted from assignment start.
-// The choice is locked into each assignment (_acLimitMs) when it is created (or, for
-// older assignments, the first time its card renders), so flipping the toggle never
-// changes a timer that is already running. Remembered per device in localStorage.
+// ── Task timer limit ─────────────────────────────────────────────────────────
+// Each task carries its own 5 min / 2 min countdown choice (task.timerMin; absent = the 5 min
+// default, so no migration and old tasks need no change). The choice is read when an assignment
+// is created and locked into that assignment (_acLimitMs), so changing a task's duration later
+// never alters a timer that is already running — it applies the next time a timer starts.
 const TASK_TIMER_OPTIONS_MIN = [5, 2];
+const TASK_TIMER_DEFAULT_MIN = 5;
 const TASK_NEW_HOLD_MS = 30000; // newly assigned tasks stay at the bottom of the in-progress list this long
-let taskTimerMin = 5;
-try {
-  const saved = parseInt(localStorage.getItem('jt_task_timer_min'), 10);
-  if (TASK_TIMER_OPTIONS_MIN.includes(saved)) taskTimerMin = saved;
-} catch (e) { /* storage unavailable — keep the 5 min default */ }
-function taskTimerLimitMs(asgn) { return (asgn && asgn._acLimitMs > 0) ? asgn._acLimitMs : taskTimerMin * 60000; }
+function taskTimerMinFor(task) { return (task && task.timerMin === 2) ? 2 : TASK_TIMER_DEFAULT_MIN; }
+function taskTimerLimitMs(asgn) { return (asgn && asgn._acLimitMs > 0) ? asgn._acLimitMs : TASK_TIMER_DEFAULT_MIN * 60000; }
 function taskAsgnStartEpoch(asgn) {
   return asgn._acTimerStart || (asgn.assignedAt ? new Date(asgn.assignedAt).getTime() : 0);
 }
@@ -4260,18 +4256,19 @@ function taskRemainingInfo(startEpoch, limitMs) {
   const sec = Math.ceil(remMs / 1000);
   return { text: '⏳ ' + Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0') + ' left', expired: false };
 }
-function taskSyncTimerBtns() {
-  TASK_TIMER_OPTIONS_MIN.forEach(m => {
-    const b = document.getElementById('tkTimerMin' + m);
-    if (b) b.classList.toggle('active', taskTimerMin === m);
-  });
-}
-window.setTaskTimerDuration = function(min) {
+// Per-task duration picker on the task card. Updates only that task and only the DOM buttons
+// (no re-render), so nothing running anywhere is reset. Matches by task id, never by position.
+window.setTaskCardTimer = function(taskId, min) {
   if (!TASK_TIMER_OPTIONS_MIN.includes(min)) return;
-  taskTimerMin = min;
-  try { localStorage.setItem('jt_task_timer_min', String(min)); } catch (e) {}
-  taskSyncTimerBtns();
-  toast('⏱ Task timer: ' + min + ' min (applies to new assignments)');
+  if (!requireAdminForTaskEdit()) return;
+  const t = tasks.find(x => x.id === taskId);
+  if (!t) return;
+  if (min === TASK_TIMER_DEFAULT_MIN) delete t.timerMin; else t.timerMin = min;
+  document.querySelectorAll('.sr-timer-pick').forEach(box => {
+    if (box.dataset.timerTask !== taskId) return;   // the same task can be on screen twice (pinned + list)
+    box.querySelectorAll('.ta-switch-btn').forEach(b => b.classList.toggle('active', parseInt(b.dataset.min, 10) === min));
+  });
+  markUnsaved(true);
 };
 const TASKS_PER_PAGE = 21;
 let taskPage = 0; // legacy — no longer drives rendering, kept only so old reset call sites stay harmless
@@ -4662,10 +4659,7 @@ function renderDashboard() {
     <div class="stat-chip"><div class="stat-chip-label">Dead</div><div class="stat-chip-val red">${counts.dead}</div></div>
   `;
 
-  const rw = calcDashboardRewardTotals();
-  const setPts = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = fmtPoints(v); };
-  setPts('dashPaidPts', rw.paid); setPts('dashUnpaidPts', rw.unpaid);
-  setPts('dashExpectedPts', rw.expected); setPts('dashLifetimePts', rw.lifetime);
+  renderYoutubeProgress();
 
   // Account cards — sorted: payout_ready first, then by balance desc, then by due rewards desc
   if (!accounts.some(a => !a.deleted)) {
@@ -4780,31 +4774,61 @@ function renderDashboard() {
   document.getElementById('earnWeekRange').textContent = fmtDate(ws.toISOString()) + ' – ' + fmtDate(wsEnd.toISOString());
 }
 
-// Dashboard "Reward Points" totals (all non-deleted accounts, Points only). One pass over tasks.
-//  Paid     = points of every recorded payout (payoutPoints — legacy-safe, never uses the live rate)
-//  Unpaid   = rewarded points net of points withdrawn, plus manual adjustment — the same formula
-//             as calcPointsBalance(), summed over accounts
-//  Expected = Unpaid + assigned/completed (not yet rewarded) task rewards — as on Account Detail
-//  Lifetime = Paid + Unpaid
-function calcDashboardRewardTotals() {
-  const per = new Map();
-  accounts.forEach(a => { if (!a.deleted) per.set(a.id, { rewarded: 0, pending: 0 }); });
-  tasks.forEach(task => (task.assignments || []).forEach(asgn => {
-    const p = per.get(asgn.accountId);
-    if (!p) return;
-    if (asgn.status === 'rewarded') p.rewarded += parseFloat(asgn.pointsEarned || 0);
-    else if (asgn.status === 'completed' || asgn.status === 'assigned') p.pending += rewardToPoints(asgn.reward || task.defaultReward);
-  }));
-  let paid = 0, unpaid = 0, pending = 0;
+// ── YouTube task opportunities (Dashboard Completion / Drop percentage) ─────────
+// An opportunity = one YouTube task x one account whose status is exactly 'active'
+// (not deleted). Google tasks are never counted.
+//  • Live (not archived) tasks: every active account is an opportunity; it is COMPLETED when
+//    that account has an assignment on the task with status completed or rewarded (counted
+//    once per task+account, however many assignments exist).
+//  • Archived tasks: the outcome was recorded at archive time in task.archiveOpps
+//    ({at, done:[accountIds], dropped:[accountIds]}) — done = already completed when archived,
+//    dropped = archived before completion. Restoring a task clears it (the task is available again).
+//    Accounts that are no longer active are ignored, like everywhere else.
+//  • Archived tasks with NO archiveOpps (archived before this tracking existed) are excluded from
+//    both numerators and denominators — their history can't be reconstructed without guessing.
+function isYtOppAccount(a) { return !!a && !a.deleted && a.status === 'active'; }
+function ytTaskDoneByAccount(task, accId) {
+  return (task.assignments || []).some(x => x.accountId === accId && (x.status === 'completed' || x.status === 'rewarded'));
+}
+// Records the opportunity outcome when a YouTube task is archived. `markDropped=false` is used when
+// the task is archived because it was replicated (its opportunities continue on the clone).
+function snapshotYtOpportunities(task, markDropped) {
+  if (!task || task.type !== 'youtube') return;
+  const done = [], dropped = [];
   accounts.forEach(a => {
-    const p = per.get(a.id);
-    if (!p) return;
-    const hist = a.payoutHistory || [];
-    paid += hist.reduce((s, x) => s + payoutPoints(x), 0);
-    unpaid += p.rewarded - hist.reduce((s, x) => s + parseFloat(x.pointsAmount || 0), 0) + rewardToPoints(a.balanceAdjustment);
-    pending += p.pending;
+    if (!isYtOppAccount(a)) return;
+    if (ytTaskDoneByAccount(task, a.id)) done.push(a.id);
+    else if (markDropped !== false) dropped.push(a.id);
   });
-  return { paid, unpaid, expected: unpaid + pending, lifetime: paid + unpaid };
+  task.archiveOpps = { at: now(), done, dropped };
+}
+function calcYoutubeOpportunityStats() {
+  const active = new Set(accounts.filter(isYtOppAccount).map(a => a.id));
+  let total = 0, completed = 0, dropped = 0, untracked = 0;
+  tasks.forEach(t => {
+    if (t.type !== 'youtube') return;
+    if (!t.archived) {
+      active.forEach(id => { total++; if (ytTaskDoneByAccount(t, id)) completed++; });
+    } else if (t.archiveOpps) {
+      const d = (t.archiveOpps.done || []).filter(id => active.has(id));
+      const x = (t.archiveOpps.dropped || []).filter(id => active.has(id));
+      total += d.length + x.length; completed += d.length; dropped += x.length;
+    } else {
+      untracked++;
+    }
+  });
+  return { total, completed, dropped, untracked,
+           completionPct: total ? completed / total * 100 : 0, dropPct: total ? dropped / total * 100 : 0 };
+}
+function fmtPct(v) { return (Math.round(v * 10) / 10) + '%'; }
+function renderYoutubeProgress() {
+  const st = calcYoutubeOpportunityStats();
+  const set = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
+  set('dashCompletionPct', fmtPct(st.completionPct));
+  set('dashDropPct', fmtPct(st.dropPct));
+  set('dashCompletionSub', st.total ? `${st.completed} of ${st.total} opportunities` : 'No eligible opportunities');
+  set('dashDropSub', (st.total ? `${st.dropped} of ${st.total} opportunities` : 'No eligible opportunities')
+    + (st.untracked ? ` · ${st.untracked} older archived not tracked` : ''));
 }
 
 // Returns Points earned from rewarded tasks, net of points withdrawn
@@ -5650,7 +5674,6 @@ function renderTasks() {
   const clickModeClickBtn   = document.getElementById('tkClickModeClick');
   if (clickModeClassicBtn) clickModeClassicBtn.classList.toggle('active', taskClickMode === 'classic');
   if (clickModeClickBtn)   clickModeClickBtn.classList.toggle('active', taskClickMode === 'click');
-  taskSyncTimerBtns();
   renderTaskAccountFilterBar();
   // Sync account dropdown value after population
   const accSel = document.getElementById('taskAccountFilterBar');
@@ -6192,6 +6215,10 @@ function renderTaskCard(task, dualAccId) {
       ${isYT ? `<button class="sr-btn-icon amber" onclick="openThumbModal('${task.id}')" title="${task.thumbnail?'Change thumbnail':'Add thumbnail'}">${task.thumbnail?'🖼':'📷'}</button>` : ''}
       <button class="sr-btn-icon" onclick="archiveTask('${task.id}')" title="Archive">📦</button>
       <button class="sr-btn-icon danger" onclick="deleteTask('${task.id}')" title="Permanently delete task">🗑</button>
+      <span class="sr-timer-pick" data-timer-task="${task.id}" title="Countdown for this task — applies when its timer next starts">
+        <button class="ta-switch-btn${taskTimerMinFor(task) === 5 ? ' active' : ''}" data-min="5" onclick="setTaskCardTimer('${task.id}',5)">5 min</button>
+        <button class="ta-switch-btn${taskTimerMinFor(task) === 2 ? ' active' : ''}" data-min="2" onclick="setTaskCardTimer('${task.id}',2)">2 min</button>
+      </span>
     </div>`;
 
   const archiveSelectHtml = taskArchiveMode ? `
@@ -6810,6 +6837,7 @@ window.archiveTask = function(id) {
   openConfirm('Archive this task? It will be hidden. Uncheck "📦 Hide archived" in the task filters to view archived tasks.', () => {
     pushUndo('Archive task ' + (t ? t.title : id));
     if (t) { 
+      snapshotYtOpportunities(t);
       t.archived = true; 
       t.archivedAt = now();
       // Set permanent flag if user checked it OR if archive count >= 5
@@ -6876,6 +6904,7 @@ window.archiveSelectedTasks = function() {
     pushUndo(`Archive selected tasks (${toArchive.length})`);
     toArchive.forEach(t => {
       t.archiveCount = (t.archiveCount || 0) + 1;
+      snapshotYtOpportunities(t);
       t.archived = true;
       t.archivedAt = now();
       if (t.archiveCount >= 5) t.permanentArchive = true;
@@ -6903,6 +6932,7 @@ window.archiveAllTasks = function() {
     pushUndo(`Archive all tasks (${toArchive.length})`);
     toArchive.forEach(t => {
       t.archiveCount = (t.archiveCount || 0) + 1;
+      snapshotYtOpportunities(t);
       t.archived = true;
       t.archivedAt = now();
       if (t.archiveCount >= 5) t.permanentArchive = true;
@@ -6939,6 +6969,7 @@ window.unarchiveTask = function(id) {
   // the mutation below always runs regardless.
   try { pushUndo('Restore task ' + t.title); } catch (err) { console.error('pushUndo failed', err); }
   t.archived = false;
+  delete t.archiveOpps;   // available again — no longer an archived outcome
   // Reset counters on manual restore
   t.archiveCount = 0;
   t.permanentArchive = false;
@@ -6966,7 +6997,7 @@ window.assignToAllActive = function(taskId) {
       status: 'assigned',
       reward: t.defaultReward, assignedAt: now(),
       completedAt: null, rewardedAt: null,
-      _acTimerStart: Date.now(), _acLimitMs: taskTimerMin * 60000,
+      _acTimerStart: Date.now(), _acLimitMs: taskTimerMinFor(t) * 60000,
       ip: ipMeta.ip, ipName: ipMeta.ipName,
       acDescription: 'TaskRec01: task assigned, timer started.' + (ipMeta.ipName ? ' · IP: ' + ipMeta.ipName : '')
     });
@@ -7067,6 +7098,7 @@ window.saveReplicateTask = function() {
   // (auto-locking permanent at 5), not for this housekeeping step that
   // fires every time a task gets replicated. So this never risks a task
   // ending up permanently archived just from being replicated.
+  snapshotYtOpportunities(src, false);   // replicated, not abandoned — unfinished opportunities continue on the clone
   src.archived = true;
   src.archivedAt = now();
 
@@ -7497,7 +7529,7 @@ function _doAssign(taskId, accId, customReward, title) {
     completedAt: null,
     rewardedAt: null,
     _acTimerStart: Date.now(),
-    _acLimitMs: taskTimerMin * 60000,
+    _acLimitMs: taskTimerMinFor(t) * 60000,
     ip: ipMeta.ip,
     ipName: ipMeta.ipName,
     acDescription: 'TaskRec01: task assigned, timer started.' + (ipMeta.ipName ? ' · IP: ' + ipMeta.ipName : '')
@@ -9379,6 +9411,7 @@ function tsAutoRestoreEligibleTasks() {
     }
     // Restore it
     t.archived = false;
+    delete t.archiveOpps;
     t.archiveCount = 0;
     t.permanentArchive = false;
     restored.push(t.title);
@@ -11133,7 +11166,10 @@ function acEnsureTimerStarted(asgnId, asgn) {
       asgn._acTimerStart = startEpoch;
       markUnsaved(true);
     }
-    if (!(asgn._acLimitMs > 0)) { asgn._acLimitMs = taskTimerMin * 60000; markUnsaved(true); }
+    if (!(asgn._acLimitMs > 0)) {
+      const owner = tasks.find(x => (x.assignments || []).includes(asgn));
+      asgn._acLimitMs = taskTimerMinFor(owner) * 60000; markUnsaved(true);
+    }
     const intervalId = setInterval(() => {
       acCheckBeep(asgnId);
     }, 1000);
@@ -11907,13 +11943,6 @@ document.addEventListener('paste', function(e) {
       </div>
     </div>
     <div>
-      <div style="font-family:var(--mono);font-size:10px;color:var(--ink3);margin-bottom:5px;" title="Countdown limit for newly assigned tasks (running timers keep the limit they started with). Default 5 min.">⏱ Task Timer</div>
-      <div style="display:flex;gap:6px;">
-        <button class="ta-switch-btn" id="tkTimerMin5" style="flex:1;" onclick="setTaskTimerDuration(5)">5 min</button>
-        <button class="ta-switch-btn" id="tkTimerMin2" style="flex:1;" onclick="setTaskTimerDuration(2)">2 min</button>
-      </div>
-    </div>
-    <div>
       <div style="font-family:var(--mono);font-size:10px;color:var(--ink3);margin-bottom:5px;">Range</div>
       <div style="display:flex;align-items:center;gap:5px;">
         <input type="number" id="taskRangeFrom" placeholder="From" oninput="applyTaskSearch()" class="search-input-bw">
@@ -12054,6 +12083,16 @@ document.addEventListener('paste', function(e) {
   <div id="toolKitsSwitcher">
     <button class="tkit-switch-btn active" id="tkitSwitchSwitcher" onclick="toolKitsShowTab('switcher')">👤 Switcher</button>
     <button class="tkit-switch-btn admin-only-task-ctl" id="tkitSwitchSets" onclick="toolKitsShowTab('sets')">🗂 Sets</button>
+    <button class="tkit-switch-btn" id="tkitSwitchPicker" onclick="toolKitsShowTab('picker')">🎲 Picker</button>
+  </div>
+
+  <!-- Picker sub-view: Random Active Account Picker (display only — never switches account or changes data) -->
+  <div id="toolKitsPickerSection" class="tkit-section">
+    <div style="padding:12px;display:flex;flex-direction:column;gap:10px;">
+      <div style="font-family:var(--mono);font-size:11px;font-weight:700;color:var(--ink2);">Random Active Account Picker</div>
+      <button class="btn-primary" id="randomAccPickBtn" style="width:100%;padding:9px 10px;font-size:12.1px;" onclick="pickRandomActiveAccount()">🎲 Pick Random Account</button>
+      <div id="randomAccResult" aria-live="polite" style="font-family:var(--mono);font-size:12px;color:var(--ink3);text-align:center;padding:14px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);">No account picked yet</div>
+    </div>
   </div>
 
   <!-- Switcher sub-view: picks the account used to filter the task list -->
@@ -12173,10 +12212,12 @@ window.toolKitsShowTab = function(which) {
   const sections = {
     switcher: document.getElementById('toolKitsSwitcherSection'),
     sets:     document.getElementById('toolKitsSetsSection'),
+    picker:   document.getElementById('toolKitsPickerSection'),
   };
   const buttons = {
     switcher: document.getElementById('tkitSwitchSwitcher'),
     sets:     document.getElementById('tkitSwitchSets'),
+    picker:   document.getElementById('tkitSwitchPicker'),
   };
   Object.keys(sections).forEach(key => {
     if (sections[key]) sections[key].classList.toggle('active', key === which);
@@ -12185,10 +12226,56 @@ window.toolKitsShowTab = function(which) {
   if (which === 'sets') {
     closeSetEditor();
     renderSetsList();
+  } else if (which === 'picker') {
+    renderRandomAccountResult();
   } else {
     if (typeof window.renderTaskSwitcherList === 'function') window.renderTaskSwitcherList();
   }
   positionToolKitsDock();
+};
+
+// ── Random Active Account Picker ─────────────────────────────────────────────
+// Picks one account whose status is exactly 'active' (not deleted) from the live `accounts`
+// array at click time. Display only: it never changes taskAccountFilter, statuses or any data.
+let _randomAccPick = null;   // { label html, poolSize } of the last pick — kept until the next pick
+function randomIntBelow(n) {
+  // Uniform integer in [0, n). crypto + rejection sampling avoids modulo bias.
+  if (typeof crypto !== 'undefined' && crypto.getRandomValues && n > 0) {
+    const buf = new Uint32Array(1), limit = Math.floor(4294967296 / n) * n;
+    do { crypto.getRandomValues(buf); } while (buf[0] >= limit);
+    return buf[0] % n;
+  }
+  return Math.floor(Math.random() * n);
+}
+function getPickableAccounts() { return accounts.filter(isYtOppAccount); }
+function renderRandomAccountResult() {
+  const el = document.getElementById('randomAccResult');
+  const btn = document.getElementById('randomAccPickBtn');
+  if (!el) return;
+  if (!_randomAccPick) {
+    el.style.color = 'var(--ink3)'; el.textContent = 'No account picked yet';
+    if (btn) btn.textContent = '🎲 Pick Random Account';
+    return;
+  }
+  if (btn) btn.textContent = '🎲 Pick Again';
+  if (_randomAccPick.empty) {
+    el.style.color = 'var(--amber)'; el.textContent = 'No active accounts available';
+    return;
+  }
+  el.style.color = 'var(--ink)';
+  el.innerHTML = `<div style="font-size:15px;font-weight:700;">${_randomAccPick.html}</div>
+    <div style="font-size:10px;color:var(--ink3);margin-top:4px;">picked from ${_randomAccPick.poolSize} active account${_randomAccPick.poolSize === 1 ? '' : 's'}</div>`;
+}
+window.pickRandomActiveAccount = function() {
+  const pool = getPickableAccounts();
+  if (!pool.length) {
+    _randomAccPick = { empty: true };
+  } else {
+    const acc = pool[randomIntBelow(pool.length)];
+    const flag = (typeof countryFlag === 'function' && countryFlag(acc.country)) ? countryFlag(acc.country) + ' ' : '';
+    _randomAccPick = { html: flag + escapeHtml(acc.name || acc.id), poolSize: pool.length };
+  }
+  renderRandomAccountResult();
 };
 
 function updateSetsDockTabCount() {
@@ -12666,6 +12753,6 @@ if ('serviceWorker' in navigator) {
          font-size:18px;cursor:pointer;
          box-shadow:0 2px 12px rgba(0,0,0,0.22);
          align-items:center;justify-content:center;">↑</button>
-<script>// 46</script>
+<script>// 47</script>
 <protonpass-root-8df7 data-protonpass-role="root" data-protonpass-theme="dark"></protonpass-root-8df7>
 </body></html>
