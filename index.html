@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="en"><head>
 <meta charset="UTF-8">
+<link rel="preconnect" href="https://script.google.com">
+<link rel="preconnect" href="https://drive.google.com">
+<link rel="preconnect" href="https://lh3.googleusercontent.com" crossorigin>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Jt Manager</title>
 <link rel="manifest" href="/jt-manager/manifest.json">
@@ -2633,7 +2636,7 @@ select option { background: var(--surface3); color: var(--ink); }
     <!-- Search + Sort row (Range/Date/Clear/Type/Tags/checkboxes live in the Task Kits dock panel) -->
     <div id="taskFilterRow" style="display:flex !important;flex-direction:row !important;align-items:center;gap:6px;margin-bottom:12px;flex-wrap:nowrap !important;overflow-x:auto;-webkit-overflow-scrolling:touch;">
       <div style="display:flex;align-items:center;gap:5px;flex-shrink:0;">
-        <span style="font-family:var(--mono);font-size:10px;color:var(--ink3);white-space:nowrap;" title="Search by title, ID, or link. Several words (space-separated) are ranked by relevance: exact phrase first, then phrase with extra words, then all words, then matches missing one or two words. Separate words with ; for the older word-count ranking.">Search</span>
+        <span style="font-family:var(--mono);font-size:10px;color:var(--ink3);white-space:nowrap;" title="Search by title, ID, link, topic name, or chapter time (e.g. 1'07 or 1:07). Several words (space-separated) are ranked by relevance: exact phrase first, then phrase with extra words, then all words, then matches missing one or two words. Separate words with ; for the older word-count ranking.">Search</span>
         <input type="text" id="taskTitleSearch" placeholder="Search…" oninput="applyTaskSearch()" class="search-input-bw" style="width:28vw;min-width:80px;max-width:160px;flex:none !important;">
         <button onclick="clearTaskSearch()" class="search-clear-bw task-search-clear" title="Clear search" aria-label="Clear search" style="flex:none;white-space:nowrap;">✕<span class="tsc-label"> Clear Search</span></button>
       </div>
@@ -4309,6 +4312,49 @@ let dualLoadedCount = [TASKS_PER_PAGE, TASKS_PER_PAGE];
 // "Load Thumbnail" placeholder. Cleared only on a full page reload.
 const driveThumbCache = {};
 
+// Persistent copy of that cache (localStorage), keyed by the Drive search title, so the slow
+// Apps Script title -> fileId lookup happens once per task EVER instead of once per page load.
+// Entries expire after 7 days, and a broken image (file deleted/replaced in Drive) drops its
+// entry and falls back to the "Load Thumbnail" placeholder — see thumbImgFailed().
+const THUMB_LS_KEY = 'jt_thumb_fileids_v1';
+const THUMB_LS_TTL = 7 * 24 * 60 * 60 * 1000;
+let _thumbLsMem = null;
+function _thumbLs() {
+  if (_thumbLsMem) return _thumbLsMem;
+  try { _thumbLsMem = JSON.parse(localStorage.getItem(THUMB_LS_KEY) || '{}') || {}; }
+  catch (e) { _thumbLsMem = {}; }
+  return _thumbLsMem;
+}
+function _thumbLsSave() { try { localStorage.setItem(THUMB_LS_KEY, JSON.stringify(_thumbLsMem || {})); } catch (e) {} }
+function _thumbKey(t) { return String((t && (t.driveSearchTitle || t.title)) || '').trim(); }
+function thumbCacheGet(t) {
+  if (!t) return null;
+  if (driveThumbCache[t.id]) return driveThumbCache[t.id];
+  const e = _thumbLs()[_thumbKey(t)];
+  if (e && e.id && Date.now() - e.ts < THUMB_LS_TTL) { driveThumbCache[t.id] = e.id; return e.id; }
+  return null;
+}
+function thumbCacheSet(t, fileId) {
+  if (!t || !fileId) return;
+  driveThumbCache[t.id] = fileId;
+  const key = _thumbKey(t); if (!key) return;
+  _thumbLs()[key] = { id: fileId, ts: Date.now() };
+  _thumbLsSave();
+}
+function thumbCacheDrop(taskId) {
+  const t = tasks.find(x => x.id === taskId);
+  delete driveThumbCache[taskId];
+  if (t) { delete _thumbLs()[_thumbKey(t)]; _thumbLsSave(); }
+}
+// onerror of a Drive-served thumbnail <img>: forget the stale fileId, show the placeholder again.
+window.thumbImgFailed = function(img) {
+  const wrap = img.closest && img.closest('.sr-thumb-wrap'); if (!wrap) return;
+  thumbCacheDrop(wrap.dataset.taskId);
+  wrap.dataset.revealed = '0';
+  wrap.classList.add('sr-thumb-placeholder');
+  wrap.innerHTML = `📥<br>Load<br>${wrap.dataset.kind === 'thumbnail' ? 'Thumbnail' : 'Preview'}`;
+};
+
 // "Archive Tasks" selection mode — lets the user either archive everything
 // in one go, or check off specific (non-archived) tasks and archive just
 // those. Only non-archived tasks are selectable; archived tasks render via
@@ -5272,8 +5318,33 @@ function taskSearchFields(t) {
   const parts = [t.title || ''];
   (t.links || []).forEach(l => {
     parts.push(l.videoLink||'', l.thumbLink||'', l.url||'', l.searchKeyword||'', l.topicName||'', l.label||'');
+    // Chapter time (stored as m'ss, e.g. "1'07"). Also searchable together with the topic
+    // name (as shown on the chip: "1'07 · Intro"), and — for 60+ minute chapters — in the
+    // clock form people type from YouTube (62'35 -> "1:02:35").
+    if (l.topicMss) {
+      parts.push(l.topicMss);
+      if (l.topicName) parts.push(l.topicMss + ' ' + l.topicName);
+      const m = /^(\d+)'(\d{2})$/.exec(String(l.topicMss).trim());
+      if (m && parseInt(m[1], 10) >= 60) {
+        const mins = parseInt(m[1], 10);
+        parts.push(Math.floor(mins / 60) + ':' + String(mins % 60).padStart(2, '0') + ':' + m[2]);
+      }
+    }
   });
   return parts;
+}
+// Single-term search helper: does this task have a chapter time matching the query?
+// Accepts "1'07" or "1:07" (colon form is converted to the app's m'ss form). Only queries
+// containing ' or : do a substring match; a bare number must equal the whole time, so
+// "5" can't flood results with every "5'xx" chapter.
+function taskTopicTimeMatches(t, q) {
+  q = String(q || '').trim().toLowerCase().replace(/^(\d+):(\d{2})$/, "$1'$2");
+  if (!q) return false;
+  const hasSep = q.includes("'");
+  return (t.links || []).some(l => {
+    const ms = String(l.topicMss || '').toLowerCase();
+    return ms && (hasSep ? ms.includes(q) : ms === q);
+  });
 }
 function taskSearchableText(t) {
   return taskSearchFields(t).join(' ').toLowerCase();
@@ -5326,7 +5397,8 @@ function taskWordSearchScore(t, words) {
   const hay = taskSearchableText(t);
   let count = 0, score = 0;
   words.forEach((w, i) => {
-    if (w && hay.includes(w)) { count++; score += (words.length - i); }
+    const w2 = w.replace(/^(\d+):(\d{2})$/, "$1'$2"); // "1:07" also finds chapter time 1'07
+    if (w && (hay.includes(w) || hay.includes(w2))) { count++; score += (words.length - i); }
   });
   return { count, score };
 }
@@ -5483,7 +5555,8 @@ function computeTaskList(accId, setId, exceptMode, hideCompletedForAcc) {
         (l.topicName && l.topicName.toLowerCase().includes(titleQ)) ||
         (l.label && l.label.toLowerCase().includes(titleQ))
       );
-      if (!matchesTitle && !matchesVideoId && !matchesThumbId && !matchesLink) return false;
+      const matchesTopicTime = taskTopicTimeMatches(t, titleQRaw);
+      if (!matchesTitle && !matchesVideoId && !matchesThumbId && !matchesLink && !matchesTopicTime) return false;
     }
     if (rangeFrom !== null && rangeTo !== null) {
       const num = parseFloat(t.title);
@@ -6024,7 +6097,7 @@ function renderTaskCard(task, dualAccId) {
   // Clicking either one calls openTaskMediaModal / handleThumbClick, which
   // shows the local image instantly or fetches it from Drive on demand.
   const showThumbSlot = !!(task.thumbnail || task.previewButton);
-  const cachedFileId = driveThumbCache[task.id];
+  const cachedFileId = task.thumbnail ? null : thumbCacheGet(task);
   const thumbHtml = showThumbSlot
     ? (task.thumbnail
         ? `<div class="sr-thumb-wrap" data-task-id="${task.id}" data-revealed="0" data-kind="${isYT?'thumbnail':'preview'}" onclick="handleThumbClick(this)" title="Click to view, click again to open">
@@ -6032,7 +6105,7 @@ function renderTaskCard(task, dualAccId) {
            </div>`
         : cachedFileId
           ? `<div class="sr-thumb-wrap" data-task-id="${task.id}" data-revealed="1" data-kind="${isYT?'thumbnail':'preview'}" onclick="handleThumbClick(this)" title="Click to open">
-               <img src="https://drive.google.com/thumbnail?id=${cachedFileId}&sz=w300" alt="thumb" class="sr-thumb">
+               <img src="https://drive.google.com/thumbnail?id=${cachedFileId}&sz=w300" alt="thumb" class="sr-thumb" decoding="async" onerror="thumbImgFailed(this)">
              </div>`
           : `<div class="sr-thumb-wrap sr-thumb-placeholder" data-task-id="${task.id}" data-revealed="0" data-kind="${isYT?'thumbnail':'preview'}" onclick="handleThumbClick(this)" title="Load ${isYT?'thumbnail':'preview'} from Drive">
                📥<br>Load<br>${isYT?'Thumbnail':'Preview'}
@@ -6413,6 +6486,8 @@ async function loadThumbForElement(el) {
   const t = tasks.find(x => x.id === taskId);
   if (!t) return;
   if (t.thumbnail) { el.dataset.revealed = '1'; return; }
+  if (el.dataset.loading === '1') return; // already being fetched by another worker
+  el.dataset.loading = '1';
 
   const kindLabel = el.dataset.kind === 'thumbnail' ? 'Thumbnail' : 'Preview';
   const searchTitle = t.driveSearchTitle || t.title;
@@ -6420,9 +6495,16 @@ async function loadThumbForElement(el) {
   el.innerHTML = `<div class="sr-thumb-placeholder" style="width:220px;height:124px;">Loading…</div>`;
 
   try {
-    const url = `${THUMB_SCRIPT_URL}?action=findImage&title=${encodeURIComponent(searchTitle)}`;
-    const res = await fetch(url);
-    const data = await res.json();
+    // Known fileId (this session or a previous one) — skip the slow Apps Script lookup entirely.
+    const knownId = thumbCacheGet(t);
+    let data;
+    if (knownId) {
+      data = { ok: true, fileId: knownId };
+    } else {
+      const url = `${THUMB_SCRIPT_URL}?action=findImage&title=${encodeURIComponent(searchTitle)}`;
+      const res = await fetch(url);
+      data = await res.json();
+    }
 
     if (!data.ok) {
       el.classList.add('sr-thumb-placeholder');
@@ -6431,15 +6513,17 @@ async function loadThumbForElement(el) {
       return; // stays unrevealed, can retry
     }
 
-    el.innerHTML = `<img src="https://drive.google.com/thumbnail?id=${data.fileId}&sz=w300" alt="thumb" class="sr-thumb">`;
+    el.innerHTML = `<img src="https://drive.google.com/thumbnail?id=${data.fileId}&sz=w300" alt="thumb" class="sr-thumb" decoding="async" onerror="thumbImgFailed(this)">`;
     el.dataset.revealed = '1';
-    driveThumbCache[taskId] = data.fileId;
+    thumbCacheSet(t, data.fileId);
     // Note: loading a thumbnail never restores an archived task — archived
     // tasks stay archived until the user explicitly clicks "↩ Restore".
   } catch (err) {
     el.classList.add('sr-thumb-placeholder');
     el.innerHTML = `📥<br>Load<br>${kindLabel}`;
     if (!_thumbQueueBusy) toast('Failed to load preview.');
+  } finally {
+    el.dataset.loading = '0';
   }
 }
 
@@ -6464,15 +6548,22 @@ function queueThumbLoad(el, opts) {
   _thumbMutexChain = _thumbMutexChain.then(() => loadThumbForElement(el));
 }
 
+// Several lookups in flight at once (each Apps Script call has a multi-second round trip, so
+// strictly one-at-a-time made Load All crawl). Workers pull from the same queues, so order of
+// START is still top-to-bottom with manual clicks jumping the line.
+const THUMB_CONCURRENCY = 4;
 async function _runThumbQueueProcessor() {
   if (_thumbQueueBusy) return;
   _thumbQueueBusy = true;
-  try {
+  const worker = async () => {
     while (_thumbPriorityQueue.length || _thumbAutoQueue.length) {
       const el = _thumbPriorityQueue.length ? _thumbPriorityQueue.shift() : _thumbAutoQueue.shift();
       if (!el || !document.body.contains(el) || el.dataset.revealed === '1') continue;
       await loadThumbForElement(el);
     }
+  };
+  try {
+    await Promise.all(Array.from({ length: THUMB_CONCURRENCY }, worker));
     toast('All thumbnails loaded');
   } finally {
     _thumbQueueBusy = false;
@@ -6524,18 +6615,26 @@ window.openTaskMediaModal = async function(taskId) {
   body.innerHTML = `<div style="color:#aaa;font-family:monospace;padding:40px;font-size:14px;text-align:center;">Loading thumbnail for <b style="color:#fff;">${t.title}</b>…</div>`;
 
   try {
-    const url = `${THUMB_SCRIPT_URL}?action=findImage&title=${encodeURIComponent(searchTitle)}`;
-    const res = await fetch(url);
-    const data = await res.json();
-
-    if (!data.ok) {
-      closeMediaPreviewModal();
-      toast(data.error || 'No matching image found for this task.');
-      return;
+    let fileId = thumbCacheGet(t);
+    if (!fileId) {
+      const url = `${THUMB_SCRIPT_URL}?action=findImage&title=${encodeURIComponent(searchTitle)}`;
+      const res = await fetch(url);
+      const data = await res.json();
+      if (!data.ok) {
+        closeMediaPreviewModal();
+        toast(data.error || 'No matching image found for this task.');
+        return;
+      }
+      fileId = data.fileId;
+      thumbCacheSet(t, fileId);
     }
 
-    const previewUrl = `https://drive.google.com/file/d/${data.fileId}/preview`;
-    body.innerHTML = `<iframe src="${previewUrl}" style="width:100%;height:100%;border:none;" allowfullscreen></iframe>`;
+    // A large Drive thumbnail <img> shows up far faster than the full Drive viewer iframe;
+    // if the image can't load (non-image file, etc.) fall back to the iframe viewer.
+    const previewUrl = `https://drive.google.com/file/d/${fileId}/preview`;
+    body.innerHTML = `<img src="https://drive.google.com/thumbnail?id=${fileId}&sz=w1600" alt="preview" style="max-width:100%;max-height:100%;object-fit:contain;margin:auto;display:block;" decoding="async">`;
+    const im = body.querySelector('img');
+    im.onerror = () => { body.innerHTML = `<iframe src="${previewUrl}" style="width:100%;height:100%;border:none;" allowfullscreen></iframe>`; };
   } catch (err) {
     console.error(err);
     closeMediaPreviewModal();
